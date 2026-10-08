@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "brasil-fiscal",
+  "main": "cloudflare/worker.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "keep_vars": true,
+  "observability": { "enabled": true },
+  // Verificação diária das fontes (06:00 UTC = 03:00 em Brasília): chama /api/cron/health dentro do próprio Worker.
+  "triggers": { "crons": ["0 6 * * *"] }
+  // Variáveis e segredos NÃO ficam aqui: cadastre no painel da Cloudflare (veja docs/GUIA_IMPLANTACAO.md).
+}

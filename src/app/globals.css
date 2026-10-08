@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/* ───────── Design tokens — Brasil Fiscal ─────────
+   Superfícies neutras + uma cor primária marcante (azul "Brasil") + acento amarelo usado só no logotipo.
+   Cores semânticas de gráfico: receita (verde-azulado), despesa (azul), dívida (violeta), alerta (âmbar). */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-bg: #fafaf9;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f4f2;
+  --color-line: #e7e5e0;
+  --color-ink: #14181f;
+  --color-ink-2: #4a5160;
+  --color-ink-3: #596170;   /* contraste ≥ 5,5:1 sobre as superfícies (WCAG AA) */
+
+  --color-primary: #1a46d4;
+  --color-primary-600: #1538ae;
+  --color-primary-50: #eef2fe;
+  --color-accent: #f5b800;
+
+  --color-revenue: #0f766e;
+  --color-expense: #1a46d4;
+  --color-debt: #7c3aed;
+  --color-result: #374151;
+
+  --color-ok: #15803d;
+  --color-warn: #b45309;
+  --color-bad: #b91c1c;
+  --color-ok-bg: #ecfdf3;
+  --color-warn-bg: #fffbeb;
+  --color-bad-bg: #fef2f2;
+
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgb(20 24 31 / 0.04), 0 1px 1px rgb(20 24 31 / 0.03);
+
+  /* categórica para "R$100" (daltonismo: variar luminosidade além do matiz) */
+  --color-c1: #1a46d4;
+  --color-c2: #0f766e;
+  --color-c3: #d97706;
+  --color-c4: #be185d;
+  --color-c5: #7c3aed;
+  --color-c6: #0e7490;
+  --color-c7: #65a30d;
+  --color-c8: #475569;
+  --color-c9: #a8a29e;
+}
+
+:root { color-scheme: light; }
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01", "tnum";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+/* Links dentro de texto corrido precisam de sinal além da cor (WCAG 1.4.1). */
+p a, .leading-relaxed a, [role="status"] a, [role="alert"] a { text-decoration: underline; text-underline-offset: 2px; }
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+@keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: calc(200px + 100%) 0; } }
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface-2) 0%, #ecebe7 50%, var(--color-surface-2) 100%);
+  background-size: 200px 100%; animation: shimmer 1.4s infinite linear; border-radius: 8px;
+}
