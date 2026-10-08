@@ -1,0 +1,68 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Tipos
+        run: npm run lint
+      - name: Testes (unitários + migrations em Postgres/PGlite)
+        run: npm test
+      - name: Build
+        run: npm run build
+        env:
+          # valores fictícios só para o build compilar; nenhum serviço é acessado
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon
+          SUPABASE_SERVICE_ROLE_KEY: ci-service
+      - name: Segredos no código
+        run: |
+          if grep -rEn "(sb_secret_|service_role.{0,40}eyJ|-----BEGIN (RSA |EC )?PRIVATE KEY)" --include='*.ts' --include='*.tsx' --include='*.mjs' --include='*.json' --include='*.sql' --exclude-dir=node_modules --exclude-dir=.next . ; then
+            echo "Possível segredo commitado"; exit 1; fi
+
+  e2e:
+    # Acessibilidade (axe, WCAG 2.1 A/AA) e fluxos principais, com o app em modo dev + FIXTURES sintéticas (sem Supabase nem rede externa).
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: E2E
+        run: npm run test:e2e
+      - name: Relatório em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Vulnerabilidades em dependências de produção
+        run: npm audit --omit=dev --audit-level=high
