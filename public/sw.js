@@ -22,7 +22,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-const NEVER_CACHE = [/^\/api\//, /^\/admin(\/|$)/, /^\/login(\/|$)/, /^\/auth\//];
+const NEVER_CACHE = [/^\/api\//, /^\/admin(\/|$)/, /^\/login(\/|$)/, /^\/auth\//, /^\/entrar(\/|$)/, /^\/perfil(\/|$)/, /^\/jogo(\/|$)/];
 const isCacheableStatic = (url) => url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/");
 
 self.addEventListener("fetch", (event) => {

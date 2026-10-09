@@ -25,7 +25,7 @@ export const LOCATIONS: Record<LocationId, LocationLayout> = {
     descricao: "A fila começa aqui. Senhas, cadeiras cheias e um quadro que insiste em marcar o tempo de espera.",
     hotspots: [
       door("p-patio", 24, 150, 170, 340, "patio", "Ir ao pátio"),
-      { id: "celia", kind: "pessoa", x: 250, y: 300, w: 190, h: 260, icone: "💬", entradas: [
+      { id: "celia", kind: "pessoa", x: 250, y: 210, w: 190, h: 260, icone: "💬", entradas: [
         { casos: [1], ref: "abertura", rotulo: "Dona Célia e a família na fila" },
         { casos: [2], ref: "celia-fila", rotulo: "Falar com Dona Célia" },
         { casos: [9], ref: "celia-crise", rotulo: "Falar com Dona Célia" },
@@ -47,7 +47,7 @@ export const LOCATIONS: Record<LocationId, LocationLayout> = {
       { id: "mural", kind: "pista", x: 530, y: 110, w: 220, h: 140, icone: "📌", entradas: [{ casos: [1], ref: "c1-pedido", rotulo: "Mural de pedidos" }] },
       { id: "caixas", kind: "pista", x: 850, y: 330, w: 220, h: 170, icone: "📦", entradas: [{ casos: [6], ref: "c6-recebimento", rotulo: "Caixas recebidas hoje" }] },
       { id: "mesa-conf", kind: "pista", x: 700, y: 380, w: 130, h: 90, icone: "🧾", entradas: [{ casos: [6], ref: "c6-nota", rotulo: "Nota fiscal e empenho" }] },
-      { id: "roberto", kind: "pessoa", x: 760, y: 230, w: 130, h: 220, icone: "💬", entradas: [{ casos: [6], ref: "roberto-entrega", rotulo: "Falar com Roberto dos Contratos" }] },
+      { id: "roberto", kind: "pessoa", x: 700, y: 251, w: 130, h: 220, icone: "💬", entradas: [{ casos: [6], ref: "roberto-entrega", rotulo: "Falar com Roberto dos Contratos" }] },
       door("p-enf2", 20, 160, 130, 330, "enfermagem", "Ir à enfermagem"),
       door("p-adm2", 1060, 160, 120, 330, "administracao", "Ir à administração"),
     ],
@@ -56,7 +56,7 @@ export const LOCATIONS: Record<LocationId, LocationLayout> = {
     id: "enfermagem", nome: "Posto de Enfermagem", curto: "Enfermagem", mapa: { x: 350, y: 40, w: 290, h: 250 },
     descricao: "Macas, monitores antigos e o quadro de escala com mais riscos do que nomes.",
     hotspots: [
-      { id: "joana", kind: "pessoa", x: 540, y: 230, w: 170, h: 290, icone: "💬", entradas: [
+      { id: "joana", kind: "pessoa", x: 540, y: 179, w: 170, h: 290, icone: "💬", entradas: [
         { casos: [1], ref: "joana-estoque", rotulo: "Falar com Joana" },
         { casos: [9], ref: "joana-crise", rotulo: "Falar com Joana" },
       ] },
@@ -71,14 +71,14 @@ export const LOCATIONS: Record<LocationId, LocationLayout> = {
     id: "administracao", nome: "Gabinete da Administração", curto: "Gabinete", mapa: { x: 670, y: 40, w: 290, h: 250 },
     descricao: "Sua mesa, sua caneta e uma pilha de papéis que se reproduz durante a noite.",
     hotspots: [
-      { id: "mesa", kind: "mesa", x: 430, y: 380, w: 340, h: 130, icone: "🖋️", entradas: [{ casos: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ref: "decisao", rotulo: "Mesa de trabalho: decidir" }] },
-      { id: "toninho", kind: "pessoa", x: 120, y: 250, w: 170, h: 290, icone: "💬", entradas: [
+      { id: "mesa", kind: "mesa", x: 430, y: 380, w: 340, h: 130, icone: "🖋️", entradas: [{ casos: [1, 2, 3, 5, 6, 7, 8, 9], ref: "decisao", rotulo: "Mesa de trabalho: decidir" }] },
+      { id: "toninho", kind: "pessoa", x: 120, y: 179, w: 170, h: 290, icone: "💬", entradas: [
         { casos: [1], ref: "toninho-estoque", rotulo: "Falar com Toninho" },
         { casos: [8], ref: "toninho-favor", rotulo: "Falar com Toninho" },
       ] },
-      { id: "juninho", kind: "pessoa", x: 910, y: 270, w: 170, h: 270, icone: "💬", entradas: [{ casos: [2], ref: "juninho-consultoria", rotulo: "Falar com o Primo Juninho" }] },
-      { id: "ana", kind: "pessoa", x: 840, y: 250, w: 170, h: 290, icone: "💬", entradas: [{ casos: [7], ref: "ana-auditoria", rotulo: "Falar com Ana da Controladoria" }] },
-      { id: "roberto-adm", kind: "pessoa", x: 300, y: 260, w: 140, h: 270, icone: "💬", entradas: [{ casos: [3], ref: "roberto-contratos", rotulo: "Falar com Roberto dos Contratos" }] },
+      { id: "juninho", kind: "pessoa", x: 910, y: 200, w: 170, h: 270, icone: "💬", entradas: [{ casos: [2], ref: "juninho-consultoria", rotulo: "Falar com o Primo Juninho" }] },
+      { id: "ana", kind: "pessoa", x: 840, y: 179, w: 170, h: 290, icone: "💬", entradas: [{ casos: [7], ref: "ana-auditoria", rotulo: "Falar com Ana da Controladoria" }] },
+      { id: "roberto-adm", kind: "pessoa", x: 300, y: 200, w: 140, h: 270, icone: "💬", entradas: [{ casos: [3], ref: "roberto-contratos", rotulo: "Falar com Roberto dos Contratos" }] },
       { id: "recado", kind: "pista", x: 400, y: 100, w: 150, h: 130, icone: "📌", entradas: [
         { casos: [1], ref: "c1-oferta", rotulo: "Recado colado na parede" },
         { casos: [5], ref: "c5-convite", rotulo: "Convite de inauguração" },
@@ -97,7 +97,7 @@ export const LOCATIONS: Record<LocationId, LocationLayout> = {
     id: "cofre", nome: "Tesouraria e Cofre", curto: "Cofre", mapa: { x: 720, y: 330, w: 240, h: 200 },
     descricao: "Um cofre antigo, um livro-caixa aberto e o Guardião do Cofre, que olha para você como quem confere troco.",
     hotspots: [
-      { id: "guardiao", kind: "pessoa", x: 450, y: 220, w: 230, h: 310, icone: "💬", entradas: [
+      { id: "guardiao", kind: "pessoa", x: 450, y: 159, w: 230, h: 310, icone: "💬", entradas: [
         { casos: [4], ref: "guardiao-corte", rotulo: "Falar com o Guardião do Cofre" },
         { casos: [10], ref: "guardiao-final", rotulo: "Falar com o Guardião do Cofre" },
       ] },
@@ -106,7 +106,8 @@ export const LOCATIONS: Record<LocationId, LocationLayout> = {
         { casos: [10], ref: "c10-indicadores", rotulo: "Relatório de indicadores" },
       ] },
       { id: "cofre-porta", kind: "pista", x: 800, y: 170, w: 280, h: 320, icone: "🔐", entradas: [{ casos: [7], ref: "c7-registros", rotulo: "Arquivo: registros do trimestre" }] },
-      { id: "bento", kind: "pessoa", x: 120, y: 240, w: 130, h: 250, icone: "💬", entradas: [{ casos: [10], ref: "bento-final", rotulo: "Falar com o Professor Bento" }] },
+      { id: "mesa-cofre", kind: "mesa", x: 430, y: 430, w: 270, h: 70, icone: "🖋️", entradas: [{ casos: [4, 10], ref: "decisao", rotulo: "Balcão do cofre: decidir" }] },
+      { id: "bento", kind: "pessoa", x: 120, y: 220, w: 130, h: 250, icone: "💬", entradas: [{ casos: [10], ref: "bento-final", rotulo: "Falar com o Professor Bento" }] },
       door("p-adm4", 20, 160, 100, 340, "administracao", "Ir ao gabinete"),
     ],
   },
@@ -116,7 +117,7 @@ export const LOCATIONS: Record<LocationId, LocationLayout> = {
     hotspots: [
       { id: "obra", kind: "pista", x: 90, y: 200, w: 360, h: 280, icone: "🏗️", entradas: [{ casos: [5], ref: "c5-cronograma", rotulo: "Obra da sala de observação" }] },
       { id: "placa", kind: "pista", x: 470, y: 270, w: 110, h: 170, icone: "🪧", entradas: [{ casos: [5], ref: "c5-medicao", rotulo: "Placa e boletim de medição" }] },
-      { id: "cornelio", kind: "pessoa", x: 690, y: 270, w: 150, h: 260, icone: "💬", entradas: [{ casos: [5], ref: "cornelio-inauguracao", rotulo: "Falar com o Deputado Cornélio" }] },
+      { id: "cornelio", kind: "pessoa", x: 690, y: 210, w: 150, h: 260, icone: "💬", entradas: [{ casos: [5], ref: "cornelio-inauguracao", rotulo: "Falar com o Deputado Cornélio" }] },
       door("p-rec3", 1050, 150, 130, 340, "recepcao", "Entrar na recepção"),
     ],
   },

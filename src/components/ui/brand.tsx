@@ -16,7 +16,7 @@ export function Mark({ size = 28 }: { size?: number }) {
 /** Wordmark textual: "Brasil" em peso forte, "Fiscal" em peso leve — sem símbolos políticos. */
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
-    <Link href="/" className={`inline-flex shrink-0 items-center gap-2.5 whitespace-nowrap ${className}`} aria-label="Brasil Fiscal — página inicial">
+    <Link href="/brasil-fiscal" className={`inline-flex shrink-0 items-center gap-2.5 whitespace-nowrap ${className}`} aria-label="Brasil Fiscal — página inicial">
       <Mark size={34} />
       <span className="text-[19px] leading-none tracking-tight">
         <span className="font-bold text-ink">Brasil</span>

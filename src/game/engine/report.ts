@@ -16,7 +16,7 @@ export interface Report {
   geradoDe: { regras: string; conteudo: string; cenario: string; cenarioHash: string; passos: number };
   resumo: { jogador: string; cargo: string; unidade: string; final: string; finalId: string; decisoes: number; poder: number; legado: number; trambicagem: number };
   decisoes: Array<{ caso: number; titulo: string; escolha: string; tipo: string; base: number; custo: number; economia: number; desvioPct: number; desvioValor: number; resultado: string; consequencias: string[] }>;
-  financeiro: { desviado: number; restituido: number; economiasVerificadas: number; receitas: number; custos: number; cortesDeAtendimento: number; obrigacoes: number; patrimonioFinal: number; remuneracaoLegitima: number };
+  financeiro: { desviado: number; restituido: number; economiasVerificadas: number; receitas: number; custos: number; cortesDeAtendimento: number; obrigacoes: number; patrimonioBruto: number; bensPerdidos: number; patrimonioFinal: number; remuneracaoLegitima: number };
   servicos: Array<{ rotulo: string; inicio: number; fim: number; unidade: string; melhor: "maior" | "menor" }>;
   caminho: { tipo: "desvio" | "integro"; itens: Array<{ titulo: string; texto: string }> };
   conhecimentos: Array<{ id: ConceptId; titulo: string; aplicado: boolean; revisar: boolean }>;
@@ -95,7 +95,7 @@ export function buildReport(s: GameState): Report {
     geradoDe: { regras: s.rulesVersion, conteudo: s.contentVersion, cenario: s.scenario.unidade, cenarioHash: s.scenario.hash, passos: s.steps },
     resumo: { jogador: s.player.nome, cargo: "Administrador(a) de UPA (nível 1)", unidade: s.scenario.unidade, final: s.ending?.titulo ?? "Em andamento", finalId: s.ending?.id ?? "em-andamento", decisoes: s.decisions.length, poder: powerScore(s.attrs), legado: legado(s), trambicagem: tr },
     decisoes: dec,
-    financeiro: { desviado: s.personal.desviado, restituido: s.personal.restituido, economiasVerificadas: economiaTotal(s), receitas: 0, custos: custosTotal(s), cortesDeAtendimento: cortes, obrigacoes: obrig, patrimonioFinal: s.personal.patrimonio, remuneracaoLegitima: s.personal.remuneracao },
+    financeiro: { desviado: s.personal.desviado, restituido: s.personal.restituido, economiasVerificadas: economiaTotal(s), receitas: 0, custos: custosTotal(s), cortesDeAtendimento: cortes, obrigacoes: obrig, patrimonioBruto: s.personal.patrimonio, bensPerdidos: s.ending?.bensPerdidos ?? 0, patrimonioFinal: s.ending?.patrimonioFinal ?? s.personal.patrimonio, remuneracaoLegitima: s.personal.remuneracao },
     servicos: [
       { rotulo: "Qualidade dos serviços", inicio: INICIO.qualidade, fim: s.pub.qualidade, unidade: "/100", melhor: "maior" },
       { rotulo: "Acesso ao atendimento", inicio: INICIO.acesso, fim: s.pub.acesso, unidade: "/100", melhor: "maior" },

@@ -46,7 +46,9 @@ export function buildEnding(s: GameState, force?: EndingResult["id"]): EndingRes
   const titulos: Record<EndingResult["id"], string> = {
     reconhecimento: "Reconhecimento da comunidade", responsabilizacao: "Responsabilização", "gestao-insuficiente": "Gestão insuficiente: revisão e nova tentativa", "balanco-parcial": "Balanço parcial",
   };
-  return { id, titulo: titulos[id], reparado, motivos, poder, trambicagem: tr, legado: r2(leg), promocao: promocao(s) };
+  const devido = Math.max(0, s.personal.desviado - s.personal.restituido);
+  const bensPerdidos = id === "responsabilizacao" || (id === "balanco-parcial" && devido > 0) ? r2(Math.min(s.personal.patrimonio, devido * 1.2)) : 0;
+  return { id, titulo: titulos[id], reparado, motivos, poder, trambicagem: tr, legado: r2(leg), bensPerdidos, patrimonioFinal: r2(s.personal.patrimonio - bensPerdidos), promocao: promocao(s) };
 }
 
 export { economiaTotal };

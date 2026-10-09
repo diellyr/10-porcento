@@ -147,6 +147,9 @@ export interface EndingResult {
   poder: number;
   trambicagem: number;
   legado: number;
+  /** bens perdidos na responsabilização (ilícito não restituído + multa fictícia de 20%) e patrimônio final */
+  bensPerdidos: number;
+  patrimonioFinal: number;
   promocao: { elegivel: boolean; criterios: Array<{ rotulo: string; ok: boolean; detalhe: string }> };
 }
 
