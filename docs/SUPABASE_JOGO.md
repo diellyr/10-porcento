@@ -11,3 +11,11 @@ O jogo funciona **sem** Supabase (convidado: salva no aparelho). Para perfis, sa
 7. Rode `npm test` (inclui `tests/db/game.test.ts`, que aplica todas as migrations em um Postgres de teste).
 
 Tabelas: `game_profiles`, `game_scenarios`, `game_saves`, `game_events`, `game_notebook_entries`, `game_achievements`, `game_reports`, `game_usage`. RLS ativo: o jogador **só lê o que é seu**; toda escrita passa pelo servidor com `service_role` (funções `game_create_save`, `game_commit_action`, `game_usage_take`).
+
+## Estado da aplicação no projeto `ypqjrsgagicxmtlmxcll` (2026-10-09)
+
+- As migrations 0001–0011 foram aplicadas no banco (nomes `bf_00NN_*` e `game_meus10_0011`); 19 tabelas em `public`, todas com RLS.
+- Diferenças em relação aos arquivos: `purge_old_logs` (contém DELETE) **não** foi criada — a poda é feita pelo app; a 0011 ganhou dois índices de FK (`game_ach_save_idx`, `game_reports_user_idx`), e a policy de `data_imports` usa `(select is_admin())`.
+- A remoção da policy redundante `profiles_select_admin` foi recusada na aprovação. Ela é inofensiva (a `profiles_select_own` já cobre admin); só gera o aviso "multiple permissive policies". Para limpar: `drop policy profiles_select_admin on public.profiles;`.
+- Avisos restantes dos advisors: `rls_auto_enable()` (função do próprio Supabase, não criada por este projeto) e índices "não usados" (banco ainda vazio).
+- Falta configurar no ambiente do app: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (só servidor) e `CREDENTIALS_ENCRYPTION_KEY`; e em Auth: e-mail/senha ligado e Redirect URL `<site>/entrar`.
