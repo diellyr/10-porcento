@@ -19,15 +19,15 @@ const n = (who: ConvNode["who"], emo: ConvNode["emo"], text: string, next?: stri
 function endingConv(s: GameState): ConversationDef | null {
   const e = s.ending!;
   const dev = s.decisions.filter((d) => d.deliberado);
-  const base = { caso: 99, location: "recepcao" as const, titulo: "Encerramento", start: "e1", negociacao: undefined };
-  if (e.id === "reconhecimento") return { ...base, id: "fim-reconhecimento", who: "celia", apresentacao: "3d", nodes: {
+  const base = { caso: 99, location: "recepcao" as const, titulo: "Encerramento", negociacao: undefined };
+  if (e.id === "reconhecimento") return { ...base, id: "fim-reconhecimento", who: "celia", apresentacao: "3d", start: "e1", nodes: {
     e1: n("celia", "feliz", `Voltei à Upa só para ver. A fila que passava de noventa minutos hoje está em ${Math.round(s.pub.filaMin)} minutos.`, "e2"),
     e2: n("celia", "feliz", "A Rosângela e o Davi conseguiram a bombinha no mesmo dia. Ele dormiu a noite inteira, pela primeira vez em meses.", "e3"),
     e3: n("celia", "serio", "A Joana me mostrou a equipe preparada e um estoque que sabe o que falta antes de acabar. Isso não depende de você estar aqui.", "e4"),
     e4: n("celia", "feliz", `${s.player.nome}, sua passagem pela administração terminou. O serviço que você ajudou a melhorar continua.`, e.promocao.elegivel ? "e5" : undefined),
     e5: n("celia", "irônico", "A Secretaria quer conversar com você sobre um cargo maior. Esse convite pertence à carreira completa, que ainda está em desenvolvimento. Providencie água."),
   } };
-  if (e.id === "responsabilizacao") return { ...base, id: "fim-responsabilizacao", who: "ana", apresentacao: "3d", nodes: {
+  if (e.id === "responsabilizacao") return { ...base, id: "fim-responsabilizacao", who: "ana", apresentacao: "3d", start: "r1", nodes: {
     r1: n("ana", "neutro", "A auditoria consolidou os registros do ciclo. Cada decisão está no arquivo, com valor, data e identificador.", "r2"),
     r2: n("ana", "serio", `Foram ${dev.length} evento(s) com valores retirados da execução, somando ${brlShort(s.personal.desviado)} (valor simulado). Os serviços pagaram a conta: qualidade em ${Math.round(s.pub.qualidade)} e acesso em ${Math.round(s.pub.acesso)}.`, "r3"),
     r3: n("guardiao", "irônico", "O livro não esquece. E os amigos repentinos, curiosamente, desapareceram junto com o saldo.", "r4"),
@@ -35,7 +35,7 @@ function endingConv(s: GameState): ConversationDef | null {
     r5: n("ana", "neutro", e.reparado ? `A restituição de ${brlShort(s.personal.restituido)} foi registrada como novo evento. Ela não apaga os desvios, mas altera o epílogo: a apuração reconheceu a colaboração.` : "Nenhuma restituição foi registrada. Ela teria alterado o epílogo, sem apagar os desvios.", "r6"),
     r6: n("ana", "serio", "Isto é uma regra da ficção, não uma previsão sobre casos reais. Você pode rever cada decisão e jogar de novo com outro caminho."),
   } };
-  if (e.id === "gestao-insuficiente") return { ...base, id: "fim-insuficiente", who: "bento", apresentacao: "2d", nodes: {
+  if (e.id === "gestao-insuficiente") return { ...base, id: "fim-insuficiente", who: "bento", apresentacao: "2d", start: "b1", nodes: {
     b1: n("bento", "neutro", "Você não desviou nada — isso conta. Mas os resultados ficaram abaixo do mínimo da campanha.", "b2"),
     b2: n("bento", "feliz", "Gestão insuficiente não é crime: é um convite para revisar. Abra o Caderno, veja onde o conceito foi aprendido mas não aplicado, e tente de novo.", "b3"),
     b3: n("bento", "neutro", "E lembre: gastar mais pode ser o certo, desde que haja prova da necessidade."),

@@ -80,7 +80,7 @@ function hairTexture(color: string): THREE.CanvasTexture {
 export function buildBust(look: Look, q: Quality): Bust {
   const root = new THREE.Group();
   const head = new THREE.Group(); root.add(head);
-  const seg = q === "alta" ? 96 : q === "media" ? 72 : 48;
+  const seg = q === "alta" ? 112 : q === "media" ? 84 : 60;
   const rosto = look.rosto;
   const skin = new THREE.Color(look.pele), shade = new THREE.Color(look.peleSombra);
   const age = Math.max(0, Math.min(1, (look.idade - 30) / 40));
@@ -97,10 +97,10 @@ export function buildBust(look: Look, q: Quality): Bust {
     shape(tmp, rosto, out);
     pos.setXYZ(i, out.x, out.y, out.z);
     const front = smooth(-0.1, 0.55, tmp.z), ax = Math.abs(tmp.x);
-    const c = skin.clone().lerp(shade, 0.35 * smooth(0.2, 1.0, ax) * (1 - front) + 0.2 * smooth(-0.3, -1, tmp.y));
-    c.lerp(shade, 0.5 * gauss(ax - 0.4, 0.13) * gauss(tmp.y - 0.01, 0.1) * front);                     // órbitas mais escuras
-    c.lerp(blush, 0.28 * gauss(ax - 0.5, 0.17) * gauss(tmp.y + 0.3, 0.15) * front);                    // bochechas
-    c.lerp(blush, 0.22 * gauss(tmp.x, 0.1) * gauss(tmp.y + 0.4, 0.07) * front);                        // ponta do nariz
+    const c = skin.clone().lerp(shade, 0.22 * smooth(0.2, 1.0, ax) * (1 - front) + 0.12 * smooth(-0.3, -1, tmp.y));
+    c.lerp(shade, 0.32 * gauss(ax - 0.4, 0.13) * gauss(tmp.y - 0.01, 0.1) * front);                     // órbitas mais escuras
+    c.lerp(blush, 0.16 * gauss(ax - 0.5, 0.17) * gauss(tmp.y + 0.3, 0.15) * front);                    // bochechas
+    c.lerp(blush, 0.12 * gauss(tmp.x, 0.1) * gauss(tmp.y + 0.4, 0.07) * front);                        // ponta do nariz
     c.lerp(lipC, 0.9 * gauss(tmp.x, 0.2) * gauss(tmp.y + 0.68, 0.045) * front);                        // lábios
     c.lerp(shade, 0.3 * gauss(ax - 0.13, 0.03) * gauss(tmp.y + 0.45, 0.03) * front);                   // narinas
     colors.set([c.r, c.g, c.b], i * 3);

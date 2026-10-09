@@ -9,7 +9,7 @@ import { fictionalScenario } from "../content/scenario";
 import { CONTENT_VERSION, RULES_VERSION, type Scenario } from "../engine/types";
 import { HeroArt } from "./art/HeroArt";
 import { Portrait } from "./art/Portrait";
-import { ClassChip, FictionBadge, Modal } from "./atoms";
+import { ClassChip, FictionBadge, Modal, useHydrated } from "./atoms";
 import { SettingsPanel } from "./panels";
 import { Play } from "./Play";
 import { GameProvider, uid, useGame } from "./store";
@@ -24,12 +24,13 @@ function Shell() {
   const [tela, setTela] = useState<Tela>("titulo");
   const [cfg, setCfg] = useState(false);
   useEffect(() => { const a = sp.get("acao"); if (a === "novo") setTela("novo"); else if (a === "continuar") setTela("continuar"); else if (a === "config") setCfg(true); }, [sp]);
-  const cls = `game ${settings.reduzirMovimento ? "reduce-motion" : ""} ${settings.altoContraste ? "contrast" : ""}`;
+  const hy = useHydrated();
+  const cls = `game ${hy && settings.reduzirMovimento ? "reduce-motion" : ""} ${hy && settings.altoContraste ? "contrast" : ""}`;
   useEffect(() => { document.body.classList.toggle("g-large", settings.textoGrande); }, [settings.textoGrande]);
   const sair = () => { close(); setTela("titulo"); router.replace("/jogo"); };
 
   return (
-    <div className={cls} style={settings.textoGrande ? { fontSize: "1.12rem" } : undefined}>
+    <div className={cls} style={hy && settings.textoGrande ? { fontSize: "1.12rem" } : undefined}>
       <a href="#jogo-conteudo" className="g-sr focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:rounded-xl focus:bg-white focus:p-3">Ir para o conteúdo</a>
       <main id="jogo-conteudo">
         {state?.phase === "quiz" ? <Quiz /> : state ? <Play onExit={sair} /> : tela === "novo" ? <NewGame onBack={() => setTela("titulo")} /> : tela === "continuar" ? <Continue onBack={() => setTela("titulo")} /> : <Title onNovo={() => setTela("novo")} onContinuar={() => setTela("continuar")} onConfig={() => setCfg(true)} />}
@@ -40,7 +41,10 @@ function Shell() {
 }
 
 function Title({ onNovo, onContinuar, onConfig }: { onNovo: () => void; onContinuar: () => void; onConfig: () => void }) {
-  const { saves, session, settings } = useGame();
+  const { saves: allSaves, session: sess, settings } = useGame();
+  const hy = useHydrated();
+  const saves = hy ? allSaves : [];
+  const session = hy ? sess : { ...sess, logado: false, nome: null };
   const ref = useRef<HTMLDivElement>(null);
   const move = (e: React.PointerEvent) => { if (settings.reduzirMovimento || !ref.current) return; const r = ref.current.getBoundingClientRect(); ref.current.style.setProperty("--px", String(((e.clientX - r.left) / r.width - 0.5) * 2)); ref.current.style.setProperty("--py", String(((e.clientY - r.top) / r.height - 0.5) * 2)); };
   return (
@@ -49,7 +53,7 @@ function Title({ onNovo, onContinuar, onConfig }: { onNovo: () => void; onContin
       <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-transparent to-white/45" aria-hidden />
       <div className="relative z-10 flex flex-1 flex-col items-center px-4 pb-8 pt-8 text-center">
         <p className="g-chip es">🎭 Sátira · tudo é ficção</p>
-        <h1 className="mt-2 text-[clamp(3.2rem,12vw,7.5rem)] font-bold leading-none tracking-tight" style={{ textShadow: "0 4px 0 #fff, 0 10px 30px rgb(27 35 64 / .35)", color: "var(--g-blue)" }}>MEUS <span style={{ color: "var(--g-orange)" }}>10%</span></h1>
+        <h1 className="mt-2 text-[clamp(3.2rem,12vw,7.5rem)] font-bold leading-none tracking-tight" style={{ textShadow: "0 4px 0 #fff, 0 10px 30px rgb(27 35 64 / .35)", color: "var(--g-blue)" }}>MEUS <span style={{ color: "var(--g-orange-t)" }}>10%</span></h1>
         <p className="mt-2 max-w-xl text-lg font-bold sm:text-xl" style={{ textShadow: "0 2px 0 #fff" }}>Você recebeu uma caneta e dinheiro público. O que vai fazer com eles?</p>
         <div className="mt-auto flex w-full max-w-sm flex-col gap-3 pt-10">
           <button className="g-btn orange xl" onClick={() => { audio.unlock(); audio.sfx("confirm"); onNovo(); }}>▶ Nova partida</button>
@@ -88,6 +92,7 @@ function Continue({ onBack }: { onBack: () => void }) {
 
 function NewGame({ onBack }: { onBack: () => void }) {
   const { dispatch, session } = useGame();
+  const router = useRouter();
   const [nome, setNome] = useState(session.nome ?? "");
   const [avatar, setAvatar] = useState(session.avatar ?? "av1");
   const [modo, setModo] = useState<"ficticio" | "real">("ficticio");
@@ -105,7 +110,7 @@ function NewGame({ onBack }: { onBack: () => void }) {
     }
     audio.unlock(); audio.sfx("confirm");
     const r = dispatch({ type: "start", playerName: nome || "Jogador(a)", avatar, scenario, seed: Math.floor(Math.random() * 2 ** 31), gameId: uid() });
-    if (!r.ok) { setErro(r.error ?? "Erro ao iniciar."); setBusy(false); }
+    if (!r.ok) { setErro(r.error ?? "Erro ao iniciar."); setBusy(false); } else router.replace("/jogo");
   };
   return (
     <div className="mx-auto max-w-4xl p-3 sm:p-6">

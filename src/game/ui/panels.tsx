@@ -70,7 +70,6 @@ export function DossierPanel({ onClose }: { onClose: () => void }) {
               <button type="button" className="g-btn orange" disabled={sel.length !== 2} onClick={confrontar}>⚖️ Confrontar</button>
             </div>
           )}
-          {msg && <p role="status" className="mt-2 rounded-xl bg-[#e8f0ff] p-3 text-sm font-bold">{msg}</p>}
         </>
       ) : (
         <ul className="grid gap-3">
@@ -80,6 +79,7 @@ export function DossierPanel({ onClose }: { onClose: () => void }) {
           ))}
         </ul>
       )}
+      {msg && <p role="status" className="mt-2 rounded-xl bg-[#e8f0ff] p-3 text-sm font-bold">{msg}</p>}
     </Modal>
   );
 }
@@ -95,7 +95,7 @@ export function AgendaPanel({ onClose }: { onClose: () => void }) {
           const r = s.rel[c.id];
           const conhecido = !!r?.conhecido && c.naUpa;
           return (
-            <li key={c.id} className="g-card flex gap-3 p-3" style={{ opacity: c.naUpa ? 1 : 0.65 }}>
+            <li key={c.id} className="g-card flex gap-3 p-3" >
               <div className="size-20 shrink-0 overflow-hidden rounded-2xl" style={{ background: `linear-gradient(#fff, ${c.cor}33)` }}>{conhecido ? <Portrait look={c.look} enquadramento="rosto" title={c.nome} className="h-full w-full" /> : <div className="grid h-full place-items-center text-3xl" aria-hidden>❔</div>}</div>
               <div className="min-w-0 flex-1">
                 <h3 className="font-bold leading-tight">{conhecido ? c.nome : c.naUpa ? "Contato ainda não conhecido" : c.nome}</h3>
@@ -215,7 +215,7 @@ export function AchievementsPanel({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="Conquistas" onClose={onClose} wide>
       <p className="mb-3 text-sm text-[color:var(--g-ink2)]">Títulos de riqueza ilícita são sátira: não concedem bônus de gestão nem entram em ranking de sucesso.</p>
-      <ul className="grid gap-2 sm:grid-cols-2">{ACHIEVEMENTS.map((a) => <li key={a.id} className="g-card flex items-center gap-3 p-3" style={{ opacity: got.has(a.id) ? 1 : 0.55 }}><span className="text-3xl" aria-hidden>{got.has(a.id) ? a.icone : "🔒"}</span><div><h3 className="font-bold leading-tight">{a.nome} <span className="g-chip">{a.trilha === "gestao" ? "gestão" : "sátira"}</span></h3><p className="text-sm text-[color:var(--g-ink2)]">{a.descricao}</p></div></li>)}</ul>
+      <ul className="grid gap-2 sm:grid-cols-2">{ACHIEVEMENTS.map((a) => <li key={a.id} className="g-card flex items-center gap-3 p-3"><span className="text-3xl" aria-hidden>{got.has(a.id) ? a.icone : "🔒"}</span><div><h3 className="font-bold leading-tight">{a.nome}{got.has(a.id) ? "" : " (bloqueada)"} <span className="g-chip">{a.trilha === "gestao" ? "gestão" : "sátira"}</span></h3><p className="text-sm text-[color:var(--g-ink2)]">{a.descricao}</p></div></li>)}</ul>
     </Modal>
   );
 }

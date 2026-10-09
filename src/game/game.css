@@ -4,7 +4,7 @@
 /* ───────── MEUS 10% — tokens visuais (fundos claros, cores vivas, botões grandes) ───────── */
 .game {
   --g-bg: #fff8ec; --g-bg2: #ffeccc; --g-paper: #fffdf8; --g-ink: #1b2340; --g-ink2: #46507a; --g-ink3: #5a6288;
-  --g-blue: #1a46d4; --g-blue-d: #12308f; --g-teal: #0f9d8a; --g-teal-d: #0a6e61; --g-orange: #ff7a1a; --g-orange-d: #c85a0a;
+  --g-blue: #1a46d4; --g-blue-d: #12308f; --g-teal: #0f9d8a; --g-teal-d: #0a6e61; --g-orange: #ff7a1a; --g-orange-t: #cf4a05; --g-orange-d: #a34705;
   --g-yellow: #ffc933; --g-yellow-d: #c9971a; --g-red: #e5484d; --g-red-d: #a52a2f; --g-green: #2fa66a; --g-green-d: #1d7447;
   --g-violet: #6b5bb5; --g-line: #e8d9bd; --g-radius: 18px;
   --g-font: "Nunito Variable", "Nunito", ui-sans-serif, system-ui, sans-serif;
@@ -14,7 +14,7 @@
 .game * { box-sizing: border-box; }
 .game h1, .game h2, .game h3, .game .g-display { font-family: var(--g-display); letter-spacing: 0.01em; }
 .game :focus-visible { outline: 3px solid var(--g-blue); outline-offset: 2px; border-radius: 10px; }
-.game a { color: var(--g-blue); }
+.game a:not(.g-btn) { color: var(--g-blue); }
 
 /* botões "de jogo": base 3D, alvo de toque ≥ 48px */
 .g-btn { --c: var(--g-blue); --cd: var(--g-blue-d); display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; padding: .7rem 1.35rem;
@@ -23,10 +23,10 @@
 .g-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
 .g-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--cd), 0 3px 6px rgb(27 35 64 / .2); }
 .g-btn[disabled], .g-btn[aria-disabled="true"] { --c: #b9b4a6; --cd: #8f8a7c; cursor: not-allowed; filter: none; transform: none; }
-.g-btn.orange { --c: var(--g-orange); --cd: var(--g-orange-d); }
-.g-btn.teal { --c: var(--g-teal); --cd: var(--g-teal-d); }
-.g-btn.red { --c: var(--g-red); --cd: var(--g-red-d); }
-.g-btn.green { --c: var(--g-green); --cd: var(--g-green-d); }
+.g-btn.orange { --c: var(--g-orange); --cd: var(--g-orange-d); color: var(--g-ink); }
+.g-btn.teal { --c: #0a7d6e; --cd: #06564b; }
+.g-btn.red { --c: #c4343a; --cd: #8f1f24; }
+.g-btn.green { --c: #1d7447; --cd: #12502f; }
 .g-btn.yellow { --c: var(--g-yellow); --cd: var(--g-yellow-d); color: var(--g-ink); }
 .g-btn.ghost { --c: #fff; --cd: #d9c9a6; color: var(--g-ink); border: 2px solid var(--g-line); }
 .g-btn.sm { min-height: 44px; padding: .45rem .9rem; font-size: .95rem; border-radius: 13px; box-shadow: 0 4px 0 var(--cd), 0 6px 12px rgb(27 35 64 / .15); }

@@ -68,7 +68,7 @@ export function buildReport(s: GameState): Report {
   const itens: Array<{ titulo: string; texto: string }> = [];
   if (comDesvio) {
     for (const d of s.decisions.filter((x) => x.deliberado)) {
-      itens.push({ titulo: `${d.title} — desvio de ${d.desvioPct}% (${brl(d.desvioValor)}, fictício)`, texto: `Alternativa de gestão possível: ${ALT[d.optionId] ?? "decidir por comparação e registro."} Controle que ajudaria a prevenir: ${CONTROLE[d.optionId] ?? "segregação de funções e registro público da decisão."}` });
+      itens.push({ titulo: `${d.title} — desvio de ${String(d.desvioPct).replace(".", ",")}% (${brl(d.desvioValor)}, fictício)`, texto: `Alternativa de gestão possível: ${ALT[d.optionId] ?? "decidir por comparação e registro."} Controle que ajudaria a prevenir: ${CONTROLE[d.optionId] ?? "segregação de funções e registro público da decisão."}` });
     }
     if (s.repairs.length) itens.push({ titulo: "Restituição voluntária", texto: `Foi registrada a restituição de ${brl(s.personal.restituido)} (novo evento). Ela modifica o epílogo, mas não apaga os desvios nem seus efeitos nos serviços.` });
   } else {

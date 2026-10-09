@@ -16,6 +16,7 @@ export function Hud({ s, onOpenDados, onOpenConta }: { s: GameState; onOpenDados
   const dq = useDelta(s.pub.qualidade), da = useDelta(s.pub.acesso), dc = useDelta(s.attrs.confianca), df = useDelta(s.pub.filaMin), dx = useDelta(s.pub.estoqueDias);
   const poder = powerScore(s.attrs);
   const tr = trambicagem(s);
+  const [aberto, setAberto] = useState(false);
   return (
     <div className="grid gap-2 lg:grid-cols-[1.2fr_1fr_1.4fr]" aria-label="Painel da partida">
       <section className="g-card flex items-center gap-3 px-3 py-2.5" aria-label="Missão atual">
@@ -26,7 +27,11 @@ export function Hud({ s, onOpenDados, onOpenConta }: { s: GameState; onOpenDados
           <p className="text-[0.82rem] leading-snug text-[color:var(--g-ink2)]">{s.casoAberto ? txt(caso.objetivo, ctx) : "Veja as consequências e avance para o próximo caso."}</p>
         </div>
       </section>
-      <section className="g-card px-3 py-2.5" aria-label="Você">
+      <div className="flex flex-wrap items-center gap-1.5 lg:hidden" aria-label="Resumo">
+        <span className="g-chip">💙 {Math.round(s.attrs.confianca)}</span><span className="g-chip">🩺 {Math.round(s.pub.qualidade)}</span><span className="g-chip">🚪 {Math.round(s.pub.acesso)}</span><span className="g-chip">⏱️ {Math.round(s.pub.filaMin)} min</span><span className="g-chip">💰 {brlShort(s.pub.caixa)}</span><span className="g-chip si">🎭 {brlShort(s.personal.patrimonio)}</span>
+        <button type="button" className="g-btn ghost sm ml-auto" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>📊 {aberto ? "Recolher" : "Painel completo"}</button>
+      </div>
+      <section className={`g-card px-3 py-2.5 ${aberto ? "" : "hidden lg:block"}`} aria-label="Você">
         <div className="mb-1.5 flex items-center justify-between gap-2"><h2 className="text-sm font-bold">🧑‍💼 Você · Administrador(a)</h2><button type="button" onClick={onOpenConta} className="g-chip si cursor-pointer" aria-label="Abrir minha conta fictícia">🎭 conta fictícia</button></div>
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
           <div><p className="text-[0.7rem] font-bold text-[color:var(--g-ink3)]">Patrimônio</p><p className="font-extrabold tabular-nums" style={{ fontFamily: "var(--g-display)" }}>{brlShort(s.personal.patrimonio)}</p></div>
@@ -36,7 +41,7 @@ export function Hud({ s, onOpenDados, onOpenConta }: { s: GameState; onOpenDados
           {tr > 0 && <p className="col-span-2 text-[0.75rem] font-bold text-[color:var(--g-red-d)]">Índice de Trambicagem: {tr.toFixed(2).replace(".", ",")}% (teto 10%)</p>}
         </div>
       </section>
-      <section className="g-card px-3 py-2.5" aria-label="População e serviços">
+      <section className={`g-card px-3 py-2.5 ${aberto ? "" : "hidden lg:block"}`} aria-label="População e serviços">
         <div className="mb-1.5 flex items-center justify-between gap-2"><h2 className="text-sm font-bold">🏥 {s.scenario.unidade.split(" (")[0]}</h2><button type="button" onClick={onOpenDados} className="g-chip of cursor-pointer">📊 Ver os dados reais</button></div>
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3">
           <Meter icon="💙" label="Confiança" value={s.attrs.confianca} delta={dc} compact />

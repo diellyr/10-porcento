@@ -9,7 +9,7 @@ import { makeCtx, txt } from "../engine/rules";
 import { nivelResposta, scoreArgument } from "../engine/negotiation";
 import type { CharId, Emotion, GameState } from "../engine/types";
 import { Portrait } from "./art/Portrait";
-import { Modal } from "./atoms";
+import { Modal, onColor } from "./atoms";
 import { qualidadeFinal } from "./three/support";
 import { useGame } from "./store";
 
@@ -74,12 +74,12 @@ export function Dialogue({ conv, s, onFinish, onExit }: { conv: ConversationDef;
   const tres = conv.apresentacao === "3d" && conv.who === node.who;
   return (
     <div className="fixed inset-0 z-40 flex flex-col justify-end bg-gradient-to-t from-[#1b2340]/70 via-[#1b2340]/20 to-transparent" role="dialog" aria-modal="true" aria-label={`Conversa: ${conv.titulo}`}>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[6%] flex items-end justify-center sm:justify-start sm:pl-[6%]">
-        <div className="g-slide h-[min(62dvh,520px)] w-[min(78vw,420px)]"><Speaker who={node.who} emo={node.emo} falando={falando} tres={tres} className="h-full w-full" /></div>
+      <div className="pointer-events-none absolute inset-x-0 top-[3%] flex justify-center sm:justify-start sm:pl-[8%]">
+        <div className="g-slide h-[min(66dvh,600px)] w-[min(86vw,470px)]" style={{ WebkitMaskImage: "linear-gradient(to bottom, #000 78%, transparent 98%)", maskImage: "linear-gradient(to bottom, #000 78%, transparent 98%)" }}><Speaker who={node.who} emo={node.emo} falando={falando} tres={tres} className="h-full w-full" /></div>
       </div>
       <div className="relative z-10 mx-auto w-full max-w-4xl p-2 sm:p-4">
         <div className="g-card g-pop relative p-4 sm:ml-[22%] sm:p-5" style={{ borderColor: char.cor }}>
-          <div className="absolute -top-4 left-4 rounded-xl px-3 py-1 text-base font-extrabold text-white shadow" style={{ background: char.cor, fontFamily: "var(--g-display)" }}>{char.nome}</div>
+          <div className="absolute -top-4 left-4 rounded-xl px-3 py-1 text-base font-extrabold shadow" style={{ color: onColor(char.cor), background: char.cor, fontFamily: "var(--g-display)" }}>{char.nome}</div>
           {eco && <p className="mb-2 mt-1 rounded-xl bg-[#eef2fe] px-3 py-1.5 text-sm font-semibold text-[color:var(--g-blue-d)]">Você: “{eco}”</p>}
           <p className="mt-2 min-h-[4.5rem] text-lg leading-relaxed" aria-live="polite" onClick={finish}>{shown}<span className="sr-only">{text.slice(shown.length)}</span></p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -105,15 +105,22 @@ export function Dialogue({ conv, s, onFinish, onExit }: { conv: ConversationDef;
 
 /** Negociação com o Guardião: texto livre; a pontuação vem SOMENTE do motor (rubrica visível). */
 export function Negotiation({ negId, conv, onClose }: { negId: string; conv: ConversationDef; onClose: () => void }) {
-  const { dispatch, state } = useGame();
+  const { dispatch, state, session } = useGame();
   const neg = NEG_BY_ID[negId]!;
+  const [ia, setIa] = useState<string | null>(null);
   const ctx = makeCtx(state!.scenario, state, state!.player.nome);
   const [texto, setTexto] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const feito = state!.negociacoes[negId];
   const nivel = feito ? nivelResposta(feito.pontos) : null;
   const preview = useMemo(() => scoreArgument(neg, texto), [neg, texto]);
-  const enviar = () => { const r = dispatch({ type: "argue", negotiationId: negId, text: texto }); if (!r.ok) setErro(r.error ?? "Erro"); else { audio.sfx("confirm"); } };
+  const enviar = () => {
+    const r = dispatch({ type: "argue", negotiationId: negId, text: texto });
+    if (!r.ok) { setErro(r.error ?? "Erro"); return; }
+    audio.sfx("confirm");
+    // resposta em personagem redigida por IA (opcional, só com conta): não altera pontos, saldos nem histórico
+    if (session.logado) void fetch("/api/game/guardiao", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ negotiationId: negId, texto }) }).then((x) => (x.ok ? x.json() : null)).then((j: { texto?: string; fonte?: string } | null) => { if (j?.fonte === "ia" && j.texto) setIa(j.texto); }).catch(() => undefined);
+  };
   return (
     <Modal title="Convença o Guardião do Cofre" onClose={onClose} wide footer={feito ? <button className="g-btn orange" onClick={onClose}>Continuar</button> : <><button className="g-btn ghost" onClick={onClose}>Deixar para depois</button><button className="g-btn orange" onClick={enviar} disabled={texto.trim().length < 25}>Argumentar</button></>}>
       <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
@@ -123,7 +130,7 @@ export function Negotiation({ negId, conv, onClose }: { negId: string; conv: Con
           <h3 className="mt-3 text-sm font-extrabold uppercase tracking-wide text-[color:var(--g-ink3)]">Rubrica de avaliação (visível)</h3>
           <ul className="mt-1 grid gap-1.5 text-sm">{neg.criterios.map((c) => { const ok = feito ? feito.criterios.includes(c.id) : preview.ok.includes(c.id); return <li key={c.id} className="flex gap-2"><span aria-hidden className={ok ? "text-[color:var(--g-green-d)]" : "text-[color:var(--g-ink3)]"}>{ok ? "✔" : "○"}</span><span><b>{c.rotulo}.</b> <span className="text-[color:var(--g-ink3)]">{c.dica}</span></span></li>; })}</ul>
           {feito ? (
-            <div className="mt-4 rounded-2xl border-2 border-[color:var(--g-line)] bg-[#fffaf0] p-3"><p className="text-sm font-bold">Guardião do Cofre:</p><p className="mt-1">“{txt(neg.respostas[nivel!], ctx)}”</p><p className="mt-2 text-sm text-[color:var(--g-ink3)]">Pontos da rubrica: {feito.pontos} de {neg.criterios.length}. Eles ajustam o tamanho da economia aprovada; a pontuação é calculada pelas regras do jogo — não por IA e não altera orçamento nem histórico.</p></div>
+            <div className="mt-4 rounded-2xl border-2 border-[color:var(--g-line)] bg-[#fffaf0] p-3"><p className="text-sm font-bold">Guardião do Cofre:</p><p className="mt-1">“{ia ?? txt(neg.respostas[nivel!], ctx)}”</p>{ia && <p className="mt-1"><span className="g-chip si">🤖 fala redigida por IA — os pontos vêm das regras</span></p>}<p className="mt-2 text-sm text-[color:var(--g-ink3)]">Pontos da rubrica: {feito.pontos} de {neg.criterios.length}. Eles ajustam o tamanho da economia aprovada; a pontuação é calculada pelas regras do jogo — não por IA e não altera orçamento nem histórico.</p></div>
           ) : (
             <label className="mt-4 block text-sm font-bold">Seu argumento
               <textarea value={texto} onChange={(e) => setTexto(e.target.value.slice(0, 700))} rows={5} className="mt-1 w-full rounded-2xl border-2 border-[color:var(--g-line)] bg-white p-3 text-base font-normal" placeholder="Escreva como convenceria o Guardião, usando o que você descobriu…" />

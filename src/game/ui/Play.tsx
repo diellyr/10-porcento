@@ -98,6 +98,7 @@ export function Play({ onExit }: { onExit: () => void }) {
           {s.casoAberto && pendentes > 0 && <span className="g-chip es ml-auto">🔍 {pendentes} para ver aqui</span>}
           <button type="button" className="g-btn sm teal ml-auto md:ml-0" onClick={() => setOv({ t: "panel", p: "mapa" })}>🗺️ Mapa</button>
         </header>
+        <p className="px-3 pt-1 text-xs text-[color:var(--g-ink3)] md:hidden" aria-hidden>↔ Arraste a cena para os lados ou use a lista abaixo.</p>
         <GameScene s={s} onPick={pick} falando={falando} reduzir={settings.reduzirMovimento} />
         <ul className="grid gap-2 border-t-2 border-[color:var(--g-line)] bg-[#fffaf0] p-2.5 sm:grid-cols-2 lg:grid-cols-3" aria-label="O que você pode fazer aqui">
           {hs.map((a) => (

@@ -1,3 +1,13 @@
+# MEUS 10% (sobre a base Brasil Fiscal)
+
+> **MEUS 10%** é uma aventura investigativa satírica sobre gestão pública: você administra uma UPA, escolhe entre tentar desviar (até 10% da base de um evento, **fictício**) ou melhorar o serviço, e vê as consequências. A página inicial (`/`) é do jogo; o jogo está em `/jogo`; o **Brasil Fiscal** (dados oficiais) continua em `/brasil-fiscal` e alimenta os cenários.
+>
+> - Como jogar/rodar: `npm install && npm run dev` → `http://localhost:3000` (sem Supabase o jogo funciona como convidado; para perfis e salvamento na conta, veja **[docs/SUPABASE_JOGO.md](docs/SUPABASE_JOGO.md)**).
+> - Decisões de projeto e balanceamento: **[docs/DECISOES_JOGO.md](docs/DECISOES_JOGO.md)** · assets/vozes/integrações **provisórios ou pendentes**: **[docs/ASSETS_PENDENTES.md](docs/ASSETS_PENDENTES.md)**.
+> - Testes do jogo: `npx vitest run tests/unit/game-*.test.ts tests/db/game.test.ts` e `PW_CHROMIUM_PATH=… npx playwright test tests/e2e/jogo.spec.ts`.
+
+---
+
 # Brasil Fiscal
 
 Plataforma web para qualquer brasileiro entender **quanto o Brasil arrecada e gasta** — União, estados e municípios — com dados oficiais, **fonte sempre visível** e linguagem simples. Politicamente neutra: apresenta dados, evolução e comparações, sem interpretação partidária.

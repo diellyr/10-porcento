@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /** Fluxos principais ponta a ponta (dados sintéticos do modo dev com fixtures). */
 
 test("busca “Praia Grande” → página do município com indicadores e fonte", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/brasil-fiscal");
   await expect(page.getByRole("alert").filter({ hasText: "MODO DE DESENVOLVIMENTO" })).toBeVisible();
   const box = page.getByRole("combobox").first();
   await box.fill("praia gra");
@@ -124,7 +124,7 @@ test("Admin: importar CSV de uma fonte (mapear, importar, usar antes da API e de
 
 test("aviso de nova versão: aparece quando o servidor está numa versão diferente e “Atualizar agora” recarrega", async ({ page }) => {
   await page.route("**/api/version", (route) => route.fulfill({ json: { version: "99.0.0" } }));
-  await page.goto("/");
+  await page.goto("/brasil-fiscal");
   const aviso = page.getByRole("status").filter({ hasText: "Nova versão disponível" });
   await expect(aviso).toBeVisible({ timeout: 30_000 });
   await expect(aviso).toContainText("v99.0.0");
@@ -136,7 +136,7 @@ test("aviso de nova versão: aparece quando o servidor está numa versão difere
 });
 
 test("sem diferença de versão, nenhum aviso", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/brasil-fiscal");
   await page.waitForTimeout(3000);
   await expect(page.getByText("Nova versão disponível")).toHaveCount(0);
 });

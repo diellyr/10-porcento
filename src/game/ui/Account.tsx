@@ -59,7 +59,7 @@ function EntrarForm() {
   return (
     <div className="mx-auto grid min-h-dvh max-w-5xl items-center gap-6 p-4 md:grid-cols-[1fr_1.1fr]">
       <aside className="hidden md:block" aria-hidden>
-        <div className="g-card overflow-hidden p-4 text-center"><div className="mx-auto h-72 w-64"><Portrait look={avatarLook(avatar)} emocao="feliz" className="h-full w-full" /></div><p className="g-display mt-2 text-3xl font-bold">MEUS <span style={{ color: "var(--g-orange)" }}>10%</span></p><p className="text-[color:var(--g-ink2)]">Seu perfil guarda suas campanhas, seu Caderno de Gestão e suas conquistas — em qualquer aparelho.</p></div>
+        <div className="g-card overflow-hidden p-4 text-center"><div className="mx-auto h-72 w-64"><Portrait look={avatarLook(avatar)} emocao="feliz" className="h-full w-full" /></div><p className="g-display mt-2 text-3xl font-bold">MEUS <span style={{ color: "var(--g-orange-t)" }}>10%</span></p><p className="text-[color:var(--g-ink2)]">Seu perfil guarda suas campanhas, seu Caderno de Gestão e suas conquistas — em qualquer aparelho.</p></div>
       </aside>
       <main className="g-card p-5 sm:p-7">
         <Link href="/jogo" className="g-btn ghost sm">← Voltar ao jogo</Link>
@@ -123,7 +123,7 @@ export function Perfil() {
       </section>
       <section className="grid gap-3 sm:grid-cols-3"><div className="g-card p-4"><p className="text-sm font-bold">Campanhas</p><p className="g-display text-4xl font-bold">{d.estatisticas.partidas}</p></div><div className="g-card p-4"><p className="text-sm font-bold">Concluídas</p><p className="g-display text-4xl font-bold">{d.estatisticas.concluidas}</p></div><div className="g-card p-4"><p className="text-sm font-bold">Finais</p><ul className="text-sm">{Object.entries(d.estatisticas.finais).map(([k, v]) => <li key={k}>{k}: {v}</li>)}{!Object.keys(d.estatisticas.finais).length && <li>Nenhum ainda</li>}</ul></div></section>
       <section className="g-card p-4"><h2 className="text-xl font-bold">Minhas campanhas</h2><ul className="mt-2 grid gap-2">{d.saves.map((s) => <li key={s.id} className="flex flex-wrap items-center gap-2 rounded-2xl bg-[#fffaf0] p-2"><span className="min-w-0 flex-1 text-sm"><b>{s.unidade.split(" (")[0]}</b> · {s.final ? `encerrada: ${s.final}` : `caso ${s.caso} de 10`} · {new Date(s.atualizadoEm).toLocaleDateString("pt-BR")}</span><Link href="/jogo?acao=continuar" className="g-btn sm">Abrir</Link></li>)}{!d.saves.length && <li className="text-sm">Nenhuma campanha na conta ainda.</li>}</ul></section>
-      <section className="g-card p-4"><h2 className="text-xl font-bold">🏅 Conquistas ({got.size}/{ACHIEVEMENTS.length})</h2><ul className="mt-2 grid gap-2 sm:grid-cols-2">{ACHIEVEMENTS.map((a) => <li key={a.id} className="flex items-center gap-2 text-sm" style={{ opacity: got.has(a.id) ? 1 : 0.5 }}><span aria-hidden className="text-2xl">{got.has(a.id) ? a.icone : "🔒"}</span><span><b>{a.nome}</b><br />{a.descricao}</span></li>)}</ul></section>
+      <section className="g-card p-4"><h2 className="text-xl font-bold">🏅 Conquistas ({got.size}/{ACHIEVEMENTS.length})</h2><ul className="mt-2 grid gap-2 sm:grid-cols-2">{ACHIEVEMENTS.map((a) => <li key={a.id} className="flex items-center gap-2 text-sm" ><span aria-hidden className="text-2xl">{got.has(a.id) ? a.icone : "🔒"}</span><span className={got.has(a.id) ? "" : "text-[color:var(--g-ink3)]"}><b>{a.nome}</b>{got.has(a.id) ? "" : " (bloqueada)"}<br />{a.descricao}</span></li>)}</ul></section>
     </main>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from "react";
 import type { Classification } from "../engine/types";
 import { brl, brlShort } from "../engine/money";
 
@@ -53,7 +53,7 @@ export function Modal({ title, onClose, children, wide = false, tone, labelledBy
           <h2 id={labelledBy ?? id} className="text-xl font-bold leading-tight">{title}</h2>
           {onClose && dismissible && <button type="button" onClick={onClose} className="g-btn ghost sm" aria-label="Fechar">✕</button>}
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4" tabIndex={0}>{children}</div>
         {footer && <footer className="flex flex-wrap items-center justify-end gap-2 border-t-2 border-[color:var(--g-line)] bg-[#fff6e3] px-4 py-3">{footer}</footer>}
       </div>
     </div>
@@ -66,3 +66,13 @@ export function Toast({ msg, tone = "ink" }: { msg: string; tone?: "ink" | "ok" 
 }
 
 export const FictionBadge = ({ className = "" }: { className?: string }) => <span className={`g-chip si ${className}`}>🎭 SIMULAÇÃO FICTÍCIA DO JOGO</span>;
+
+/** Falso durante o SSR e a hidratação; verdadeiro depois. Evita divergência de HTML com dados que só existem no navegador (localStorage, sessão). */
+export function useHydrated() { return useSyncExternalStore(() => () => undefined, () => true, () => false); }
+
+/** Cor de texto legível (≥ 4,5:1) sobre uma cor de fundo de personagem. */
+export function onColor(hex: string): string {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)) as [number, number, number];
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return 1.05 / (L + 0.05) >= 4.5 ? "#ffffff" : "#1b2340";
+}
