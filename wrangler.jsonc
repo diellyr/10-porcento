@@ -7,8 +7,8 @@
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   // Valores PÚBLICOS (a chave publishable do Supabase foi feita para ficar no navegador). Os segredos NÃO ficam aqui.
   "vars": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://tyhhowdudxwzowqhheng.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_YlrayFVxs1tZGyAojLUfaw_FpxZehHe"
+    "NEXT_PUBLIC_SUPABASE_URL": "https://ypqjrsgagicxmtlmxcll.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_lSDBdFGS8-kzmxxMxNWgvw_tYY7VGmZ"
   },
   "keep_vars": true,
   "observability": { "enabled": true },
