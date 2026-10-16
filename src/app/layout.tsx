@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   openGraph: { title: "Brasil Fiscal", description: "Para onde vai o dinheiro público, com dados oficiais.", locale: "pt_BR", type: "website" },
   robots: { index: true, follow: true },
   applicationName: "Brasil Fiscal",
+  manifest: "/brasil-fiscal.webmanifest",
   appleWebApp: { capable: true, title: "Brasil Fiscal", statusBarStyle: "default" },
   icons: { icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }, { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" }], apple: "/icons/apple-touch-icon.png" },
 };

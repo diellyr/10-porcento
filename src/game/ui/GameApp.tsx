@@ -7,6 +7,7 @@ import { AVATARS, avatarLook } from "../content/characters";
 import { QUIZ } from "../content/concepts";
 import { fictionalScenario } from "../content/scenario";
 import { CONTENT_VERSION, RULES_VERSION, type Scenario } from "../engine/types";
+import { InstallShortcut } from "./Install";
 import { HeroArt } from "./art/HeroArt";
 import { Portrait } from "./art/Portrait";
 import { ClassChip, FictionBadge, Modal, useHydrated } from "./atoms";
@@ -61,7 +62,7 @@ function Title({ onNovo, onContinuar, onConfig }: { onNovo: () => void; onContin
           <button className="g-btn ghost xl" onClick={() => { audio.unlock(); onConfig(); }}>⚙️ Configurações</button>
           <div className="mt-1 flex flex-wrap justify-center gap-2 text-sm font-bold">
             <Link href={session.logado ? "/perfil" : "/entrar?next=/jogo"} className="g-btn sm ghost">{session.logado ? `👤 ${session.nome ?? "Meu perfil"}` : "👤 Entrar / criar perfil"}</Link>
-            <Link href="/" className="g-btn sm ghost">Sobre o jogo</Link><Link href="/elenco" className="g-btn sm ghost">Elenco</Link>
+            <Link href="/" className="g-btn sm ghost">Sobre o jogo</Link><Link href="/elenco" className="g-btn sm ghost">Elenco</Link><InstallShortcut />
           </div>
         </div>
       </div>

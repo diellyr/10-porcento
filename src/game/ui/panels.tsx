@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { audio } from "../audio/AudioManager";
+import { InstallShortcut } from "./Install";
 import { CASE_BY_NUM, TOTAL_CASES } from "../content/cases";
 import { CHARACTERS } from "../content/characters";
 import { CLUES, CLUE_BY_ID, FINDING_BY_ID, FINDINGS } from "../content/clues";
@@ -260,7 +261,9 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           {q && <p role="status" className="text-sm font-semibold">{q}</p>}
           <p className="text-xs text-[color:var(--g-ink3)]">Serviço de voz neural: {session.tts ? "ativo neste servidor" : "não configurado (pendente) — usando a voz do navegador como provisória"}.</p>
         </section>
-        <section className="grid content-start gap-3"><h3 className="text-lg font-bold">🎮 Imagem e acessibilidade</h3>
+        <section className="grid content-start gap-3"><h3 className="text-lg font-bold">📲 Aplicativo</h3>
+          <div><InstallShortcut className="g-btn sm" label="📲 Criar atalho na tela inicial" /></div>
+          <h3 className="text-lg font-bold">🎮 Imagem e acessibilidade</h3>
           <Toggle k="reduzirMovimento" label="Reduzir movimento" desc="Desliga paralaxe, flutuações e animações longas. Cenas 3D ficam estáticas." />
           <Toggle k="altoContraste" label="Alto contraste" /><Toggle k="textoGrande" label="Texto maior" />
           <label className="block text-sm font-bold">Qualidade das cenas 3D

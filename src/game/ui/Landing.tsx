@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CHARACTERS } from "../content/characters";
+import { InstallShortcut } from "./Install";
 import { HeroStage } from "./HeroStage";
 import { Portrait } from "./art/Portrait";
 
@@ -90,7 +91,7 @@ export function Landing() {
 
       <footer className="border-t-2 border-[color:var(--g-line)] bg-white px-4 py-8 text-center text-sm text-[color:var(--g-ink2)]">
         <p><b>MEUS 10%</b> é uma sátira e uma simulação. Personagens, empresas, valores de desvio e finais são fictícios e não representam pessoas, órgãos ou fornecedores reais. Nenhuma pontuação é inferida de rosto, nome ou origem.</p>
-        <p className="mt-2 flex flex-wrap justify-center gap-3"><Link href="/brasil-fiscal">Brasil Fiscal</Link><Link href="/elenco">Elenco</Link><Link href="/entrar">Entrar</Link><Link href="/jogo?acao=config">Configurações</Link></p>
+        <p className="mt-2 flex flex-wrap justify-center gap-3"><Link href="/brasil-fiscal">Brasil Fiscal</Link><Link href="/elenco">Elenco</Link><Link href="/entrar">Entrar</Link><Link href="/jogo?acao=config">Configurações</Link><InstallShortcut className="g-btn sm" label="📲 Instalar atalho" /></p>
       </footer>
     </div>
   );
