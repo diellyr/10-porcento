@@ -23,7 +23,7 @@ jobs:
       - name: Testes (unitários + migrations em Postgres/PGlite)
         run: npm test
       - name: Build
-        run: npm run build
+        run: npm run build:next
         env:
           # valores fictícios só para o build compilar; nenhum serviço é acessado
           NEXT_PUBLIC_SUPABASE_URL: https://ci.supabase.co
