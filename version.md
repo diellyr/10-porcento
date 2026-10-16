@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal
 
-**Versão atual: 0.4.8**
+**Versão atual: 0.5.0**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin e tela de login). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,10 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.5.0 — 2026-10-09
+- **MEUS 10%**: novo jogo (aventura investigativa satírica de gestão pública) sobre a base do Brasil Fiscal. Página inicial `/` agora é a do jogo; o Brasil Fiscal passa a ficar em `/brasil-fiscal` (todas as páginas de dados seguem iguais).
+- Campanha da UPA (10 casos), motor de regras testado, cenários 2D, busto 3D e cena 3D de braço/mão/caneta (provisórios), Caderno de Gestão, relatório, perfis (`/entrar`, `/perfil`), API `/api/game/*` e migration `0011` (estrutura do jogo no Supabase). Detalhes em `docs/DECISOES_JOGO.md`, `docs/ASSETS_PENDENTES.md` e `docs/SUPABASE_JOGO.md`.
 
 ### 0.4.8 — 2026-10-08
 - Página inicial: cada card do “Brasil em números” é clicável e leva ao menu correto — Arrecadação → De onde vem, Despesas → Para onde vai, Resultado → Explorar dados, Dívida → Dívida. (Nas páginas de estado e município os cards continuam sem link, porque esses menus ainda abrem no Brasil.)
