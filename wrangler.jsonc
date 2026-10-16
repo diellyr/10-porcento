@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "brasil-fiscal",
+  "name": "meus-10",
   "main": "cloudflare/worker.ts",
   "compatibility_date": "2025-09-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
