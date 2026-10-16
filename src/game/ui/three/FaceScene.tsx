@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { useEffect, useRef } from "react";
 import type { Look } from "../../content/types";
 import type { Emotion } from "../../engine/types";
-import { disposeTree, makeRenderer, startLoop } from "./common";
+import { addEnvironment, disposeTree, makeRenderer, startLoop } from "./common";
 import { buildBust, type Bust } from "./head";
 import type { Quality } from "./support";
 
@@ -20,8 +20,9 @@ export default function FaceScene(p: FaceSceneProps) {
     try { renderer = makeRenderer(canvas, p.qualidade); } catch { p.onFail(); return; }
     const scene = new THREE.Scene();
     const cam = new THREE.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(0, -0.2, 8.2); cam.lookAt(0, -0.5, 0);
-    scene.add(new THREE.HemisphereLight(0xfff6e8, 0x9fb0d8, 0.85));
-    const key = new THREE.DirectionalLight(0xfff0dc, 2.6); key.position.set(-3.5, 3.5, 5); key.castShadow = p.qualidade !== "baixa"; key.shadow.mapSize.set(1024, 1024); key.shadow.camera.near = 1; key.shadow.camera.far = 14; key.shadow.camera.left = -3; key.shadow.camera.right = 3; key.shadow.camera.top = 3; key.shadow.camera.bottom = -3; key.shadow.bias = -0.0005; key.shadow.normalBias = 0.03; scene.add(key);
+    const envOff = addEnvironment(renderer, scene, 0.28);
+    scene.add(new THREE.HemisphereLight(0xfff6e8, 0x9fb0d8, 0.7));
+    const key = new THREE.DirectionalLight(0xfff0dc, 2.6); key.position.set(-3.5, 3.5, 5); key.castShadow = p.qualidade !== "baixa"; key.shadow.mapSize.set(p.qualidade === "alta" ? 2048 : 1024, p.qualidade === "alta" ? 2048 : 1024); key.shadow.radius = 4; key.shadow.camera.near = 1; key.shadow.camera.far = 14; key.shadow.camera.left = -3; key.shadow.camera.right = 3; key.shadow.camera.top = 3; key.shadow.camera.bottom = -3; key.shadow.bias = -0.0005; key.shadow.normalBias = 0.03; scene.add(key);
     const fill = new THREE.DirectionalLight(0xbcd0ff, 0.9); fill.position.set(4, 0.5, 4); scene.add(fill);
     const rim = new THREE.DirectionalLight(0xffe6c0, 1.6); rim.position.set(2, 3, -4); scene.add(rim);
     let bust: Bust = buildBust(p.look, p.qualidade); scene.add(bust.root);
@@ -38,7 +39,7 @@ export default function FaceScene(p: FaceSceneProps) {
       renderer.render(scene, cam);
     }, (fps) => { if (fpsEl.current) fpsEl.current.textContent = String(fps); el.dataset.fps = String(fps); });
     el.dataset.pronto = "1";
-    return () => { stop(); ro.disconnect(); window.removeEventListener("pointermove", move); canvas.removeEventListener("webglcontextlost", lost); bust.dispose(); disposeTree(scene); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
+    return () => { stop(); ro.disconnect(); window.removeEventListener("pointermove", move); canvas.removeEventListener("webglcontextlost", lost); bust.dispose(); disposeTree(scene); envOff(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.look.pele, p.look.cabeloEstilo, p.look.roupa, p.qualidade]);
   return (

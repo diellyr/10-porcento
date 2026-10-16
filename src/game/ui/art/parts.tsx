@@ -22,8 +22,25 @@ export function SceneDefs({ id }: { id: string }) {
       <filter id={`${id}-shadow`} x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#1b2340" floodOpacity="0.22" /></filter>
       <filter id={`${id}-soft`} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14" /></filter>
       <filter id={`${id}-blur`} x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.5" /></filter>
+      <filter id={`${id}-plaster`} x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.09 0.12" numOctaves="3" seed="11" result="t" />
+        <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.15  1.4 0 0 0 -0.55" />
+      </filter>
+      <filter id={`${id}-wood`} x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.42" numOctaves="3" seed="5" result="t" />
+        <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.25  0 0 0 0 0.12  0 0 0 0 0.04  1.8 0 0 0 -0.7" result="g" />
+        <feComposite in="g" in2="SourceAlpha" operator="in" result="g2" />
+        <feMerge><feMergeNode in="SourceGraphic" /><feMergeNode in="g2" /></feMerge>
+      </filter>
+      <filter id={`${id}-shaft`} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9" /></filter>
+      <linearGradient id={`${id}-ceilao`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2a2230" stopOpacity="0.26" /><stop offset="1" stopColor="#2a2230" stopOpacity="0" /></linearGradient>
+      <linearGradient id={`${id}-sideao`} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#2a2230" stopOpacity="0.24" /><stop offset="0.12" stopColor="#2a2230" stopOpacity="0" /><stop offset="0.88" stopColor="#2a2230" stopOpacity="0" /><stop offset="1" stopColor="#2a2230" stopOpacity="0.24" /></linearGradient>
+      <linearGradient id={`${id}-floorao`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2a2230" stopOpacity="0.3" /><stop offset="1" stopColor="#2a2230" stopOpacity="0" /></linearGradient>
+      <linearGradient id={`${id}-gloss`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity="0.32" /><stop offset="0.5" stopColor="#fff" stopOpacity="0.08" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></linearGradient>
+      <linearGradient id={`${id}-grade`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#9cc8ff" stopOpacity="0.1" /><stop offset="0.5" stopColor="#fff" stopOpacity="0" /><stop offset="1" stopColor="#ffb866" stopOpacity="0.14" /></linearGradient>
+      <linearGradient id={`${id}-shaftg`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff4cf" stopOpacity="0.7" /><stop offset="1" stopColor="#fff4cf" stopOpacity="0" /></linearGradient>
       <linearGradient id={`${id}-light`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff6d6" stopOpacity="0.85" /><stop offset="1" stopColor="#fff6d6" stopOpacity="0" /></linearGradient>
-      <radialGradient id={`${id}-vig`} cx="50%" cy="48%" r="75%"><stop offset="0.6" stopColor="#1b2340" stopOpacity="0" /><stop offset="1" stopColor="#1b2340" stopOpacity="0.22" /></radialGradient>
+      <radialGradient id={`${id}-vig`} cx="50%" cy="48%" r="75%"><stop offset="0.55" stopColor="#1b2340" stopOpacity="0" /><stop offset="1" stopColor="#1b2340" stopOpacity="0.3" /></radialGradient>
     </defs>
   );
 }
@@ -40,7 +57,9 @@ export function Room({ id, c, children, lights = true }: { id: string; c: RoomCo
         <linearGradient id={`${id}-floor`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={c.floor[0]} /><stop offset="1" stopColor={c.floor[1]} /></linearGradient>
       </defs>
       <rect width="1200" height="480" fill={`url(#${id}-wall)`} />
+      <rect width="1200" height="480" filter={`url(#${id}-plaster)`} opacity="0.16" />
       <rect y="330" width="1200" height="150" fill={c.wain} />
+      <rect y="330" width="1200" height="150" filter={`url(#${id}-plaster)`} opacity="0.12" />
       <rect y="326" width="1200" height="8" fill={trim} />
       <rect y="470" width="1200" height="14" fill={darken(c.wain, 0.2)} />
       <rect y="40" width="1200" height="3" fill={lighten(c.wall[0], 0.3)} opacity="0.7" />
@@ -50,6 +69,11 @@ export function Room({ id, c, children, lights = true }: { id: string; c: RoomCo
         return <line key={i} x1={600 + (x - 600) * 0.3} y1="480" x2={x} y2="675" stroke={darken(c.floor[0], 0.18)} strokeWidth="2" opacity="0.4" />;
       })}
       {[500, 530, 575, 635].map((y) => <line key={y} x1="0" y1={y} x2="1200" y2={y} stroke={darken(c.floor[0], 0.18)} strokeWidth="1.5" opacity="0.35" />)}
+      <polygon points="0,480 1200,480 1200,675 0,675" fill={`url(#${id}-gloss)`} />
+      {lights && [180, 600, 1020].map((x) => <ellipse key={`r${x}`} cx={x} cy="560" rx="150" ry="46" fill="#fff8dc" opacity="0.2" filter={`url(#${id}-soft)`} />)}
+      <rect y="480" width="1200" height="40" fill={`url(#${id}-floorao)`} />
+      <rect y="0" width="1200" height="140" fill={`url(#${id}-ceilao)`} />
+      <rect width="1200" height="480" fill={`url(#${id}-sideao)`} />
       {lights && [180, 600, 1020].map((x) => (<g key={x}><rect x={x - 70} y="0" width="140" height="22" rx="6" fill="#fffbe9" /><ellipse cx={x} cy="40" rx="130" ry="50" fill="#fff6d6" opacity="0.28" filter={`url(#${id}-soft)`} /></g>))}
       {children}
     </g>
@@ -57,7 +81,7 @@ export function Room({ id, c, children, lights = true }: { id: string; c: RoomCo
 }
 
 export function Finish({ id }: { id: string }) {
-  return (<g pointerEvents="none"><rect width="1200" height="675" fill={`url(#${id}-vig)`} /><rect width="1200" height="675" filter={`url(#${id}-grain)`} /></g>);
+  return (<g pointerEvents="none"><rect width="1200" height="675" fill={`url(#${id}-grade)`} /><rect width="1200" height="675" fill={`url(#${id}-vig)`} /><rect width="1200" height="675" filter={`url(#${id}-grain)`} /></g>);
 }
 
 /* ───────── móveis e objetos ───────── */
@@ -72,6 +96,9 @@ export function Window({ x, y, w, h, id, sun = true }: { x: number; y: number; w
       <path d={`M${x},${y + h} q${w * 0.15},-${h * 0.2} ${w * 0.3},-${h * 0.05} t${w * 0.35},-${h * 0.05} t${w * 0.35},${h * 0.1}Z`} fill="#6fbf7c" opacity="0.85" />
       <line x1={x + w / 2} y1={y} x2={x + w / 2} y2={y + h} stroke="#f6efe0" strokeWidth="6" /><line x1={x} y1={y + h / 2} x2={x + w} y2={y + h / 2} stroke="#f6efe0" strokeWidth="6" />
       <polygon points={`${x},${y} ${x + w * 0.5},${y} ${x + w * 0.2},${y + h}  ${x},${y + h}`} fill={`url(#${id}-light)`} opacity="0.5" />
+      <rect x={x} y={y} width={w} height="10" fill="#1b2340" opacity="0.14" /><rect x={x} y={y} width="8" height={h} fill="#1b2340" opacity="0.1" />
+      <rect x={x - 12} y={y + h + 8} width={w + 24} height="9" rx="3" fill="#e6d8b8" /><rect x={x - 12} y={y + h + 8} width={w + 24} height="3" rx="1.5" fill="#fff" opacity="0.6" />
+      {sun && <g pointerEvents="none"><polygon points={`${x + 6},${y + h} ${x + w - 6},${y + h} ${x + w + 150},${y + h + 330} ${x - 20},${y + h + 330}`} fill={`url(#${id}-shaftg)`} opacity="0.34" filter={`url(#${id}-shaft)`} style={{ mixBlendMode: "screen" }} /></g>}
     </g>
   );
 }
@@ -91,10 +118,14 @@ export function Plant({ x, y, s = 1, fresh = true }: { x: number; y: number; s?:
 export function Desk({ x, y, w, id, children }: { x: number; y: number; w: number; id: string; children?: ReactNode }) {
   return (
     <g filter={`url(#${id}-shadow)`}>
+      <ellipse cx={x + w / 2} cy={y + 138} rx={w * 0.56} ry="10" fill="#1b2340" opacity="0.2" />
+      <g filter={`url(#${id}-wood)`}>
       <rect x={x} y={y} width={w} height="26" rx="6" fill="#d89452" />
       <rect x={x} y={y} width={w} height="8" rx="4" fill="#f0b676" />
       <rect x={x + 12} y={y + 26} width={w - 24} height="108" fill={PAL.wood} />
-      <rect x={x + 12} y={y + 26} width={w - 24} height="108" fill="url(#none)" />
+      </g>
+      <rect x={x + 12} y={y + 26} width={w - 24} height="26" fill="#1b2340" opacity="0.18" />
+      <rect x={x + 4} y={y + 1} width={w - 8} height="2.5" rx="1.2" fill="#fff" opacity="0.55" />
       <rect x={x + 24} y={y + 42} width={(w - 60) / 2} height="40" rx="5" fill={PAL.woodD} opacity="0.55" /><rect x={x + 36 + (w - 60) / 2} y={y + 42} width={(w - 60) / 2} height="40" rx="5" fill={PAL.woodD} opacity="0.55" />
       <circle cx={x + 24 + (w - 60) / 4} cy={y + 62} r="3" fill="#ffd98a" /><circle cx={x + 36 + (w - 60) * 0.75} cy={y + 62} r="3" fill="#ffd98a" />
       {children}
@@ -120,7 +151,9 @@ export function Papers({ x, y, n = 3, tilt = 0 }: { x: number; y: number; n?: nu
 export function Chair({ x, y, c = PAL.blue, s = 1 }: { x: number; y: number; c?: string; s?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`}>
-      <rect x="-26" y="-70" width="52" height="46" rx="12" fill={darken(c, 0.12)} /><rect x="-30" y="-26" width="60" height="18" rx="9" fill={c} />
+      <ellipse cx="0" cy="28" rx="34" ry="7" fill="#1b2340" opacity="0.22" />
+      <rect x="-26" y="-70" width="52" height="46" rx="12" fill={darken(c, 0.12)} />
+      <rect x="-26" y="-70" width="52" height="46" rx="12" fill="#fff" opacity="0.08" /><rect x="6" y="-70" width="20" height="46" rx="10" fill="#10131f" opacity="0.16" /><rect x="-30" y="-26" width="60" height="18" rx="9" fill={c} />
       <rect x="-24" y="-8" width="6" height="34" fill="#4a5070" /><rect x="18" y="-8" width="6" height="34" fill="#4a5070" />
       <path d="M-22,-60 q22,-8 44,0" stroke={lighten(c, 0.3)} strokeWidth="3" fill="none" opacity="0.6" />
     </g>
@@ -132,7 +165,8 @@ export function Extra({ x, y, c = "#7a8cc4", skin = "#c68d64", s = 1, kid = fals
   const k = kid ? 0.72 : 1;
   return (
     <g transform={`translate(${x} ${y}) scale(${s * k})`}>
-      <path d="M-24,0 C-22,-30 -12,-44 0,-44 C12,-44 22,-30 24,0Z" fill={c} /><circle cx="0" cy="-60" r="15" fill={skin} />
+      <ellipse cx="0" cy="2" rx="28" ry="6" fill="#1b2340" opacity="0.2" />
+      <path d="M-24,0 C-22,-30 -12,-44 0,-44 C12,-44 22,-30 24,0Z" fill={c} /><path d="M6,0 C12,-10 14,-30 8,-43 C16,-42 22,-30 24,0Z" fill="#10131f" opacity="0.2" /><circle cx="0" cy="-60" r="15" fill={skin} /><path d="M6,-72 C14,-68 16,-56 10,-47 C14,-58 12,-66 6,-72Z" fill="#10131f" opacity="0.18" />
       <path d="M-15,-64 C-14,-80 14,-80 15,-64 C8,-70 -8,-70 -15,-64Z" fill={darken(skin, 0.6)} />
     </g>
   );
@@ -151,7 +185,7 @@ export function PersonSpot({ x, y, w, look, emo = "neutro", falando = false, lab
   const h = w * 1.25;
   return (
     <g>
-      <ellipse cx={x + w / 2} cy={y + h - 4} rx={w * 0.46} ry="10" fill="#1b2340" opacity="0.18" />
+      <ellipse cx={x + w / 2} cy={y + h - 2} rx={w * 0.5} ry="12" fill="#1b2340" opacity="0.26" style={{ filter: "blur(4px)" }} />
       <Portrait look={look} emocao={emo} falando={falando} x={x} y={y} width={w} height={h} title={label} />
     </g>
   );

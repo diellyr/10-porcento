@@ -75,17 +75,44 @@ export function Portrait({ look, emocao = "neutro", falando = false, enquadramen
           <stop offset="1" stopColor={darken(look.olhos, 0.3)} />
         </radialGradient>
         <clipPath id={`${uid}-headclip`}><path d={head} /></clipPath>
+        <linearGradient id={`${uid}-sclera`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#cfc8bf" /><stop offset="0.4" stopColor="#f1ece4" /><stop offset="1" stopColor="#e6dfd6" /></linearGradient>
+        <linearGradient id={`${uid}-rim`} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#fff6e8" stopOpacity="0.75" /><stop offset="0.35" stopColor="#fff6e8" stopOpacity="0" /><stop offset="0.8" stopColor="#ffd9b0" stopOpacity="0" /><stop offset="1" stopColor="#ffd9b0" stopOpacity="0.35" /></linearGradient>
+        <linearGradient id={`${uid}-lipU`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={darken(lip, 0.18)} /><stop offset="1" stopColor={lip} /></linearGradient>
+        <linearGradient id={`${uid}-lipL`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={lip} /><stop offset="1" stopColor={lighten(lip, 0.14)} /></linearGradient>
+        <linearGradient id={`${uid}-bodyshade`} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#10131f" stopOpacity="0.1" /><stop offset="0.25" stopColor="#10131f" stopOpacity="0" /><stop offset="0.65" stopColor="#10131f" stopOpacity="0.05" /><stop offset="1" stopColor="#10131f" stopOpacity="0.38" /></linearGradient>
+        <filter id={`${uid}-b1`} x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="1" /></filter>
+        <filter id={`${uid}-b3`} x="-40%" y="-60%" width="180%" height="220%"><feGaussianBlur stdDeviation="3" /></filter>
+        <filter id={`${uid}-b6`} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" /></filter>
+        <filter id={`${uid}-tex`} x="0" y="0" width="100%" height="100%" filterUnits="objectBoundingBox"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="4" /><feColorMatrix type="matrix" values="0 0 0 0 0.25  0 0 0 0 0.12  0 0 0 0 0.08  1.6 0 0 0 -0.62" /></filter>
+        <filter id={`${uid}-hairtex`} x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.75 0.045" numOctaves="2" seed="9" result="t" />
+          <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.04  0 0 0 0 0.02  0 0 0 0 0.02  3.2 0 0 0 -1.35" result="dk" />
+          <feColorMatrix in="t" type="matrix" values="0 0 0 0 1  0 0 0 0 0.96  0 0 0 0 0.9  -1.5 0 0 0 0.42" result="lt" />
+          <feComposite in="dk" in2="SourceAlpha" operator="in" result="dk2" /><feComposite in="lt" in2="SourceAlpha" operator="in" result="lt2" />
+          <feMerge><feMergeNode in="SourceGraphic" /><feMergeNode in="dk2" /><feMergeNode in="lt2" /></feMerge>
+        </filter>
+        <filter id={`${uid}-fabric`} x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="2" result="t" />
+          <feColorMatrix in="t" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.2 0 0 0 -0.52" result="n" />
+          <feComposite in="n" in2="SourceAlpha" operator="in" result="n2" />
+          <feMerge><feMergeNode in="SourceGraphic" /><feMergeNode in="n2" /></feMerge>
+        </filter>
       </defs>
 
       {/* cabelo de trás */}
-      <HairBack estilo={look.cabeloEstilo} fill={`url(#${uid}-hair)`} dark={hairShade} ry={ry} />
+      <g filter={`url(#${uid}-hairtex)`}><HairBack estilo={look.cabeloEstilo} fill={`url(#${uid}-hair)`} dark={hairShade} ry={ry} /></g>
 
       {/* corpo */}
-      <Body look={look} uid={uid} />
+      <g filter={`url(#${uid}-fabric)`}><Body look={look} uid={uid} /></g>
+      <path d="M6,250 C8,206 44,188 86,180 L114,180 C156,188 192,206 194,250Z" fill={`url(#${uid}-bodyshade)`} />
+      <g filter={`url(#${uid}-b3)`} opacity="0.5"><path d="M30,244 C48,214 70,200 88,196" stroke="#10131f" strokeWidth="5" fill="none" /><path d="M170,244 C152,216 134,204 116,198" stroke="#10131f" strokeWidth="6" fill="none" /><path d="M54,236 C66,220 78,212 92,208" stroke="#fff" strokeWidth="4" fill="none" opacity="0.5" /></g>
 
       {/* pescoço */}
       <path d="M85,138 L85,176 C92,186 108,186 115,176 L115,138Z" fill={`url(#${uid}-neck)`} />
       <path d="M85,150 C93,160 107,160 115,150 L115,142 C107,152 93,152 85,142Z" fill={darken(shade, 0.25)} opacity="0.35" />
+
+      <ellipse cx="100" cy={headBot + 3} rx="34" ry="10" fill="#1a0d08" opacity="0.34" filter={`url(#${uid}-b3)`} />
+      <path d="M85,150 L85,176 C92,186 108,186 115,176 L115,150Z" fill={`url(#${uid}-bodyshade)`} opacity="0.7" />
 
       {/* orelhas */}
       <ellipse cx="58.5" cy="104" rx="6.5" ry="11" fill={skin} /><ellipse cx="58.5" cy="104" rx="3" ry="7" fill={shade} opacity="0.55" />
@@ -108,9 +135,31 @@ export function Portrait({ look, emocao = "neutro", falando = false, enquadramen
         )}
       </g>
 
+      {/* modelagem da luz (vinda do alto, à esquerda): sombras de forma, órbitas, sob o nariz e o lábio; realces nos ossos */}
+      <g clipPath={`url(#${uid}-headclip)`}>
+        <g filter={`url(#${uid}-b3)`}>
+          <ellipse cx="132" cy="112" rx="20" ry="46" fill={darken(shade, 0.4)} opacity="0.32" />
+          <ellipse cx="84" cy={eyeY - 1} rx="15" ry="8" fill={darken(shade, 0.5)} opacity="0.2" />
+          <ellipse cx="116" cy={eyeY - 1} rx="15" ry="8" fill={darken(shade, 0.5)} opacity="0.26" />
+          <ellipse cx="103" cy={eyeY + 24} rx="9" ry="3.6" fill={darken(shade, 0.5)} opacity="0.26" />
+          <ellipse cx="100" cy={mouthY + 11} rx="9" ry="3.4" fill={darken(shade, 0.45)} opacity="0.24" />
+          <ellipse cx="68" cy={mouthY - 6} rx="5" ry="10" fill={darken(shade, 0.35)} opacity="0.16" />
+          <ellipse cx="132" cy={mouthY - 6} rx="5" ry="10" fill={darken(shade, 0.35)} opacity="0.2" />
+        </g>
+        <g filter={`url(#${uid}-b3)`}>
+          <ellipse cx="80" cy={eyeY + 17} rx="11" ry="6.5" fill="#fff" opacity="0.17" />
+          <ellipse cx="94" cy={headTop + 16} rx="15" ry="7" fill="#fff" opacity="0.17" />
+          <ellipse cx="97.5" cy={eyeY + 12} rx="2.6" ry="8" fill="#fff" opacity="0.2" />
+          <ellipse cx="99" cy={eyeY + 23} rx="4" ry="2.2" fill="#fff" opacity="0.22" />
+          <ellipse cx="100" cy={headBot - 9} rx="8" ry="3" fill="#fff" opacity="0.12" />
+        </g>
+        <rect x="50" y="40" width="100" height="140" filter={`url(#${uid}-tex)`} opacity="0.22" />
+      </g>
+      <path d={head} fill="none" stroke={`url(#${uid}-rim)`} strokeWidth="1.6" />
+
       {/* olhos */}
-      <Eye cx={84} cy={eyeY} open={e.eye} iris={`url(#${uid}-iris)`} gaze={gaze} skin={skin} shade={shade} falando={falando} />
-      <Eye cx={116} cy={eyeY} open={e.eye} iris={`url(#${uid}-iris)`} gaze={gaze} skin={skin} shade={shade} falando={falando} />
+      <Eye uid={uid} cx={84} cy={eyeY} side={-1} open={e.eye} iris={`url(#${uid}-iris)`} gaze={gaze} skin={skin} shade={shade} falando={falando} />
+      <Eye uid={uid} cx={116} cy={eyeY} side={1} open={e.eye} iris={`url(#${uid}-iris)`} gaze={gaze} skin={skin} shade={shade} falando={falando} />
 
       {/* sobrancelhas */}
       <Brows hair={mix(hair, "#1a1410", 0.25)} brow={e.brow} inner={e.browInner} age={age} y={eyeY - 12} />
@@ -119,6 +168,8 @@ export function Portrait({ look, emocao = "neutro", falando = false, enquadramen
       <path d={`M100,${eyeY + 2} C98,${eyeY + 14} 96,${eyeY + 18} 94,${eyeY + 22} C97,${eyeY + 26} 103,${eyeY + 26} 106,${eyeY + 22} C104,${eyeY + 18} 102,${eyeY + 14} 100,${eyeY + 2}Z`} fill={shade} opacity="0.2" />
       <path d={`M94.5,${eyeY + 22.5} q5.5,4 11,0`} stroke={darken(shade, 0.35)} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.7" />
       <path d={`M98,${eyeY + 6} q-1,8 0,12`} stroke={lighten(skin, 0.3)} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.5" />
+      <ellipse cx="96.6" cy={eyeY + 23.4} rx="1.9" ry="1.1" fill={darken(shade, 0.65)} opacity="0.7" /><ellipse cx="103.4" cy={eyeY + 23.4} rx="1.9" ry="1.1" fill={darken(shade, 0.65)} opacity="0.7" />
+      <path d={`M92.5,${eyeY + 20} q-2,3 0.5,5.4M107.5,${eyeY + 20} q2,3 -0.5,5.4`} stroke={darken(shade, 0.4)} strokeWidth="1.1" fill="none" strokeLinecap="round" opacity="0.4" />
 
       {/* boca */}
       <g>
@@ -132,17 +183,22 @@ export function Portrait({ look, emocao = "neutro", falando = false, enquadramen
           </g>
         ) : (
           <g>
-            <path d={`M${100 - w},${mouthY + smirkL} Q100,${mouthY + mouthCurve + 2} ${100 + w},${mouthY + smirkR}`} stroke={lip} strokeWidth="3.2" fill="none" strokeLinecap="round" />
-            <path d={`M${100 - w + 3},${mouthY + smirkL + 2} Q100,${mouthY + mouthCurve + 6} ${100 + w - 3},${mouthY + smirkR + 2}`} stroke={lip} strokeWidth="2.4" fill="none" strokeLinecap="round" opacity="0.75" />
+            <path d={`M${100 - w},${mouthY + smirkL} Q${100 - w * 0.4},${mouthY + mouthCurve - 2.4} 100,${mouthY + mouthCurve - 0.6} Q${100 + w * 0.4},${mouthY + mouthCurve - 2.4} ${100 + w},${mouthY + smirkR} Q100,${mouthY + mouthCurve + 2.4} ${100 - w},${mouthY + smirkL}Z`} fill={`url(#${uid}-lipU)`} />
+            <path d={`M${100 - w + 1.5},${mouthY + smirkL + 0.8} Q100,${mouthY + mouthCurve + 3} ${100 + w - 1.5},${mouthY + smirkR + 0.8} Q100,${mouthY + mouthCurve + 9.2} ${100 - w + 1.5},${mouthY + smirkL + 0.8}Z`} fill={`url(#${uid}-lipL)`} />
+            <ellipse cx="97" cy={mouthY + mouthCurve + 5.2} rx="4.5" ry="1.1" fill="#fff" opacity="0.32" />
+            <path d={`M${100 - w},${mouthY + smirkL} Q100,${mouthY + mouthCurve + 2} ${100 + w},${mouthY + smirkR}`} stroke={darken(lip, 0.55)} strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.85" />
+            <path d={`M${100 - w},${mouthY + smirkL} Q100,${mouthY + mouthCurve + 2} ${100 + w},${mouthY + smirkR}`} stroke={lip} strokeWidth="0.01" fill="none" />
           </g>
         )}
         {e.smile > 0.4 && <><path d={`M${100 - w - 3},${mouthY - 1} q-1.5,2 0,4`} stroke={darken(shade, 0.3)} strokeWidth="1" fill="none" opacity="0.5" /><path d={`M${100 + w + 3},${mouthY - 1} q1.5,2 0,4`} stroke={darken(shade, 0.3)} strokeWidth="1" fill="none" opacity="0.5" /></>}
       </g>
 
-      <FacialHair look={look} mouthY={mouthY} ry={ry} fill={`url(#${uid}-hair)`} />
+      <g filter={`url(#${uid}-hairtex)`}><FacialHair look={look} mouthY={mouthY} ry={ry} fill={`url(#${uid}-hair)`} /></g>
 
       {/* cabelo da frente */}
-      <HairFront estilo={look.cabeloEstilo} fill={`url(#${uid}-hair)`} shine={hairLight} top={headTop} ry={ry} />
+      <g filter={`url(#${uid}-hairtex)`}><HairFront estilo={look.cabeloEstilo} fill={`url(#${uid}-hair)`} shine={hairLight} top={headTop} ry={ry} /></g>
+      {/* brilho suave nos fios, na direção da luz */}
+      <ellipse cx="86" cy={headTop + 6} rx="22" ry="5" fill="#fff" opacity="0.13" filter={`url(#${uid}-b3)`} />
 
       {/* óculos */}
       <Glasses tipo={look.oculos} y={eyeY} />
@@ -150,38 +206,65 @@ export function Portrait({ look, emocao = "neutro", falando = false, enquadramen
   );
 }
 
-function Eye({ cx, cy, open, iris, gaze, skin, shade, falando }: { cx: number; cy: number; open: number; iris: string; gaze: number; skin: string; shade: string; falando: boolean }) {
+function Eye({ uid, cx, cy, side, open, iris, gaze, skin, shade, falando }: { uid: string; cx: number; cy: number; side: -1 | 1; open: number; iris: string; gaze: number; skin: string; shade: string; falando: boolean }) {
+  void falando;
   const h = 6.2 * open;
+  const opening = `M${cx - 10.5},${cy + 0.5} Q${cx},${cy - h - 1.5} ${cx + 10.5},${cy + 0.5} Q${cx},${cy + h * 0.78 + 2} ${cx - 10.5},${cy + 0.5}Z`;
+  const cid = `${uid}-eye${side > 0 ? "r" : "l"}`;
+  const ir = Math.min(4.9, 3.1 + h * 0.28);
+  const gx = cx + gaze, gy = cy + 0.4;
+  const lash = "#150d0a";
+  const outer = cx + side * 10.5, inner = cx - side * 10.5;
   return (
     <g className="g-eye" style={{ transformOrigin: `${cx}px ${cy}px`, transformBox: "view-box" }}>
-      <path d={`M${cx - 10.5},${cy + 0.5} Q${cx},${cy - h - 1.5} ${cx + 10.5},${cy + 0.5} Q${cx},${cy + h * 0.78 + 2} ${cx - 10.5},${cy + 0.5}Z`} fill="#fdfaf5" stroke={darken(shade, 0.2)} strokeWidth="0.6" />
-      <g clipPath={undefined}>
-        <circle cx={cx + gaze} cy={cy + 0.4} r={Math.min(4.9, 3.1 + h * 0.28)} fill={iris} />
-        <circle cx={cx + gaze} cy={cy + 0.4} r="2.1" fill="#120c08" />
-        <circle cx={cx + gaze - 1.6} cy={cy - 1.4} r="1.1" fill="#fff" opacity="0.95" />
-        <circle cx={cx + gaze + 1.4} cy={cy + 1.6} r="0.55" fill="#fff" opacity="0.55" />
+      <defs><clipPath id={cid}><path d={opening} /></clipPath></defs>
+      {/* sombra suave da órbita sob o olho */}
+      <ellipse cx={cx} cy={cy + 5.5} rx="11" ry="3.2" fill={darken(shade, 0.35)} opacity="0.22" filter={`url(#${uid}-b1)`} />
+      <path d={opening} fill={`url(#${uid}-sclera)`} />
+      <g clipPath={`url(#${cid})`}>
+        <circle cx={gx} cy={gy} r={ir} fill={iris} />
+        <circle cx={gx} cy={gy} r={ir} fill="none" stroke="#0d0907" strokeWidth="0.95" opacity="0.55" />
+        {Array.from({ length: 14 }, (_, i) => { const a = (i / 14) * Math.PI * 2; return <line key={i} x1={gx + Math.cos(a) * 1.9} y1={gy + Math.sin(a) * 1.9} x2={gx + Math.cos(a) * (ir - 0.5)} y2={gy + Math.sin(a) * (ir - 0.5)} stroke="#fff" strokeWidth="0.28" opacity="0.2" />; })}
+        <circle cx={gx} cy={gy} r="1.95" fill="#0b0706" />
+        {/* sombra da pálpebra superior projetada no globo */}
+        <rect x={cx - 12} y={cy - h - 3} width="24" height={h * 0.7 + 3} fill="#1a0f0a" opacity="0.38" filter={`url(#${uid}-b1)`} />
+        <ellipse cx={gx - 1.5} cy={gy - 1.5} rx="1.25" ry="1.05" fill="#fff" opacity="0.97" />
+        <ellipse cx={gx + 1.5} cy={gy + 1.7} rx="0.65" ry="0.5" fill="#fff" opacity="0.5" />
+        <ellipse cx={gx} cy={cy + h * 0.5 + 1} rx={ir * 0.7} ry="0.8" fill="#fff" opacity="0.12" />
       </g>
-      {/* pálpebra superior sombreada sobre o olho */}
-      <path d={`M${cx - 11},${cy + 0.8} Q${cx},${cy - h - 3} ${cx + 11},${cy + 0.8} Q${cx},${cy - h + 0.4} ${cx - 11},${cy + 0.8}Z`} fill={darken(shade, 0.45)} opacity="0.9" />
-      <path d={`M${cx - 10},${cy + 4.2} Q${cx},${cy + h * 0.78 + 3.4} ${cx + 10},${cy + 4.2}`} stroke={darken(shade, 0.15)} strokeWidth="0.8" fill="none" opacity="0.5" />
-      <path d={`M${cx - 10},${cy - h - 3.4} Q${cx},${cy - h - 6.6} ${cx + 10},${cy - h - 3.4}`} stroke={lighten(skin, 0.1)} strokeWidth="1" fill="none" opacity="0.0" />
-      {falando && null}
+      {/* canal lacrimal */}
+      <ellipse cx={inner + side * 1.2} cy={cy + 0.9} rx="1.5" ry="1" fill="#d98c86" opacity="0.65" />
+      {/* pálpebra superior: pele em sombra + linha de cílios com ponta no canto externo */}
+      <path d={`M${cx - 11},${cy + 0.8} Q${cx},${cy - h - 3} ${cx + 11},${cy + 0.8} Q${cx},${cy - h + 0.4} ${cx - 11},${cy + 0.8}Z`} fill={darken(shade, 0.28)} opacity="0.92" />
+      <path d={`M${inner},${cy + 0.5} Q${cx},${cy - h - 2.2} ${outer},${cy + 0.5}`} stroke={lash} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path d={`M${outer},${cy + 0.5} q${side * 2.4},-0.6 ${side * 3.2},-2.2`} stroke={lash} strokeWidth="1" fill="none" strokeLinecap="round" />
+      {[0.25, 0.45, 0.65, 0.82].map((t, i) => { const x = inner + (outer - inner) * t; const yy = cy + 0.5 - Math.sin(t * Math.PI) * (h + 1.6); return <path key={i} d={`M${x},${yy + 0.4} q${side * 0.9},-1.9 ${side * 1.8},-2.6`} stroke={lash} strokeWidth="0.6" fill="none" strokeLinecap="round" opacity="0.8" />; })}
+      {/* vinco da pálpebra e linha d'água */}
+      <path d={`M${cx - 9.5},${cy - h - 3.3} Q${cx},${cy - h - 6.6} ${cx + 9.5},${cy - h - 3.3}`} stroke={darken(shade, 0.35)} strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.5" />
+      <path d={`M${cx - 9.5},${cy + 3.8} Q${cx},${cy + h * 0.78 + 3.2} ${cx + 9.5},${cy + 3.8}`} stroke={darken(shade, 0.2)} strokeWidth="0.7" fill="none" opacity="0.5" />
+      <path d={`M${cx - 7.5},${cy + 2.4} Q${cx},${cy + h * 0.78 + 1.2} ${cx + 7.5},${cy + 2.4}`} stroke="#f7c9c0" strokeWidth="0.7" fill="none" opacity="0.45" />
     </g>
   );
 }
 
 function Brows({ hair, brow, inner, age, y }: { hair: string; brow: number; inner: number; age: number; y: number }) {
   const t = 2.8 + age * 0.9;
-  const mk = (cx: number, side: -1 | 1) => {
-    const x1 = cx - 11 * side * -1; // lado de fora
-    const inx = cx + 11 * side * -1 * -1;
-    void x1; void inx;
+  const geo = (cx: number, side: -1 | 1) => {
     const outerX = cx + side * 12, innerX = cx - side * 12;
     const outerY = y - brow * 0.9, innerY = y - brow - inner * 0.55;
     const midY = Math.min(outerY, innerY) - 3.2 + (inner > 2 ? 1.5 : 0);
-    return `M${innerX},${innerY + t * 0.4} Q${cx},${midY} ${outerX},${outerY + 1.6} Q${cx},${midY + t} ${innerX},${innerY + t}Z`;
+    return { outerX, innerX, outerY, innerY, midY, cx, side };
   };
-  return (<g fill={hair} opacity="0.95"><path d={mk(84, -1)} /><path d={mk(116, 1)} /></g>);
+  const body = (g: ReturnType<typeof geo>) => `M${g.innerX},${g.innerY + t * 0.4} Q${g.cx},${g.midY} ${g.outerX},${g.outerY + 1.6} Q${g.cx},${g.midY + t} ${g.innerX},${g.innerY + t}Z`;
+  const strands = (g: ReturnType<typeof geo>) => Array.from({ length: 16 }, (_, i) => {
+    const u = i / 15, k = 1 - u;
+    const x = k * k * g.innerX + 2 * k * u * g.cx + u * u * g.outerX;
+    const yy = k * k * (g.innerY + t * 0.6) + 2 * k * u * (g.midY + t * 0.5) + u * u * (g.outerY + 2);
+    const j = ((i * 37) % 7) / 7 - 0.5;
+    return <path key={i} d={`M${x},${yy + 0.5 + j * 0.5} q${g.side * 1.3},${-0.5 - u * 0.3} ${g.side * 2.6},${-0.5 - j * 0.5}`} stroke={hair} strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.95" />;
+  });
+  const L = geo(84, -1), R = geo(116, 1);
+  return (<g><g fill={hair} opacity="0.85"><path d={body(L)} /><path d={body(R)} /></g>{strands(L)}{strands(R)}</g>);
 }
 
 function Glasses({ tipo, y }: { tipo?: Look["oculos"]; y: number }) {
