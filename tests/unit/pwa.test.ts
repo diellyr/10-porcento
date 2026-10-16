@@ -1,10 +1,12 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import manifest from "@/app/manifest";
 import { buildCsp } from "@/lib/security-headers";
 
-describe("PWA", () => {
-  const m = manifest();
+type Manifest = { name: string; short_name: string; display: string; start_url: string; lang: string; icons?: Array<{ src: string; sizes: string; purpose?: string }>; shortcuts?: Array<{ icons?: Array<{ src: string }> }> };
+const load = (f: string) => JSON.parse(readFileSync(`public/${f}`, "utf8")) as Manifest;
+
+describe.each(["meus-10.webmanifest", "brasil-fiscal.webmanifest"])("PWA (%s)", (file) => {
+  const m = load(file);
 
   it("manifesto tem o essencial para ser instalável", () => {
     expect(m.name).toBeTruthy();
@@ -24,7 +26,7 @@ describe("PWA", () => {
       expect(existsSync(f), f).toBe(true);
       expect(statSync(f).size).toBeGreaterThan(500);
     }
-    expect(existsSync("public/icons/apple-touch-icon.png")).toBe(true);
+    expect(existsSync("public/icons/apple-touch-icon.png") && existsSync("public/icons/meus10-apple-touch.png")).toBe(true);
     expect(existsSync("public/offline.html")).toBe(true);
   });
 

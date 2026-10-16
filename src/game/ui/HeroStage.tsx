@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRef } from "react";
+import { InstallShortcut } from "./Install";
 import { HeroArt } from "./art/HeroArt";
 
 /** Abertura da página inicial: arte original com movimento discreto (paralaxe) e as opções do menu do jogo. */
@@ -18,7 +19,7 @@ export function HeroStage() {
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-white/70 via-white/15 to-white/60" aria-hidden />
       <nav className="mx-auto flex w-full max-w-6xl items-center justify-between gap-2 px-4 pt-4" aria-label="Principal">
         <span className="g-display text-2xl font-bold" style={{ color: "var(--g-blue)" }}>MEUS <span style={{ color: "var(--g-orange-t)" }}>10%</span></span>
-        <span className="flex flex-wrap gap-2"><Link href="#como-funciona" className="g-btn ghost sm">Conhecer o jogo</Link><Link href="/entrar" className="g-btn ghost sm">👤 Entrar</Link></span>
+        <span className="flex flex-wrap gap-2"><Link href="#como-funciona" className="g-btn ghost sm">Conhecer o jogo</Link><InstallShortcut /><Link href="/entrar" className="g-btn ghost sm">👤 Entrar</Link></span>
       </nav>
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-4 pb-10 pt-6 text-center">
         <p className="g-chip es">🎭 Sátira · tudo é ficção · dados públicos de verdade</p>

@@ -1,0 +1,77 @@
+{
+  "id": "/brasil-fiscal",
+  "name": "Brasil Fiscal — para onde vai o dinheiro público",
+  "short_name": "Brasil Fiscal",
+  "description": "Quanto o Brasil arrecada e gasta — União, estados e municípios — com dados oficiais e fonte sempre visível.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/brasil-fiscal?origem=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fafaf9",
+  "theme_color": "#01913c",
+  "categories": [
+    "finance",
+    "government",
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Para onde vai o dinheiro",
+      "short_name": "Para onde vai",
+      "url": "/para-onde-vai",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Buscar município",
+      "short_name": "Municípios",
+      "url": "/municipios",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Rankings",
+      "short_name": "Rankings",
+      "url": "/rankings",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

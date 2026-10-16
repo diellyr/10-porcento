@@ -1,0 +1,25 @@
+{
+  "id": "/jogo",
+  "name": "MEUS 10% — a caneta e o dinheiro público",
+  "short_name": "MEUS 10%",
+  "description": "Aventura investigativa de humor e gestão pública: administre uma UPA e escolha entre desviar ou melhorar.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/?origem=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff8ec",
+  "theme_color": "#ff7a1a",
+  "categories": ["games", "education"],
+  "icons": [
+    { "src": "/icons/meus10-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/meus10-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/meus10-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Nova partida", "short_name": "Nova partida", "url": "/jogo?acao=novo", "icons": [{ "src": "/icons/meus10-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Continuar", "short_name": "Continuar", "url": "/jogo?acao=continuar", "icons": [{ "src": "/icons/meus10-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Meu perfil", "short_name": "Perfil", "url": "/perfil", "icons": [{ "src": "/icons/meus10-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}
