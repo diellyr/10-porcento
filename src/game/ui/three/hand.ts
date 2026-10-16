@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { darken, lighten, mix } from "../art/color";
+import { skinMaterial } from "./common";
 
 /**
  * Braço, mão e caneta 3D PROCEDURAIS (objetos reais: palma, 5 dedos com 3/3/3/3/2 falanges articuladas, unhas, antebraço,
@@ -37,7 +38,7 @@ function capsule(len: number, r0: number, r1: number, mat: THREE.Material, rs = 
 
 export function buildHand(opts: { pele: string; sombra: string; manga: string; punho: string; dourado?: string; corCaneta?: string; penDirLocal?: THREE.Vector3; tipLocal?: THREE.Vector3 }): HandRig {
   const disposables: Array<{ dispose: () => void }> = [];
-  const skin = new THREE.MeshStandardMaterial({ color: opts.pele, roughness: 0.55, emissive: new THREE.Color(opts.pele).multiplyScalar(0.06) });
+  const skin = skinMaterial(opts.pele, { roughness: 0.54 });
   const skinD = new THREE.MeshStandardMaterial({ color: mix(opts.pele, opts.sombra, 0.5), roughness: 0.6 });
   const nailM = new THREE.MeshStandardMaterial({ color: mix(lighten(opts.pele, 0.45), "#f4c9c0", 0.45), roughness: 0.25 });
   disposables.push(skin, skinD, nailM);

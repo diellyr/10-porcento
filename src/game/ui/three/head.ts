@@ -3,7 +3,7 @@ import type { Look } from "../../content/types";
 import type { Emotion } from "../../engine/types";
 import { EXPR } from "../art/expr";
 import { darken, lighten, lipColor, mix } from "../art/color";
-import { gauss, lerp, smooth } from "./common";
+import { gauss, lerp, skinMaterial, smooth } from "./common";
 import type { Quality } from "./support";
 
 /**
@@ -109,7 +109,7 @@ export function buildBust(look: Look, q: Quality): Bust {
   geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   geo.computeVertexNormals();
   const base = new Float32Array(pos.array as Float32Array);
-  const skinMat = mk("#ffffff", { vertexColors: true, roughness: 0.58, emissive: skin.clone().multiplyScalar(0.07) });
+  const skinMat = skinMaterial(skin, { vertexColors: true, roughness: 0.56 });
   const face = new THREE.Mesh(geo, skinMat); face.castShadow = true; face.receiveShadow = true; head.add(face);
   disposables.push(geo, skinMat);
 
@@ -131,7 +131,7 @@ export function buildBust(look: Look, q: Quality): Bust {
   const eyeTex = irisTexture(look);
   const eyeMat = new THREE.MeshPhysicalMaterial({ map: eyeTex, roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.05 });
   const eyes: Array<{ ball: THREE.Mesh; up: THREE.Mesh; low: THREE.Mesh; brow: THREE.Mesh; side: number; cx: number; cy: number; cz: number; bz: number }> = [];
-  const lidMat = mk(look.pele, { roughness: 0.6, side: THREE.DoubleSide });
+  const lidMat = skinMaterial(look.pele, { roughness: 0.58 }); lidMat.side = THREE.DoubleSide;
   const browMat = mk(mix(look.cabelo, "#1a1410", 0.25), { roughness: 0.85 });
   const R = 0.165;
   for (const side of [-1, 1]) {
@@ -167,7 +167,7 @@ export function buildBust(look: Look, q: Quality): Bust {
   };
 
   /* ───── pescoço, tronco e roupa ───── */
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.62, 0.9, 28), mk(look.peleSombra, { roughness: 0.65 })); neck.position.set(0, -1.1, -0.06); neck.receiveShadow = true; root.add(neck);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.62, 0.9, 28), skinMaterial(look.peleSombra, { roughness: 0.62 })); neck.position.set(0, -1.1, -0.06); neck.receiveShadow = true; root.add(neck);
   const torsoMat = mk(look.roupa, { roughness: 0.82 });
   const torso = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28, 0, Math.PI * 2, 0, Math.PI * 0.62), torsoMat);
   torso.scale.set(2.1, 1.25, 1.0); torso.position.set(0, -2.45, -0.1); torso.receiveShadow = true; torso.castShadow = true; root.add(torso);
@@ -191,7 +191,7 @@ export function buildBust(look: Look, q: Quality): Bust {
   disposables.push(neck.geometry, torso.geometry, chest.geometry, torsoMat, trim); chest.visible = false;
 
   /* ───── cabelo ───── */
-  const hairMat = new THREE.MeshStandardMaterial({ color: new THREE.Color("#ffffff"), map: hairTexture(look.cabelo), roughness: 0.55, metalness: 0.05 });
+  const hairMat = new THREE.MeshPhysicalMaterial({ color: new THREE.Color("#ffffff"), map: hairTexture(look.cabelo), roughness: 0.5, metalness: 0.05, sheen: 0.5, sheenRoughness: 0.4, sheenColor: new THREE.Color(look.cabelo).lerp(new THREE.Color("#ffffff"), 0.15), clearcoat: 0.1, clearcoatRoughness: 0.5 });
   disposables.push(hairMat);
   const t2 = new V(), o2 = new V();
   const hairParams = (() => {

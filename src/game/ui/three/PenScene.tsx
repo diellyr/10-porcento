@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { useEffect, useRef } from "react";
 import { avatarLook } from "../../content/characters";
 import { darken } from "../art/color";
-import { clamp01, disposeTree, ease, lerp, makeRenderer, startLoop } from "./common";
+import { addEnvironment, clamp01, disposeTree, ease, lerp, makeRenderer, startLoop } from "./common";
 import { buildHand } from "./hand";
 import type { Quality } from "./support";
 
@@ -121,7 +121,8 @@ export default function PenScene(p: PenSceneProps) {
 
     const dbg = new URLSearchParams(location.search).get("cam");
     if (dbg === "lado") { cam.position.set(-3.2, 1.3, 1.2); cam.lookAt(0.3, 0.4, 1.0); } else if (dbg === "perto") { cam.position.set(0.9, 1.6, 2.6); cam.lookAt(0.3, 0.2, 1.0); } else if (dbg === "topo") { cam.position.set(0.5, 5.5, 1.5); cam.lookAt(0.3, 0, 1.0); }
-    scene.add(new THREE.HemisphereLight(0xfff1dc, 0x4a5a8a, 0.9));
+    const envOff = addEnvironment(renderer, scene, 0.22);
+    scene.add(new THREE.HemisphereLight(0xfff1dc, 0x4a5a8a, 0.8));
     const lamp = new THREE.SpotLight(0xffe6bd, 90, 18, 0.62, 0.55, 1.6); lamp.position.set(-2.8, 6.2, 2.6); lamp.target.position.set(0.3, 0, 0.6); lamp.castShadow = p.qualidade !== "baixa"; lamp.shadow.mapSize.set(p.qualidade === "alta" ? 2048 : 1024, p.qualidade === "alta" ? 2048 : 1024); lamp.shadow.bias = -0.0004; lamp.shadow.radius = 4; scene.add(lamp, lamp.target);
     const fillL = new THREE.DirectionalLight(0x9fb8ff, 0.7); fillL.position.set(4, 3, 2); scene.add(fillL);
 
@@ -203,7 +204,7 @@ export default function PenScene(p: PenSceneProps) {
     el.dataset.pronto = "1";
     const lost = (e: Event) => { e.preventDefault(); live.current.onFail(); }; canvas.addEventListener("webglcontextlost", lost);
     void t0; void R; void lastInk; void paper;
-    return () => { stop(); ro.disconnect(); canvas.removeEventListener("webglcontextlost", lost); rig.dispose(); disposeTree(scene); pp.tex.dispose(); wood.dispose(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
+    return () => { stop(); ro.disconnect(); canvas.removeEventListener("webglcontextlost", lost); rig.dispose(); disposeTree(scene); envOff(); pp.tex.dispose(); wood.dispose(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return <div ref={host} className="h-full w-full" role="img" aria-label="Cena 3D: braço, mão e caneta sobre a mesa de trabalho" />;
