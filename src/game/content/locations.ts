@@ -1,5 +1,7 @@
 import type { LocationId } from "../engine/types";
 import type { LocationDef } from "./types";
+import { buildLocation } from "./niveis/layout";
+import { NIVEIS } from "./niveis";
 
 /**
  * Locais investigáveis da UPA. Os retângulos dos pontos interativos usam o viewBox 1200×675 das cenas.
@@ -191,5 +193,14 @@ const LOCATIONS_N2: Record<"secretaria" | "planejamento" | "prefeitura" | "camar
   },
 };
 
-export const LOCATIONS: Record<LocationId, LocationLayout> = { ...LOCATIONS_N1, ...LOCATIONS_N2 };
+/** Níveis 3 a 7: layout gerado a partir das specs de cada nível. */
+const LOCATIONS_NX = (() => {
+  const nomes: Record<string, string> = {};
+  for (const c of Object.values(NIVEIS)) for (const l of c.locais) nomes[l.id] = l.nome;
+  const out: Record<string, LocationLayout> = {};
+  for (const [n, c] of Object.entries(NIVEIS)) c.locais.forEach((l, i) => { out[l.id] = buildLocation(l, i, Number(n), nomes); });
+  return out;
+})();
+
+export const LOCATIONS = { ...LOCATIONS_N1, ...LOCATIONS_N2, ...LOCATIONS_NX } as Record<LocationId, LocationLayout>;
 export const LOCATION_LIST = Object.values(LOCATIONS);

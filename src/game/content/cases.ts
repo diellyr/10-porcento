@@ -1,6 +1,7 @@
 import type { GameState } from "../engine/types";
 import type { CaseDef, DecisionDef, OptionDef } from "./types";
 import { CASES_N2, DECISIONS_N2 } from "./cases-n2";
+import { NIVEIS_LISTA } from "./niveis";
 
 const DEV = (rotulo: string, explicacao: string): OptionDef["desvio"] => ({ rotulo, explicacao });
 const hasFlag = (s: GameState) => s.decisions.some((d) => ["atestar-sem-conferir", "consultoria-primo", "aceitar-indicacao", "inflar", "mais-barato"].includes(d.optionId));
@@ -412,7 +413,7 @@ export const DECISIONS_N1: DecisionDef[] = [
   },
 ];
 
-export const DECISIONS: DecisionDef[] = [...DECISIONS_N1, ...DECISIONS_N2];
+export const DECISIONS: DecisionDef[] = [...DECISIONS_N1, ...DECISIONS_N2, ...NIVEIS_LISTA.flatMap((n) => n.decisoes)];
 export const DECISION_BY_ID = Object.fromEntries(DECISIONS.map((d) => [d.id, d])) as Record<string, DecisionDef>;
 
 export const CASES_N1: CaseDef[] = [
@@ -447,7 +448,7 @@ export const CASES_N1: CaseDef[] = [
     chamada: "O ciclo terminou. É hora de contar à população e à Secretaria o que aconteceu — inclusive o que não deu certo.",
     objetivo: "Veja os indicadores e escolha como prestar contas.", dica: "Dica do Professor Bento: prestar contas é mostrar resultado, falha e plano de correção. Um relatório que só agrada, não informa." },
 ];
-export const CASES: CaseDef[] = [...CASES_N1, ...CASES_N2];
+export const CASES: CaseDef[] = [...CASES_N1, ...CASES_N2, ...NIVEIS_LISTA.flatMap((n) => n.casos)];
 export const CASE_BY_NUM = Object.fromEntries(CASES.map((c) => [c.caso, c])) as Record<number, CaseDef>;
 /** Total de casos da carreira construída até aqui (use `casosDoNivel` para o total de um nível). */
 export const TOTAL_CASES = CASES.length;
