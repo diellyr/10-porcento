@@ -8,7 +8,7 @@ import { serviceClient } from "@/server/repositories/supabase/client";
 import { DEV_FIXTURES_ENABLED } from "@/server/dev/fixtures";
 
 /** Integrações usadas pelo jogo, na ordem em que aparecem no painel. */
-export const GAME_SLUGS = ["siconfi", "ibge-localidades", "portal-transparencia", "dados-gov-br", "elevenlabs-voz", "anthropic-ia"] as const;
+const GAME_SLUGS = ["siconfi", "ibge-localidades", "portal-transparencia", "dados-gov-br", "elevenlabs-voz", "anthropic-ia"] as const;
 
 async function count(table: string): Promise<number | null> {
   if (DEV_FIXTURES_ENABLED()) return null;
