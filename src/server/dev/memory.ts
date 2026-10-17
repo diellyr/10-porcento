@@ -212,7 +212,7 @@ export class MemoryRegistry implements ISourceRegistry {
         id, name: d.name, slug: d.slug, description: d.description, provider: d.provider, category: d.category, sourceType: d.sourceType, baseUrl: d.baseUrl,
         documentationUrl: d.documentationUrl, authType: d.authType, requiresAuth: d.requiresAuth, enabled: true, priority: d.priority,
         rateLimitPerMinute: d.rateLimitPerMinute, cacheTtlMinutes: d.cacheTtlMinutes, status: d.requiresAuth ? "NOT_CONFIGURED" : "UNKNOWN", parserVersion: "1",
-        adapterKey: ({ siconfi: "siconfi", "portal-transparencia": "transparencia", "receita-federal": "receita", "tesouro-nacional": "tesouro", "dados-gov-br": "dadosgov", "ibge-localidades": "ibge" } as Record<string, string>)[d.slug] ?? d.slug,
+        adapterKey: ({ siconfi: "siconfi", "portal-transparencia": "transparencia", "receita-federal": "receita", "tesouro-nacional": "tesouro", "dados-gov-br": "dadosgov", "ibge-localidades": "ibge", "elevenlabs-voz": "game-elevenlabs", "anthropic-ia": "game-anthropic" } as Record<string, string>)[d.slug] ?? d.slug,
         config: d.config ?? {}, lastSuccessAt: null, lastFailureAt: null, lastSyncAt: null, lastRequestAt: null, lastLatencyMs: null, lastHttpStatus: null, lastError: null, disabledAt: null, disabledBy: null,
       });
     }

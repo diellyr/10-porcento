@@ -149,5 +149,5 @@ export class SupabaseSourceRegistry implements ISourceRegistry {
 }
 
 function adapterKeyOf(slug: string): string {
-  return ({ siconfi: "siconfi", "portal-transparencia": "transparencia", "receita-federal": "receita", "tesouro-nacional": "tesouro", "dados-gov-br": "dadosgov", "ibge-localidades": "ibge" } as Record<string, string>)[slug] ?? slug;
+  return ({ siconfi: "siconfi", "portal-transparencia": "transparencia", "receita-federal": "receita", "tesouro-nacional": "tesouro", "dados-gov-br": "dadosgov", "ibge-localidades": "ibge", "elevenlabs-voz": "game-elevenlabs", "anthropic-ia": "game-anthropic" } as Record<string, string>)[slug] ?? slug;
 }

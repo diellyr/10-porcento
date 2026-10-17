@@ -32,12 +32,12 @@ describe("+ Adicionar fonte", () => {
     expect(v.datasets).toContain("receita.arrecadacao");
     expect(s.store.audits.at(-1)).toMatchObject({ action: "source.added", actorEmail: "admin@bf.test" });
     expect((await s.admin.list()).map((x) => x.slug)).not.toContain("file-template"); // modelo nunca é cadastrado sozinho
-    expect(s.store.sources.size).toBe(7);
+    expect(s.store.sources.size).toBe(9);
   });
   it("lista as opções de adaptador (modelo de arquivo + um por fonte padrão)", async () => {
     const s = await setup();
     const o = s.admin.adapterOptions();
-    expect(o.map((x) => x.key).sort()).toEqual(["dadosgov", "file", "ibge", "receita", "siconfi", "tesouro", "transparencia"]);
+    expect(o.map((x) => x.key).sort()).toEqual(["dadosgov", "file", "game-anthropic", "game-elevenlabs", "ibge", "receita", "siconfi", "tesouro", "transparencia"]);
     expect(o.find((x) => x.key === "file")!.template).toBe(true);
   });
   it("valida: slug, duplicidade, adaptador, https/SSRF, segredos na config, campos extras", async () => {
