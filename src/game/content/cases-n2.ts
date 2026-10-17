@@ -8,14 +8,14 @@ export interface O {
   custo: Txt; prazo: string; ganho?: Txt; riscos: OptionDef["previsao"]["riscos"];
   custoPct: number; economiaPct?: number; efeitos: Effects; narracao: Txt;
   depois?: OptionDef["depois"]; requer?: OptionDef["requer"]; aplica?: ConceptId[]; aliado?: CharId;
-  desvio?: OptionDef["desvio"]; ajustes?: OptionDef["ajustes"]; escalaPorNegociacao?: string; cortaAcesso?: boolean;
+  desvio?: OptionDef["desvio"]; ajustes?: OptionDef["ajustes"]; escalaPorNegociacao?: string; cortaAcesso?: boolean; conquista?: string; votos?: number;
 }
 export const opt = (o: O): OptionDef => ({
   id: o.id, rotulo: o.rotulo, kind: o.kind, gesto: o.gesto ?? "assinar", resumo: o.resumo,
   previsao: { custo: o.custo, prazo: o.prazo, ganho: o.ganho, riscos: o.riscos },
   custoPct: o.custoPct, economiaPct: o.economiaPct, efeitos: o.efeitos, narracao: o.narracao,
   depois: o.depois, requer: o.requer, aplica: o.aplica, aliado: o.aliado, desvio: o.desvio, ajustes: o.ajustes,
-  escalaPorNegociacao: o.escalaPorNegociacao, cortaAcesso: o.cortaAcesso,
+  escalaPorNegociacao: o.escalaPorNegociacao, cortaAcesso: o.cortaAcesso, conquista: o.conquista, votos: o.votos,
 });
 export const DEV = (rotulo: string, explicacao: string): OptionDef["desvio"] => ({ rotulo, explicacao });
 export const m = (pct: number) => (c: Ctx) => c.money(pct);

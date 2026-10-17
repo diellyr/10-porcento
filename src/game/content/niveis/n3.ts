@@ -608,6 +608,7 @@ const conquistas: AchievementDef[] = [
   { id: "n3-rateio-em-dia", nome: "Rateio em Dia", descricao: "Cobrou o rateio pelo critério igual e formalizou o parcelamento do atraso.", trilha: "gestao", icone: "🧮" },
   { id: "n3-pacto-na-cir", nome: "Pacto na CIR", descricao: "Repactuou referências e contrarreferências em vez de deixar o paciente ser empurrado.", trilha: "gestao", icone: "🤝" },
   { id: "n3-frota-compartilhada", nome: "Frota Compartilhada", descricao: "Montou a central de transporte regulada em vez de comprar carros avulsos.", trilha: "gestao", icone: "🚑" },
+  { id: "n3-polo-pela-necessidade", nome: "Polo Pela Necessidade", descricao: "Instalou o centro regional onde a população e o acesso pediam, não onde o prefeito pedia.", trilha: "gestao", icone: "📍" },
   { id: "n3-contrato-com-metas", nome: "Contrato com Metas", descricao: "Renovou o contrato do hospital com metas, indicadores e acompanhamento.", trilha: "gestao", icone: "📈" },
   { id: "n3-contas-regionais", nome: "Contas Regionais", descricao: "Prestou contas à CIR e ao conselho regional com resultados, pendências e plano.", trilha: "gestao", icone: "📣" },
   { id: "n3-desconto-do-prefeito", nome: "O Desconto do Prefeito", descricao: "Deu desconto de rateio a um município e mandou a conta para os outros sete.", trilha: "satira", icone: "🏷️" },

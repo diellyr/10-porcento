@@ -295,7 +295,7 @@ describe("carreira — nível 2 (Secretário Municipal de Saúde)", () => {
     expect(l1.ending?.id).toBe("responsabilizacao");
     expect(apply(l1, "p3", { type: "promote" }).ok).toBe(false);
   });
-  it("trajetória competente chega ao reconhecimento no nível 2, sem desvio, e o nível 3 ainda não existe", () => {
+  it("trajetória competente chega ao reconhecimento no nível 2, sem desvio, e o nível 3 já pode ser aberto", () => {
     const l1 = play(best);
     const p = apply(l1, "p4", { type: "promote" }); if (!p.ok) throw new Error(p.error);
     const s = playLevel(p.state, best, 2);
@@ -304,7 +304,7 @@ describe("carreira — nível 2 (Secretário Municipal de Saúde)", () => {
     expect(s.personal.desviado).toBe(0);
     expect(s.ending?.id).toBe("reconhecimento");
     expect(s.achievements).toEqual(expect.arrayContaining(["promovido-2", "cobertura-por-necessidade", "emenda-com-plano", "credito-legal", "contas-na-audiencia"]));
-    expect(apply(s, "p5", { type: "promote" }).ok).toBe(false);
+    expect(apply(s, "p5", { type: "promote" }).ok).toBe(true); // o nível 3 existe
     const rel = buildReport(s);
     expect(rel.resumo.cargo).toContain("Secretário");
     expect(rel.decisoes).toHaveLength(8);
