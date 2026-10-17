@@ -5,6 +5,7 @@ import { CHARACTERS } from "../../content/characters";
 import { CONV_BY_ID } from "../../content/conversations";
 import { LOCATIONS } from "../../content/locations";
 import { worldView } from "../../engine/scoring";
+import { audio } from "../../audio/AudioManager";
 import type { CharId, GameState, LocationId } from "../../engine/types";
 import type { ActiveHotspot } from "../GameScene";
 import { addEnvironment, disposeTree, makeRenderer, startLoop } from "./common";
@@ -44,8 +45,8 @@ export function World3D(p: Props) {
 
   const wv = useMemo(() => worldView(p.s), [p.s]);
   const people = useMemo(() => peopleAll(p.s), [p.s]);
-  const dyn: WorldDyn = useMemo(() => ({ filaNivel: wv.filaNivel, estoqueNivel: wv.estoqueNivel, melhoria: wv.melhoria, filaMin: p.s.pub.filaMin, people }), [wv.filaNivel, wv.estoqueNivel, wv.melhoria, p.s.pub.filaMin, people]);
-  const dynKey = JSON.stringify([dyn.filaNivel, dyn.estoqueNivel, dyn.melhoria, Math.round(dyn.filaMin), dyn.people.map((x) => x.hotspotId + x.label)]);
+  const dyn: WorldDyn = useMemo(() => ({ filaNivel: wv.filaNivel, estoqueNivel: wv.estoqueNivel, melhoria: wv.melhoria, luxo: wv.luxoNivel, degradacao: wv.degradacao, filaMin: p.s.pub.filaMin, people }), [wv.filaNivel, wv.estoqueNivel, wv.melhoria, wv.luxoNivel, wv.degradacao, p.s.pub.filaMin, people]);
+  const dynKey = JSON.stringify([dyn.filaNivel, dyn.estoqueNivel, dyn.melhoria, dyn.luxo, dyn.degradacao, Math.round(dyn.filaMin), dyn.people.map((x) => x.hotspotId + x.label)]);
 
   useEffect(() => {
     const el = host.current!;
@@ -56,7 +57,7 @@ export function World3D(p: Props) {
     const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xcfe6ff, 60, 120);
     const cam = new THREE.PerspectiveCamera(32, 1, 0.5, 200);
     const envOff = addEnvironment(renderer, scene, 0.25);
-    scene.add(new THREE.HemisphereLight(0xfff4e0, 0xa7b9d8, 0.95));
+    const hemi = new THREE.HemisphereLight(0xfff4e0, 0xa7b9d8, 0.95); scene.add(hemi);
     const key = new THREE.DirectionalLight(0xfff0d8, 2.1); key.position.set(-14, 26, 16); key.castShadow = p.q !== "baixa";
     const sh = key.shadow; sh.mapSize.set(p.q === "alta" ? 2048 : 1024, p.q === "alta" ? 2048 : 1024); sh.camera.near = 5; sh.camera.far = 80; sh.camera.left = -24; sh.camera.right = 24; sh.camera.top = 18; sh.camera.bottom = -18; sh.bias = -0.0006; sh.normalBias = 0.04; sh.radius = 3;
     scene.add(key); scene.add(key.target);
@@ -91,18 +92,25 @@ export function World3D(p: Props) {
       if (!show || v.z > 1 || Math.abs(v.x) > 1.15 || Math.abs(v.y) > 1.15) { el2.style.visibility = "hidden"; return; }
       el2.style.visibility = "visible"; el2.style.transform = `translate(${(v.x * 0.5 + 0.5) * w}px, ${(-v.y * 0.5 + 0.5) * h}px) translate(-50%, -50%)`;
     };
-    const stop = startLoop(p.q, (dt) => {
-      const c = live.current; const k = c.reduzir ? 1 : 1 - Math.exp(-dt * 3.6);
+    const keyWarm = new THREE.Color(0xfff0d8), keyCold = new THREE.Color(0xdfe6f2), tmp = new THREE.Color();
+    let vy = 0, clock = 0;
+    const stop = startLoop(p.q, (dt, t) => {
+      const c = live.current; clock = t; const k = c.reduzir ? 1 : 1 - Math.exp(-dt * 3.6);
       cur.tx += (g.tx - cur.tx) * k; cur.ty += (g.ty - cur.ty) * k; cur.tz += (g.tz - cur.tz) * k;
       const asp = cam.aspect; const fit = asp < 1.6 ? Math.pow(1.6 / Math.max(0.5, asp), 0.85) : 1;
       cur.dist += (g.dist * fit * g.user - cur.dist) * k; if (!ptrs.size) cur.pol += (g.pol - cur.pol) * k * 0.6;
+      // clima: gestão degradada deixa a luz fria e baixa; melhoria deixa quente e viva
+      const mood = Math.max(0, Math.min(1, (live.current.s.pub.qualidade - 25) / 60)); tmp.copy(keyCold).lerp(keyWarm, mood); key.color.copy(tmp); key.intensity = 1.7 + mood * 0.6; hemi.intensity = 0.8 + mood * 0.25;
+      // a câmera da conversa sobe a cena para o rosto ficar acima do cartão de diálogo
+      const wantVy = c.foco ? el.clientHeight * 0.16 : 0; vy += (wantVy - vy) * k; if (Math.abs(vy) > 0.5 || wantVy) { cam.setViewOffset(el.clientWidth, el.clientHeight, 0, vy, el.clientWidth, el.clientHeight); } else cam.clearViewOffset();
       place(); world.updateWalls(cam.position, c.reduzir ? 1 : dt);
+      if (!c.reduzir) world.animate(clock, c.foco, audio.level());
       key.target.position.set(cur.tx, 0, cur.tz); key.position.set(cur.tx - 14, 26, cur.tz + 16);
       renderer.render(scene, cam);
       const w = el.clientWidth, h = el.clientHeight;
       for (const a of c.hs) { const wp = world.anchor(c.s.location, a.h.id); if (a.h.kind === "pessoa") wp.y = 2.3; project(marks.current[a.h.id], wp, c.modo === "sala", w, h); }
       for (const r of ROOM_LIST) project(badges.current[r.id], world.center(r.id).setY(3.4), c.modo === "mapa", w, h);
-    });
+    }, (fps) => { el.dataset.fps = String(fps); el.dataset.calls = String(renderer.info.render.calls); });
     el.dataset.pronto = "1";
     return () => { stop(); ro.disconnect(); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("wheel", wheel); canvas.removeEventListener("webglcontextlost", lost); api.current = null; world.dispose(); disposeTree(scene); disposeMats(); envOff(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

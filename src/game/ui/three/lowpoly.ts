@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { Look } from "../../content/types";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { darken, lighten } from "../art/color";
 
 /** Peças low-poly (faces chapadas, cores vivas). Tudo em unidades ≈ metros; origem de cada peça no chão. */
@@ -13,7 +14,44 @@ export function mat(color: string, o: { rough?: number; metal?: number; emissive
   }
   return m;
 }
-export const disposeMats = () => { for (const m of mats.values()) m.dispose(); mats.clear(); };
+const vcMats = new Map<string, THREE.MeshStandardMaterial>();
+export const disposeMats = () => { for (const m of mats.values()) m.dispose(); mats.clear(); for (const m of vcMats.values()) m.dispose(); vcMats.clear(); };
+
+/** Material com cor por vértice: milhares de peças de cores diferentes viram poucas chamadas de desenho. */
+function vcMaterial(src: THREE.MeshStandardMaterial): { key: string; mat: THREE.MeshStandardMaterial; colored: boolean } {
+  const emissive = src.emissiveIntensity > 0 && src.emissive.getHex() !== 0;
+  const key = `${src.roughness}|${src.metalness}|${src.flatShading}|${src.transparent ? src.opacity : 1}|${emissive ? src.color.getHexString() + src.emissive.getHexString() : ""}`;
+  let m = vcMats.get(key);
+  if (!m) { m = new THREE.MeshStandardMaterial({ color: emissive ? src.color : "#ffffff", vertexColors: !emissive, roughness: src.roughness, metalness: src.metalness, flatShading: src.flatShading, transparent: src.transparent, opacity: src.opacity, emissive: emissive ? src.emissive : undefined, emissiveIntensity: emissive ? src.emissiveIntensity : 0 }); vcMats.set(key, m); }
+  return { key, mat: m, colored: !emissive };
+}
+
+/** Junta as malhas de um grupo (em coordenadas locais de `rel`), uma malha por tipo de material. Itens em `skip` ficam como estão. */
+export function bakeGroup(group: THREE.Object3D, rel: THREE.Object3D, skip: Set<THREE.Object3D> = new Set()) {
+  group.updateMatrixWorld(true); rel.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(rel.matrixWorld).invert(); const mm = new THREE.Matrix4();
+  const buckets = new Map<string, { mat: THREE.MeshStandardMaterial; list: THREE.BufferGeometry[] }>(); const gone: THREE.Mesh[] = [];
+  const visit = (o: THREE.Object3D) => {
+    if (skip.has(o)) return;
+    const m = o as THREE.Mesh;
+    if (m.isMesh && m.material instanceof THREE.MeshStandardMaterial && !m.material.map && !m.userData.keep) {
+      const g = (m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone()) as THREE.BufferGeometry;
+      for (const n of Object.keys(g.attributes)) if (n !== "position" && n !== "normal" && n !== "uv") g.deleteAttribute(n);
+      g.applyMatrix4(mm.multiplyMatrices(inv, m.matrixWorld));
+      const v = vcMaterial(m.material);
+      if (v.colored) { const n = g.attributes.position!.count, c = new Float32Array(n * 3), col = m.material.color; for (let i = 0; i < n; i++) { c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b; } g.setAttribute("color", new THREE.BufferAttribute(c, 3)); }
+      else g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(g.attributes.position!.count * 3).fill(1), 3));
+      (buckets.get(v.key) ?? buckets.set(v.key, { mat: v.mat, list: [] }).get(v.key)!).list.push(g); gone.push(m);
+    }
+    for (const c of [...o.children]) visit(c);
+  };
+  visit(group);
+  for (const m of gone) m.parent?.remove(m);
+  for (const { mat: material, list } of buckets.values()) {
+    const merged = mergeGeometries(list, false); list.forEach((x) => x.dispose()); if (!merged) continue;
+    const mesh = new THREE.Mesh(merged, material); mesh.castShadow = true; mesh.receiveShadow = true; mesh.userData.own = true; group.add(mesh);
+  }
+}
 
 const boxG = new THREE.BoxGeometry(1, 1, 1);
 const cylG = new THREE.CylinderGeometry(1, 1, 1, 10);
@@ -163,6 +201,7 @@ export function person(look: Look, o: { sit?: boolean; scale?: number } = {}): T
   if (look.barba === "bigode") box(g, 0.2, 0.05, 0.04, hair, 0, hy - 0.07, 0.265);
   if (look.oculos) { box(g, 0.34, 0.012, 0.02, "#2a2018", 0, hy + 0.03, 0.27); box(g, 0.12, 0.1, 0.02, "#bfe3ff", -0.1, hy + 0.03, 0.27, { transparent: true, opacity: 0.5 }); box(g, 0.12, 0.1, 0.02, "#bfe3ff", 0.1, hy + 0.03, 0.27, { transparent: true, opacity: 0.5 }); }
   void torso;
+  bakeGroup(g, g);
   return g;
 }
 export const extraLook = (c: string, skin: string, hair = "#2a1d14"): Look => ({ pele: skin, peleSombra: darken(skin, 0.2), cabelo: hair, cabeloEstilo: "curto", roupa: c, roupa2: lighten(c, 0.4), roupaTipo: "camisa", idade: 35, olhos: "#222", rosto: 1 });
