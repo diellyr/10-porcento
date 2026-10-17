@@ -1,10 +1,13 @@
 import type { LocationId } from "../../engine/types";
+import { LEVELS } from "../../content/levels";
+import { LOC_INFO } from "../../content/niveis";
+import { SLOTS, TEMAS, buildAnchors } from "../../content/niveis/layout";
 
 /** Planta 3D da UPA (unidade ≈ 1 m). Fileira de cima: farmácia · enfermagem · gabinete. Corredor no meio. Fileira de baixo: recepção · pátio · cofre. */
 export interface RoomDef { id: LocationId; cx: number; cz: number; w: number; d: number; floor: string; floor2: string; wall: string; trim: string; door: "N" | "S"; outdoor?: boolean }
 export const ROOM_W = 9.6, ROOM_D = 7, WALL_H = 2.9, WALL_T = 0.28;
 
-export const ROOMS: Record<LocationId, RoomDef> = {
+const ROOMS_BASE = {
   farmacia: { id: "farmacia", cx: -10, cz: -4.5, w: ROOM_W, d: ROOM_D, floor: "#cfe8dc", floor2: "#bddccd", wall: "#e8f6ef", trim: "#4fb596", door: "S" },
   enfermagem: { id: "enfermagem", cx: 0, cz: -4.5, w: ROOM_W, d: ROOM_D, floor: "#cfdff2", floor2: "#bed2ea", wall: "#e6eefa", trim: "#5b8fd0", door: "S" },
   administracao: { id: "administracao", cx: 10, cz: -4.5, w: ROOM_W, d: ROOM_D, floor: "#c98e5a", floor2: "#b87d4a", wall: "#f3dcc0", trim: "#8a5528", door: "S" },
@@ -17,17 +20,20 @@ export const ROOMS: Record<LocationId, RoomDef> = {
   prefeitura: { id: "prefeitura", cx: 10, cz: -4.5, w: ROOM_W, d: ROOM_D, floor: "#b8825a", floor2: "#a8724a", wall: "#f6e6c8", trim: "#8a5528", door: "S" },
   ubs: { id: "ubs", cx: -10, cz: 4.5, w: ROOM_W, d: ROOM_D, floor: "#dbe8d4", floor2: "#cadcc0", wall: "#e6f6ee", trim: "#4fb596", door: "N" },
   camara: { id: "camara", cx: 10, cz: 4.5, w: ROOM_W, d: ROOM_D, floor: "#c6b7a2", floor2: "#b6a68f", wall: "#eee4f2", trim: "#6a4fa8", door: "N" },
-};
+} as Record<string, RoomDef>;
+/** Salas dos níveis 3–7: posição pela ordem no nível, cores pelo tema. */
+const ROOMS_NX: Record<string, RoomDef> = Object.fromEntries(Object.values(LOC_INFO).map(({ spec, slot }) => {
+  const s = SLOTS[slot]!, tm = TEMAS[spec.tema];
+  return [spec.id, { id: spec.id, cx: s.cx, cz: s.cz, w: ROOM_W, d: ROOM_D, floor: tm.floor3[0], floor2: tm.floor3[1], wall: tm.wall3, trim: tm.trim, door: s.door } satisfies RoomDef];
+}));
+export const ROOMS = { ...ROOMS_BASE, ...ROOMS_NX } as Record<LocationId, RoomDef>;
 /** Salas construídas em cada nível da carreira. */
-export const ROOMS_POR_NIVEL: Record<number, LocationId[]> = {
-  1: ["farmacia", "enfermagem", "administracao", "recepcao", "patio", "cofre"],
-  2: ["planejamento", "secretaria", "prefeitura", "ubs", "camara"],
-};
+export const ROOMS_POR_NIVEL: Record<number, LocationId[]> = Object.fromEntries(Object.values(LEVELS).map((l) => [l.nivel, l.locais]));
 export const roomsDoNivel = (nivel: number): RoomDef[] => (ROOMS_POR_NIVEL[nivel] ?? ROOMS_POR_NIVEL[1]!).map((id) => ROOMS[id]);
 export const ROOM_LIST = Object.values(ROOMS);
 
 /** Âncora 3D (coordenadas locais da sala: x, y, z) de cada ponto interativo; a posição de quem está presente vem daqui (y = 0 para pessoas). */
-export const ANCHORS: Record<string, [number, number, number]> = {
+const ANCHORS_BASE: Record<string, [number, number, number]> = {
   // recepção
   "p-patio": [-0.9, 1.5, -3.2], "p-enfermagem": [0.9, 1.5, -3.2], celia: [-2.6, 0, 0.2], "pc-balcao": [1.6, 1.5, -1.3], quadro: [-2.4, 2.1, -3.2],
   // farmácia
@@ -54,3 +60,5 @@ export const ANCHORS: Record<string, [number, number, number]> = {
   "n2-edu": [1.8, 0, 0.4], "n2-balcao": [-0.6, 1.4, -1.4], "n2-d-sec-u": [-1.2, 1.9, -3.2], "n2-d-plan-u": [1.2, 1.9, -3.2],
   obra: [2.4, 1.6, -0.6], placa: [-0.6, 1.6, 0.6], cornelio: [-1.4, 0, 1.0], "p-rec3": [0, 1.9, -3.2],
 };
+
+export const ANCHORS: Record<string, [number, number, number]> = { ...ANCHORS_BASE, ...Object.assign({}, ...Object.values(LOC_INFO).map(({ spec, slot }) => buildAnchors(spec, slot))) };

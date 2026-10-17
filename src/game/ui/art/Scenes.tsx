@@ -7,6 +7,8 @@ import type { WorldView } from "@/game/engine/scoring";
 import type { CharId, Emotion, LocationId } from "@/game/engine/types";
 import { Banner, Box, Chair, Desk, Extra, Finish, Monitor, PAL, Papers, PersonSpot, Plant, Room, SceneDefs, Window } from "./parts";
 import { darken, lighten } from "./color";
+import { LOC_INFO } from "@/game/content/niveis";
+import { TEMAS } from "@/game/content/niveis/layout";
 
 export interface SceneProps {
   world: WorldView;
@@ -290,7 +292,7 @@ function Patio(p: SceneProps) {
 }
 
 /* ───────────────────────── Nível 2: salas da Secretaria ───────────────────────── */
-const SALAS_N2: Record<string, { id: string; sign: string; signC: string; wall: [string, string]; wain: string; floor: [string, string]; extra: "mapa" | "bandeira" | "plenario" | "posto" | "gabinete" }> = {
+const SALAS_N2: Record<string, { id: string; sign: string; signC: string; wall: [string, string]; wain: string; floor: [string, string]; extra: "mapa" | "bandeira" | "plenario" | "posto" | "gabinete" | "obra" }> = {
   secretaria: { id: "sc", sign: "Secretaria Municipal de Saúde", signC: PAL.teal, wall: ["#f4f1e6", "#e6dfc8"], wain: "#9fb7a8", floor: ["#d6c7a4", "#b9a67c"], extra: "gabinete" },
   planejamento: { id: "pl", sign: "Sala de Situação · Regulação", signC: PAL.blue, wall: ["#eaf1fb", "#d6e3f5"], wain: "#8fa9cf", floor: ["#c9d3e0", "#a5b3c7"], extra: "mapa" },
   prefeitura: { id: "pf", sign: "Gabinete da Prefeita", signC: PAL.orange, wall: ["#f9ecd6", "#eed3a6"], wain: "#8a5a2b", floor: ["#b0764a", "#7d4d2a"], extra: "bandeira" },
@@ -298,8 +300,15 @@ const SALAS_N2: Record<string, { id: string; sign: string; signC: string; wall: 
   ubs: { id: "ub", sign: "UBS Esperança", signC: PAL.teal, wall: ["#e8f7ef", "#cfeedd"], wain: "#6fcfae", floor: ["#e0e8d6", "#c2cdb2"], extra: "posto" },
 };
 
+const EXTRA_TEMA = { gabinete: "gabinete", dados: "mapa", plenario: "plenario", hospital: "posto", obra: "obra", reuniao: "bandeira" } as const;
+/** Cena genérica dos níveis 3–7: paleta e adereços vêm do tema do local. */
+function configGen(loc: LocationId): (typeof SALAS_N2)[string] {
+  const info = LOC_INFO[loc]; const tm = TEMAS[info?.spec.tema ?? "gabinete"];
+  return { id: "gx", sign: info?.spec.nome ?? loc, signC: tm.trim, wall: tm.wall, wain: tm.wain, floor: tm.floor, extra: EXTRA_TEMA[info?.spec.tema ?? "gabinete"] };
+}
+
 function SalaN2({ loc, ...p }: SceneProps & { loc: LocationId }) {
-  const S = SALAS_N2[loc]!; const id = S.id;
+  const S = SALAS_N2[loc] ?? configGen(loc); const id = S.id;
   const mesa = LOCATIONS[loc].hotspots.find((h) => h.kind === "mesa");
   return (
     <>
@@ -335,6 +344,13 @@ function SalaN2({ loc, ...p }: SceneProps & { loc: LocationId }) {
             <rect x="760" y="110" width="40" height="150" rx="6" fill="#fff" stroke="#6fcfae" strokeWidth="3" /><rect x="773" y="130" width="14" height="40" fill="#e5484d" /><rect x="760" y="144" width="40" height="12" fill="#e5484d" opacity="0.0" />
           </g>
         )}
+        {S.extra === "obra" && (
+          <g>
+            {[440, 560, 680, 800].map((x) => <rect key={x} x={x} y="90" width="8" height="190" fill="#8f969b" />)}<rect x="440" y="150" width="376" height="10" fill="#c9a066" /><rect x="440" y="230" width="376" height="10" fill="#c9a066" />
+            <rect x="470" y="104" width="120" height="44" fill="#d9822b" /><text x="530" y="134" textAnchor="middle" fontFamily="var(--g-display)" fontWeight="700" fontSize="22" fill="#fff">OBRA</text>
+            {[100, 200].map((x) => <rect key={x} x={x} y="420" width="70" height="50" fill="#c9a36b" />)}
+          </g>
+        )}
         {S.extra === "gabinete" && (
           <g>
             <rect x="420" y="90" width="260" height="170" rx="8" fill="#fffdf8" stroke="#d9c9a6" strokeWidth="3" /><rect x="444" y="112" width="120" height="8" fill="#2a5be0" />{[136, 154, 172, 190].map((y) => <rect key={y} x="444" y={y} width="200" height="5" fill="#c9bb98" />)}
@@ -357,17 +373,17 @@ function SalaN2({ loc, ...p }: SceneProps & { loc: LocationId }) {
 }
 const salaN2 = (loc: LocationId) => (p: SceneProps) => <SalaN2 loc={loc} {...p} />;
 
-const SCENES: Record<LocationId, (p: SceneProps) => ReactNode> = {
+const SCENES = {
   recepcao: Recepcao, farmacia: Farmacia, enfermagem: Enfermagem, administracao: Administracao, cofre: Cofre, patio: Patio,
   secretaria: salaN2("secretaria"), planejamento: salaN2("planejamento"), prefeitura: salaN2("prefeitura"), camara: salaN2("camara"), ubs: salaN2("ubs"),
-};
+} as Partial<Record<LocationId, (p: SceneProps) => ReactNode>>;
 
 /** Cena completa de um local: SVG ilustrado em 3 camadas (paralaxe controlada por --px/--py do contêiner). */
 export function LocationScene({ location, ...p }: SceneProps & { location: LocationId }) {
-  const Comp = SCENES[location];
+  const Comp = SCENES[location] ?? salaN2(location);
   return (
     <svg viewBox="0 0 1200 675" className="h-full w-full" role="img" aria-label={`Cenário: ${LOCATIONS[location].nome}`} preserveAspectRatio="xMidYMid slice">
-      <SceneDefs id={({ recepcao: "rc", farmacia: "fa", enfermagem: "en", administracao: "ad", cofre: "cf", patio: "pt", secretaria: "sc", planejamento: "pl", prefeitura: "pf", camara: "cm", ubs: "ub" } as Record<LocationId, string>)[location]} />
+      <SceneDefs id={({ recepcao: "rc", farmacia: "fa", enfermagem: "en", administracao: "ad", cofre: "cf", patio: "pt", secretaria: "sc", planejamento: "pl", prefeitura: "pf", camara: "cm", ubs: "ub" } as Partial<Record<LocationId, string>>)[location] ?? "gx"} />
       <g style={{ transform: "translate(calc(var(--px, 0) * -8px), calc(var(--py, 0) * -4px)) scale(1.02)", transformOrigin: "600px 340px", transition: "transform .2s ease-out" }}>
         <Comp {...p} />
       </g>

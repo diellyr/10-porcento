@@ -1,5 +1,6 @@
 import type { ConceptId } from "../engine/types";
 import type { AchievementDef, Concept, QuizQuestion } from "./types";
+import { NIVEIS_LISTA } from "./niveis";
 
 const CGU = "https://portaldatransparencia.gov.br/entenda-a-gestao-publica/execucao-despesa-publica";
 const SIOPS = "https://www.gov.br/saude/pt-br/acesso-a-informacao/siops";
@@ -10,7 +11,7 @@ const L4320 = "https://www.planalto.gov.br/ccivil_03/leis/l4320.htm";
 const SICONFI = "https://www.gov.br/conecta/catalogo/apis/siconfi-extratos-das-declaracoes-contabeis";
 
 /** Cartões do Caderno de Gestão. Linguagem simples; a fonte aparece quando cabe. */
-export const CONCEPTS: Record<ConceptId, Concept> = {
+const CONCEPTS_N12 = {
   "medir-antes": {
     id: "medir-antes", titulo: "Meça antes de comprar", tema: "Estoque e planejamento", dificuldade: 1,
     texto: "Antes de pedir mais, descubra quanto se consome, quanto vence e para quantos dias o estoque dura (a 'cobertura'). Comprar sem medir gera dois problemas ao mesmo tempo: falta de um item e desperdício de outro.",
@@ -121,6 +122,8 @@ export const CONCEPTS: Record<ConceptId, Concept> = {
   },
 };
 
+export const CONCEPTS = Object.assign({}, CONCEPTS_N12, ...NIVEIS_LISTA.map((n) => n.conceitos)) as Record<ConceptId, Concept>;
+
 export const CONCEPT_LIST = Object.values(CONCEPTS);
 
 export const QUIZ: QuizQuestion[] = [
@@ -156,7 +159,7 @@ export const QUIZ: QuizQuestion[] = [
   },
 ];
 
-export const ACHIEVEMENTS: AchievementDef[] = [
+const ACHIEVEMENTS_N12: AchievementDef[] = [
   { id: "primeiro-desperdicio", nome: "Primeiro Desperdício Evitado", descricao: "Reorganizou o estoque e deixou de jogar remédio fora.", trilha: "gestao", icone: "📦" },
   { id: "entrega-conferida", nome: "A Entrega Conferida", descricao: "Conferiu a entrega antes de liquidar o pagamento.", trilha: "gestao", icone: "✅" },
   { id: "estoque-sem-surpresa", nome: "Estoque Sem Surpresa", descricao: "Chegou ao inverno com cobertura de estoque confortável.", trilha: "gestao", icone: "🧰" },
@@ -185,3 +188,5 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "mestre-labia", nome: "Mestre da Lábia", descricao: "Convenceu o Guardião do Cofre com um argumento afiado.", trilha: "satira", icone: "🎤" },
   { id: "quase-10", nome: "Quase 10%", descricao: "Desviou perto do teto fictício de 10% num único evento.", trilha: "satira", icone: "🔟" },
 ];
+
+export const ACHIEVEMENTS: AchievementDef[] = [...ACHIEVEMENTS_N12, ...NIVEIS_LISTA.flatMap((n) => n.conquistas)];
