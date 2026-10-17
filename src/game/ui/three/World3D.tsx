@@ -140,7 +140,7 @@ export function World3D(p: Props) {
   return (
     <div ref={host} className="relative aspect-[16/10] max-h-[72dvh] min-h-[320px] w-full select-none overflow-hidden rounded-[14px] outline-offset-2" tabIndex={0} role="group" aria-label={`Mapa 3D da UPA. Setas giram, mais e menos aproximam. Local atual: ${LOCATIONS[p.s.location].nome}.`} onKeyDown={onKey}>
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {ROOM_LIST.map((r) => { const pin = p.pins[r.id]; return (
+        {ROOM_LIST.map((r) => { const pin = p.pins[r.id] ?? { novo: 0, objetivo: false }; return (
           <button key={r.id} ref={(n) => { badges.current[r.id] = n; }} type="button" onClick={() => p.onGoRoom(r.id)} style={{ visibility: "hidden" }} aria-label={`Ir para ${LOCATIONS[r.id].nome}${pin.novo ? `, ${pin.novo} novidades` : ""}`}
             className={`pointer-events-auto absolute left-0 top-0 flex items-center gap-1.5 whitespace-nowrap rounded-full border-[3px] bg-white px-3 py-1.5 text-sm font-extrabold shadow-lg ${p.s.location === r.id ? "border-[color:var(--g-blue)]" : "border-white"}`}>
             <span aria-hidden>{pin.objetivo ? "⭐" : "🏥"}</span>{LOCATIONS[r.id].curto}{pin.novo > 0 && <span className="grid size-6 place-items-center rounded-full bg-[color:var(--g-orange)] text-xs text-white">{pin.novo}</span>}
@@ -157,7 +157,7 @@ export function World3D(p: Props) {
         })}
       </div>
       <div className="absolute right-2 top-2 flex flex-col gap-1.5">
-        <button type="button" className="g-btn sm ghost" onClick={() => p.onModo(p.modo === "mapa" ? "sala" : "mapa")} aria-pressed={p.modo === "mapa"}>{p.modo === "mapa" ? "🔍 Entrar na sala" : (nivel === 1 ? "🗺️ Ver a UPA toda" : "🗺️ Ver a Secretaria toda")}</button>
+        <button type="button" className="g-btn sm ghost" onClick={() => p.onModo(p.modo === "mapa" ? "sala" : "mapa")} aria-pressed={p.modo === "mapa"}>{p.modo === "mapa" ? "🔍 Entrar na sala" : (nivel === 1 ? "🗺️ Ver a UPA toda" : nivel === 2 ? "🗺️ Ver a Secretaria toda" : "🗺️ Ver o mapa todo")}</button>
         <div className="flex gap-1.5"><button type="button" className="g-btn sm ghost" onClick={() => rot(-0.4)} aria-label="Girar para a esquerda">↺</button><button type="button" className="g-btn sm ghost" onClick={() => rot(0.4)} aria-label="Girar para a direita">↻</button><button type="button" className="g-btn sm ghost" onClick={() => zoom(0.85)} aria-label="Aproximar">＋</button><button type="button" className="g-btn sm ghost" onClick={() => zoom(1.18)} aria-label="Afastar">－</button></div>
       </div>
       <p className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-white/85 px-3 py-1 text-xs font-bold" aria-hidden>{p.modo === "mapa" ? "Arraste para girar · role ou pince para aproximar · toque numa sala" : LOCATIONS[p.s.location].nome}</p>
