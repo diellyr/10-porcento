@@ -1,10 +1,14 @@
 "use client";
 import { LOCATIONS } from "@/game/content/locations";
 import type { LocationId } from "@/game/engine/types";
+import { LOC_INFO } from "@/game/content/niveis";
+import { TEMAS } from "@/game/content/niveis/layout";
+
+const corDe = (k: LocationId): [string, string] => ROOM_COLOR[k] ?? TEMAS[LOC_INFO[k]?.spec.tema ?? "gabinete"].mapa;
 
 export interface MapPin { novo: number; objetivo: boolean }
 
-const ROOM_COLOR: Record<LocationId, [string, string]> = {
+const ROOM_COLOR: Partial<Record<LocationId, [string, string]>> = {
   recepcao: ["#ffe0a6", "#f2b54f"], farmacia: ["#cdf3e3", "#6fcfae"], enfermagem: ["#d4e8ff", "#7fb2ee"], administracao: ["#ffd9b8", "#f29a4a"], cofre: ["#d6e4dc", "#6f9a86"], patio: ["#e4ecd4", "#9bc27a"],
   secretaria: ["#e6dfc8", "#b9a67c"], planejamento: ["#d6e3f5", "#8fa9cf"], prefeitura: ["#eed3a6", "#c98f55"], camara: ["#ddd0e8", "#8d72bf"], ubs: ["#cfeedd", "#6fcfae"],
 };
@@ -18,7 +22,7 @@ export function UpaMap({ atual, pins, onSelect, nome, locais }: { atual: Locatio
         <defs>
           <linearGradient id="mp-grass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#dff0c8" /><stop offset="1" stopColor="#bfe0a0" /></linearGradient>
           <filter id="mp-sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="5" stdDeviation="5" floodColor="#1b2340" floodOpacity="0.2" /></filter>
-          {(Object.keys(ROOM_COLOR) as LocationId[]).map((k) => <linearGradient key={k} id={`mp-${k}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={ROOM_COLOR[k][0]} /><stop offset="1" stopColor={ROOM_COLOR[k][1]} /></linearGradient>)}
+          {ids.map((k) => <linearGradient key={k} id={`mp-${k}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={corDe(k)[0]} /><stop offset="1" stopColor={corDe(k)[1]} /></linearGradient>)}
         </defs>
         <rect width="1000" height="620" rx="26" fill="url(#mp-grass)" />
         <rect x="0" y="574" width="1000" height="46" fill="#9da4a8" /><rect x="40" y="594" width="80" height="6" rx="3" fill="#fff" opacity="0.7" /><rect x="220" y="594" width="80" height="6" rx="3" fill="#fff" opacity="0.7" /><rect x="400" y="594" width="80" height="6" rx="3" fill="#fff" opacity="0.7" /><rect x="580" y="594" width="80" height="6" rx="3" fill="#fff" opacity="0.7" />

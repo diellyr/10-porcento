@@ -3,22 +3,22 @@ import type { CaseDef, Ctx, DecisionDef, OptionDef, Txt } from "./types";
 
 /** Nível 2 — Secretário(a) Municipal de Saúde. Valores em % do orçamento (estimado) da Secretaria no cenário. */
 
-interface O {
+export interface O {
   id: string; rotulo: string; kind: OptionKind; resumo: Txt; gesto?: PenGesture;
   custo: Txt; prazo: string; ganho?: Txt; riscos: OptionDef["previsao"]["riscos"];
   custoPct: number; economiaPct?: number; efeitos: Effects; narracao: Txt;
   depois?: OptionDef["depois"]; requer?: OptionDef["requer"]; aplica?: ConceptId[]; aliado?: CharId;
   desvio?: OptionDef["desvio"]; ajustes?: OptionDef["ajustes"]; escalaPorNegociacao?: string; cortaAcesso?: boolean;
 }
-const opt = (o: O): OptionDef => ({
+export const opt = (o: O): OptionDef => ({
   id: o.id, rotulo: o.rotulo, kind: o.kind, gesto: o.gesto ?? "assinar", resumo: o.resumo,
   previsao: { custo: o.custo, prazo: o.prazo, ganho: o.ganho, riscos: o.riscos },
   custoPct: o.custoPct, economiaPct: o.economiaPct, efeitos: o.efeitos, narracao: o.narracao,
   depois: o.depois, requer: o.requer, aplica: o.aplica, aliado: o.aliado, desvio: o.desvio, ajustes: o.ajustes,
   escalaPorNegociacao: o.escalaPorNegociacao, cortaAcesso: o.cortaAcesso,
 });
-const DEV = (rotulo: string, explicacao: string): OptionDef["desvio"] => ({ rotulo, explicacao });
-const m = (pct: number) => (c: Ctx) => c.money(pct);
+export const DEV = (rotulo: string, explicacao: string): OptionDef["desvio"] => ({ rotulo, explicacao });
+export const m = (pct: number) => (c: Ctx) => c.money(pct);
 
 export const DECISIONS_N2: DecisionDef[] = [
   /* ───────── D11 — onde abrir a próxima UBS ───────── */

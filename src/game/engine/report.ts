@@ -1,4 +1,4 @@
-import { CASE_BY_NUM } from "../content/cases";
+import { CASE_BY_NUM, DECISION_BY_ID } from "../content/cases";
 import { decisoesDoNivel, levelOf, nivelDe } from "../content/levels";
 import { CONCEPTS } from "../content/concepts";
 import type { Classification, ConceptId, GameState } from "./types";
@@ -47,6 +47,15 @@ const PLANOS: Array<{ nivel?: number; conceito: ConceptId; problema: string; med
   { nivel: 2, conceito: "audiencia-publica", problema: "Prestação de contas que só mostra o que agrada.", medida: "Audiência pública com resultados, metas não cumpridas e plano de correção.", responsavel: "Secretaria de Saúde e Conselho Municipal de Saúde", prazo: "Quadrimestral", custoPct: 0.05, indicador: "Metas cumpridas e plano de correção publicado", melhores: ["audiencia-honesta"] },
 ];
 
+/** Níveis 3–7: o plano nasce de cada decisão do nível e do conceito que ela exercitou. */
+function planosGenericos(ds: GameState["decisions"]): typeof PLANOS {
+  return ds.filter((d) => d.concept).map((d) => {
+    const dec = DECISION_BY_ID[d.id]; const melhores = dec ? dec.opcoes.filter((o) => o.kind === "competente").map((o) => o.id) : [];
+    const c = CONCEPTS[d.concept];
+    return { conceito: d.concept, problema: d.title, medida: c.aplicacao, responsavel: "Equipe responsável pela política e órgão de controle", prazo: "Próximo ciclo", custoPct: dec ? Math.max(0.05, dec.basePct / 10) : 0.1, indicador: "Resultado da decisão acompanhado a cada trimestre, com registro público", melhores };
+  });
+}
+
 const ALT: Record<string, string> = {
   aurora: "Reorganizar o estoque pelo consumo real e abrir cotação emergencial com ao menos três fornecedores.",
   "favorecer-a": "Escolher a proposta de menor custo total em 5 anos, com ata de comparação publicada.",
@@ -94,7 +103,8 @@ export function buildReport(s: GameState): Report {
     const ruim = dec ? ["comodo", "fraco", "desvio"].includes(dec.kind) : false;
     return { id, titulo: CONCEPTS[id].titulo, aplicado: aplicados.has(id), revisar: ruim && !aplicados.has(id) };
   });
-  const plano: PlanItem[] = PLANOS.filter((p) => (p.nivel ?? 1) === nivelDe(s)).map((p) => {
+  const planosNivel = nivelDe(s) >= 3 ? planosGenericos(decs) : PLANOS.filter((p) => (p.nivel ?? 1) === nivelDe(s));
+  const plano: PlanItem[] = planosNivel.map((p) => {
     const d = decs.find((x) => x.concept === p.conceito);
     const feito = !!d && p.melhores.includes(d.optionId);
     return { problema: p.problema, medida: p.medida, responsavel: p.responsavel, prazo: p.prazo, custo: `≈ ${brl((A * p.custoPct) / 100)} (estimativa didática)`, indicador: p.indicador, fonte: CONCEPTS[p.conceito].fonte, status: feito ? "feito" as const : d ? "recomendado" as const : "hipotese" as const, prioridade: 0 };

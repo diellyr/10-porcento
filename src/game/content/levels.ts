@@ -37,9 +37,44 @@ export const LEVELS: Record<number, LevelDef> = {
     inicio: { qualidade: 52, acesso: 48, equipe: 56, sustentabilidade: 58, estoqueDias: 12, filaMin: 62, caixaPct: 18 },
     proximo: "Articulador(a) Regional", desafio: "Prioridades de serviços, planejamento e articulação local",
   },
+  3: {
+    nivel: 3, cargo: "Articulador(a) Regional de Saúde", cargoCurto: "Consórcio", primeiro: 19, ultimo: 24,
+    locais: ["consorcio", "cir", "hospregional", "vizinho", "transporte"], inicial: "consorcio", salario: 24_000,
+    rotulos: { fila: { nome: "Espera por transferência", un: " h", ajuda: "tempo médio até a transferência de pacientes entre municípios" }, estoque: { nome: "Insumos", un: " d" }, unidade: "Consórcio" },
+    inicio: { qualidade: 54, acesso: 46, equipe: 55, sustentabilidade: 56, estoqueDias: 14, filaMin: 30, caixaPct: 16 },
+    proximo: "Secretário(a) Estadual de Saúde", desafio: "Negociação entre municípios e pactos de cooperação",
+  },
+  4: {
+    nivel: 4, cargo: "Secretário(a) Estadual de Saúde", cargoCurto: "Estado", primeiro: 25, ultimo: 30,
+    locais: ["gabinete-estadual", "painel-regioes", "assembleia", "canteiro", "tribunal"], inicial: "gabinete-estadual", salario: 34_000,
+    rotulos: { fila: { nome: "Espera por cirurgia eletiva", un: " dias", ajuda: "tempo médio de espera por cirurgia eletiva na rede estadual" }, estoque: { nome: "Insumos", un: " d" }, unidade: "Secretaria Estadual" },
+    inicio: { qualidade: 54, acesso: 47, equipe: 54, sustentabilidade: 55, estoqueDias: 15, filaMin: 110, caixaPct: 15 },
+    proximo: "Diretor(a) de Órgão Federal", desafio: "Projetos maiores, desigualdades regionais e execução",
+  },
+  5: {
+    nivel: 5, cargo: "Diretor(a) de Órgão Federal", cargoCurto: "Federal", primeiro: 31, ultimo: 36,
+    locais: ["diretoria", "sala-programas", "comissao-congresso", "controladoria", "almoxarifado-nacional"], inicial: "diretoria", salario: 46_000,
+    rotulos: { fila: { nome: "Atraso médio dos repasses", un: " dias", ajuda: "dias médios entre a liberação e a chegada do repasse" }, estoque: { nome: "Estoque nacional", un: " d" }, unidade: "Agência Federal" },
+    inicio: { qualidade: 55, acesso: 48, equipe: 54, sustentabilidade: 55, estoqueDias: 20, filaMin: 45, caixaPct: 14 },
+    proximo: "Ministro(a) de Estado", desafio: "Programas, prestação de contas e coordenação",
+  },
+  6: {
+    nivel: 6, cargo: "Ministro(a) de Estado da Saúde", cargoCurto: "Ministério", primeiro: 37, ultimo: 42,
+    locais: ["gabinete-ministro", "sala-crise", "casa-governo", "plenario", "fazenda"], inicial: "gabinete-ministro", salario: 62_000,
+    rotulos: { fila: { nome: "Fila nacional de espera", un: " dias", ajuda: "tempo médio de espera por especialista no país" }, estoque: { nome: "Estoque estratégico", un: " d" }, unidade: "Ministério" },
+    inicio: { qualidade: 55, acesso: 49, equipe: 54, sustentabilidade: 52, estoqueDias: 25, filaMin: 95, caixaPct: 12 },
+    proximo: "Presidência da República", desafio: "Agenda nacional, conflitos de prioridades e crise fiscal",
+  },
+  7: {
+    nivel: 7, cargo: "Candidato(a) e Presidente da República (simulado)", cargoCurto: "Presidência", primeiro: 43, ultimo: 48,
+    locais: ["comite-campanha", "estudio-debate", "praca-comicio", "palacio-presidencial", "sala-situacao-nacional"], inicial: "comite-campanha", salario: 80_000,
+    rotulos: { fila: { nome: "Fila nacional de espera", un: " dias", ajuda: "tempo médio de espera por especialista no país" }, estoque: { nome: "Estoque estratégico", un: " d" }, unidade: "Presidência" },
+    inicio: { qualidade: 56, acesso: 50, equipe: 54, sustentabilidade: 52, estoqueDias: 25, filaMin: 90, caixaPct: 12 },
+    proximo: null, desafio: "Desfecho da carreira e prestação de contas final",
+  },
 };
 
-export const MAX_NIVEL_DISPONIVEL = 2;
+
 export const nivelDe = (s: { nivel?: number }) => s.nivel ?? 1;
 export const levelOf = (s: { nivel?: number }) => LEVELS[nivelDe(s)] ?? LEVELS[1]!;
 export const nivelDoCaso = (caso: number) => Number(Object.values(LEVELS).find((l) => caso >= l.primeiro && caso <= l.ultimo)?.nivel ?? 1);
