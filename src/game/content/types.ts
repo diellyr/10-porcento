@@ -164,6 +164,10 @@ export interface OptionDef {
   desvio?: { rotulo: Txt; explicacao: Txt };
   /** aliados envolvidos */
   aliado?: CharId;
+  /** conquista liberada ao escolher esta opção */
+  conquista?: string;
+  /** só na decisão da eleição simulada: pontos de campanha (±) somados à apuração */
+  votos?: number;
 }
 
 export interface DecisionDef {
@@ -177,6 +181,8 @@ export interface DecisionDef {
   opcoes: OptionDef[];
   /** documento/lugar onde a decisão é tomada */
   mesa: LocationId;
+  /** decisão da eleição simulada: o motor apura o resultado a partir do estado */
+  eleicao?: boolean;
   gestoPadrao: PenGesture;
   papelAssinado: Txt;
 }

@@ -15,7 +15,9 @@ export function promocao(s: GameState) {
     { rotulo: "Conhecimento aplicado", ok: aplicadosTotal(s) >= 4, detalhe: `${aplicadosTotal(s)} de 4 aplicações` },
     { rotulo: "Sem desvios deliberados registrados", ok: s.personal.desviado === 0, detalhe: s.personal.desviado === 0 ? "nenhum desvio no histórico" : "há desvio registrado — o histórico não se apaga" },
   ];
-  return { elegivel: criterios.every((c) => c.ok), criterios };
+  // subida pelas conexões (trajetória de desvio): o convite vem de aliados, não do mérito — o desfecho de responsabilização só é adiado
+  const viaRede = s.personal.desviado > 0 && s.personal.influencia >= 25 && poder >= 40 && qualidadeAcesso(s) >= 40;
+  return { elegivel: criterios.every((c) => c.ok), viaRede, criterios };
 }
 
 export function buildEnding(s: GameState, force?: EndingResult["id"]): EndingResult {
@@ -30,11 +32,11 @@ export function buildEnding(s: GameState, force?: EndingResult["id"]): EndingRes
     motivos.push("A partida foi encerrada antes do fim da campanha: este é um balanço parcial, sem troféu de campanha concluída.");
     if (s.personal.desviado > 0) motivos.push("Os desvios já registrados permanecem no histórico e nas consequências.");
   } else if (s.personal.desviado > 0) {
-    id = "responsabilizacao";
+    id = nivelDe(s) >= 7 ? "imperador" : "responsabilizacao";
     motivos.push(`Foram registrados ${s.decisions.filter((d) => d.deliberado).length} desvio(s) deliberado(s) no histórico (convenção da ficção, informada desde o início).`);
     motivos.push(reparado ? "A restituição voluntária foi registrada como novo evento e modifica o epílogo, sem apagar os desvios." : "Nenhuma restituição foi registrada.");
-  } else if (leg >= LIMIARES.legado && s.pub.qualidade >= LIMIARES.qualidade && s.pub.acesso >= LIMIARES.acesso && s.attrs.confianca >= LIMIARES.confianca && decisoesDoNivel(s, nivelDe(s)).length >= levelOf(s).ultimo - levelOf(s).primeiro + 1) {
-    id = "reconhecimento";
+  } else if (leg >= LIMIARES.legado && s.pub.qualidade >= LIMIARES.qualidade && s.pub.acesso >= LIMIARES.acesso && s.attrs.confianca >= LIMIARES.confianca && (nivelDe(s) < 7 || !!s.eleicao?.venceu) && decisoesDoNivel(s, nivelDe(s)).length >= levelOf(s).ultimo - levelOf(s).primeiro + 1) {
+    id = nivelDe(s) >= 7 ? "presidencia" : "reconhecimento";
     motivos.push("Sem desvios deliberados registrados, com serviços, acesso e confiança acima dos mínimos e conhecimento aplicado.");
   } else {
     id = "gestao-insuficiente";
@@ -42,13 +44,14 @@ export function buildEnding(s: GameState, force?: EndingResult["id"]): EndingRes
     if (leg < LIMIARES.legado) motivos.push(`Índice de legado ${leg.toFixed(0)} (mínimo ${LIMIARES.legado}).`);
     if (s.pub.qualidade < LIMIARES.qualidade) motivos.push(`Qualidade dos serviços ${s.pub.qualidade.toFixed(0)} (mínimo ${LIMIARES.qualidade}).`);
     if (s.pub.acesso < LIMIARES.acesso) motivos.push(`Acesso ${s.pub.acesso.toFixed(0)} (mínimo ${LIMIARES.acesso}).`);
+    if (nivelDe(s) >= 7 && s.eleicao && !s.eleicao.venceu) motivos.push(`Na eleição simulada você teve ${s.eleicao.pct.toFixed(1)}% (precisava de 50%). Ajuste a estratégia e tente de novo.`);
     if (s.attrs.confianca < LIMIARES.confianca) motivos.push(`Confiança pública ${s.attrs.confianca.toFixed(0)} (mínimo ${LIMIARES.confianca}).`);
   }
   const titulos: Record<EndingResult["id"], string> = {
-    reconhecimento: nivelDe(s) >= 2 ? "Reconhecimento do município" : "Reconhecimento da comunidade", responsabilizacao: "Responsabilização", "gestao-insuficiente": "Gestão insuficiente: revisão e nova tentativa", "balanco-parcial": "Balanço parcial",
+    reconhecimento: nivelDe(s) >= 2 ? "Reconhecimento do município" : "Reconhecimento da comunidade", presidencia: "Presidente do Brasil — mandato cumprido (simulação)", imperador: "Imperador Supremo do Brasil — coroação interrompida pela responsabilização", responsabilizacao: "Responsabilização", "gestao-insuficiente": "Gestão insuficiente: revisão e nova tentativa", "balanco-parcial": "Balanço parcial",
   };
   const devido = Math.max(0, s.personal.desviado - s.personal.restituido);
-  const bensPerdidos = id === "responsabilizacao" || (id === "balanco-parcial" && devido > 0) ? r2(Math.min(s.personal.patrimonio, devido * 1.2)) : 0;
+  const bensPerdidos = id === "responsabilizacao" || id === "imperador" || (id === "balanco-parcial" && devido > 0) ? r2(Math.min(s.personal.patrimonio, devido * 1.2)) : 0;
   return { id, titulo: titulos[id], reparado, motivos, poder, trambicagem: tr, legado: r2(leg), bensPerdidos, patrimonioFinal: r2(s.personal.patrimonio - bensPerdidos), promocao: promocao(s) };
 }
 
