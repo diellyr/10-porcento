@@ -9,6 +9,7 @@ import type { CharId, LocationId } from "@/game/engine/types";
 const world = { filaNivel: 3, estoqueNivel: 1, luxoNivel: 0, degradacao: 1, melhoria: 0, equipeNivel: 1, obraConcluida: false };
 const P: Record<string, Record<string, CharId>> = {
   recepcao: { celia: "celia" }, farmacia: { roberto: "roberto" }, enfermagem: { joana: "joana" }, administracao: { toninho: "toninho", juninho: "juninho" }, cofre: { guardiao: "guardiao" }, patio: { cornelio: "cornelio" },
+  secretaria: { "n2-marlene": "marlene", "n2-valdemar": "valdemar", "n2-roberto": "roberto" }, planejamento: { "n2-rita": "rita" }, prefeitura: { "n2-lucia": "lucia", "n2-guardiao": "guardiao" }, camara: { "n2-nelson": "nelson", "n2-cornelio": "cornelio", "n2-celia": "celia", "n2-bento": "bento" }, ubs: { "n2-edu": "edu" },
 };
 function G() {
   const sp = useSearchParams(); const only = sp.get("l"); const lux = Number(sp.get("lux") ?? 0); const bom = sp.get("bom") === "1";

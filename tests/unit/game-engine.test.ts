@@ -3,6 +3,7 @@ import { CASES, DECISION_BY_ID } from "@/game/content/cases";
 import { CLUES } from "@/game/content/clues";
 import { CONVERSATIONS } from "@/game/content/conversations";
 import { LOCATIONS } from "@/game/content/locations";
+import { LEVELS } from "@/game/content/levels";
 import { fictionalScenario } from "@/game/content/scenario";
 import { apply, optionLock } from "@/game/engine/rules";
 import { legado, powerScore, trambicagem } from "@/game/engine/scoring";
@@ -46,10 +47,15 @@ function explore(s: GameState, talk = true) {
 }
 type Pick = (decisionId: string, s: GameState) => { optionId: string; pct?: number };
 function play(pick: Pick, answers?: string[]) {
-  let s = begin(answers);
-  for (const caso of CASES) {
+  return playLevel(begin(answers), pick, 1);
+}
+/** joga todos os casos de um nível a partir do estado dado. */
+function playLevel(s0: GameState, pick: Pick, nivel: number) {
+  let s = s0;
+  for (const caso of CASES.filter((c) => c.caso >= LEVELS[nivel]!.primeiro && c.caso <= LEVELS[nivel]!.ultimo)) {
     s = explore(s);
     if (caso.decisao === "d4") s = run(s, { type: "argue", negotiationId: "neg-corte", text: "Proponho uma alternativa: cortar a perda por validade (R$ de vencidos no livro-caixa) e manter o acesso da pediatria noturna, sem fechar atendimento; confiro o indicador em um trimestre." });
+    if (caso.decisao === "d16") s = run(s, { type: "argue", negotiationId: "neg-credito", text: "O recurso vem dos saldos de obras paradas, como fonte indicada. Exige lei da Câmara (projeto de crédito) porque a necessidade de custeio passa do decreto. Prazo de 6 semanas e relatório trimestral para acompanhar." });
     const p = pick(caso.decisao, s);
     s = run(s, { type: "go", location: DECISION_BY_ID[caso.decisao]!.mesa });
     s = run(s, { type: "decide", decisionId: caso.decisao, optionId: p.optionId, ...(p.pct ? { deviationPct: p.pct, confirmDeviation: true } : {}) });
@@ -261,5 +267,64 @@ describe("regras de integridade", () => {
     expect(s.repairs).toHaveLength(1);
     expect(s.decisions[0]!.deliberado).toBe(true);
     expect(apply(s, "r2", { type: "repair", valor: 1 }).ok).toBe(false);
+  });
+});
+
+
+describe("carreira — nível 2 (Secretário Municipal de Saúde)", () => {
+  it("o nível 2 só começa por promoção explícita e válida", () => {
+    const l1 = play(best);
+    expect(l1.phase).toBe("encerrada");
+    expect(l1.ending?.id).toBe("reconhecimento");
+    const r = apply(l1, "p1", { type: "promote" });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.state.nivel).toBe(2);
+    expect(r.state.caso).toBe(LEVELS[2]!.primeiro);
+    expect(r.state.location).toBe("secretaria");
+    expect(r.state.historico).toHaveLength(1);
+    expect(r.state.scenario.orcamentoAnual).toBeGreaterThan(l1.scenario.orcamentoAnual);
+    // repetir a mesma ação (mesmo id) não promove duas vezes
+    const again = apply(r.state, "p1", { type: "promote" });
+    expect(again.ok && again.state.nivel).toBe(2);
+    // sem estar encerrado, promover é recusado
+    expect(apply(r.state, "p2", { type: "promote" }).ok).toBe(false);
+  });
+  it("quem foi responsabilizado não é promovido", () => {
+    const l1 = play(byKind("desvio"));
+    expect(l1.ending?.id).toBe("responsabilizacao");
+    expect(apply(l1, "p3", { type: "promote" }).ok).toBe(false);
+  });
+  it("trajetória competente chega ao reconhecimento no nível 2, sem desvio, e o nível 3 ainda não existe", () => {
+    const l1 = play(best);
+    const p = apply(l1, "p4", { type: "promote" }); if (!p.ok) throw new Error(p.error);
+    const s = playLevel(p.state, best, 2);
+    expect(s.phase).toBe("encerrada");
+    expect(s.nivel).toBe(2);
+    expect(s.personal.desviado).toBe(0);
+    expect(s.ending?.id).toBe("reconhecimento");
+    expect(s.achievements).toEqual(expect.arrayContaining(["promovido-2", "cobertura-por-necessidade", "emenda-com-plano", "credito-legal", "contas-na-audiencia"]));
+    expect(apply(s, "p5", { type: "promote" }).ok).toBe(false);
+    const rel = buildReport(s);
+    expect(rel.resumo.cargo).toContain("Secretário");
+    expect(rel.decisoes).toHaveLength(8);
+    expect(rel.plano.length).toBe(8);
+  });
+  it("desvio no nível 2 termina em responsabilização e fica no relatório", () => {
+    const l1 = play(best);
+    const p = apply(l1, "p6", { type: "promote" }); if (!p.ok) throw new Error(p.error);
+    const s = playLevel(p.state, byKind("desvio"), 2);
+    expect(s.ending?.id).toBe("responsabilizacao");
+    expect(s.personal.desviado).toBeGreaterThan(0);
+  });
+  it("o conteúdo do nível 2 é coerente: toda decisão tem opção competente e as conversas/pistas existem", () => {
+    for (const caso of CASES.filter((c) => c.caso >= 11)) {
+      const dec = DECISION_BY_ID[caso.decisao]!;
+      expect(dec.caso).toBe(caso.caso);
+      expect(dec.opcoes.some((o) => o.kind === "competente"), dec.id).toBe(true);
+      for (const o of dec.opcoes) expect(!!o.desvio, `${dec.id}/${o.id}`).toBe(o.kind === "desvio");
+      for (const cid of caso.pistas) expect(CLUES.find((c) => c.id === cid && c.caso === caso.caso), cid).toBeTruthy();
+      for (const vid of caso.conversas) expect(CONVERSATIONS.find((c) => c.id === vid && c.caso === caso.caso), vid).toBeTruthy();
+    }
   });
 });

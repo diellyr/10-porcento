@@ -4,7 +4,9 @@ import type { ConvChoice, ConvNode, ConversationDef, NegotiationDef, Txt } from 
 const n = (who: CharId, emo: Emotion, text: Txt, next?: string, extra: Partial<ConvNode> = {}): ConvNode => ({ who, emo, text, next, ...extra });
 const ch = (id: string, label: string, next: string, fx?: ConvChoice["fx"], revela?: string[]): ConvChoice => ({ id, label, next, fx, revela });
 
-export const CONVERSATIONS: ConversationDef[] = [
+import { CONVERSATIONS_N2, NEGOTIATIONS_N2 } from "./conversations-n2";
+
+export const CONVERSATIONS_N1: ConversationDef[] = [
   /* ───── Caso 1 ───── */
   {
     id: "abertura", caso: 1, location: "recepcao", who: "celia", titulo: "A fila e a bombinha", apresentacao: "3d", auto: true, start: "a1",
@@ -252,9 +254,10 @@ export const CONVERSATIONS: ConversationDef[] = [
   },
 ];
 
+export const CONVERSATIONS: ConversationDef[] = [...CONVERSATIONS_N1, ...CONVERSATIONS_N2];
 export const CONV_BY_ID = Object.fromEntries(CONVERSATIONS.map((c) => [c.id, c])) as Record<string, ConversationDef>;
 
-export const NEGOTIATIONS: NegotiationDef[] = [
+export const NEGOTIATIONS_N1: NegotiationDef[] = [
   {
     id: "neg-corte",
     pedido: "Convença o Guardião de que há uma alternativa melhor que o corte linear. Use o que descobriu no dossiê: o Guardião escuta os números.",
@@ -271,4 +274,5 @@ export const NEGOTIATIONS: NegotiationDef[] = [
     },
   },
 ];
+export const NEGOTIATIONS: NegotiationDef[] = [...NEGOTIATIONS_N1, ...NEGOTIATIONS_N2];
 export const NEG_BY_ID = Object.fromEntries(NEGOTIATIONS.map((x) => [x.id, x])) as Record<string, NegotiationDef>;

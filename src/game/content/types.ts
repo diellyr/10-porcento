@@ -50,7 +50,7 @@ export interface Character {
   cor: string;
   voz: VoiceProfile;
   look: Look;
-  /** disponível na campanha curta? (Marlene/Valdemar só na carreira completa) */
+  /** disponível nos níveis já construídos (1 e 2) */
   naUpa: boolean;
 }
 

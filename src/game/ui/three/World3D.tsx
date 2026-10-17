@@ -12,7 +12,7 @@ import { addEnvironment, disposeTree, makeRenderer, startLoop } from "./common";
 import { disposeMats } from "./lowpoly";
 import type { Quality } from "./support";
 import { buildWorld, type World, type WorldDyn } from "./world";
-import { ROOM_LIST, ROOMS } from "./world-data";
+import { ROOMS, roomsDoNivel } from "./world-data";
 
 export type Modo = "mapa" | "sala";
 export interface RoomPin { novo: number; objetivo: boolean }
@@ -43,6 +43,8 @@ export function World3D(p: Props) {
   const api = useRef<{ world: World; rot: (d: number) => void; zoom: (f: number) => void } | null>(null);
   const goal = useRef({ tx: 0, ty: 0, tz: 0, dist: 32, pol: 0.95, user: 1 });
 
+  const nivel = p.s.nivel;
+  const ROOM_LIST = useMemo(() => roomsDoNivel(nivel), [nivel]);
   const wv = useMemo(() => worldView(p.s), [p.s]);
   const people = useMemo(() => peopleAll(p.s), [p.s]);
   const dyn: WorldDyn = useMemo(() => ({ filaNivel: wv.filaNivel, estoqueNivel: wv.estoqueNivel, melhoria: wv.melhoria, luxo: wv.luxoNivel, degradacao: wv.degradacao, filaMin: p.s.pub.filaMin, people }), [wv.filaNivel, wv.estoqueNivel, wv.melhoria, wv.luxoNivel, wv.degradacao, p.s.pub.filaMin, people]);
@@ -61,7 +63,7 @@ export function World3D(p: Props) {
     const key = new THREE.DirectionalLight(0xfff0d8, 2.1); key.position.set(-14, 26, 16); key.castShadow = p.q !== "baixa";
     const sh = key.shadow; sh.mapSize.set(p.q === "alta" ? 2048 : 1024, p.q === "alta" ? 2048 : 1024); sh.camera.near = 5; sh.camera.far = 80; sh.camera.left = -24; sh.camera.right = 24; sh.camera.top = 18; sh.camera.bottom = -18; sh.bias = -0.0006; sh.normalBias = 0.04; sh.radius = 3;
     scene.add(key); scene.add(key.target);
-    const world = buildWorld(p.q); scene.add(world.root);
+    const world = buildWorld(p.q, nivel); scene.add(world.root);
     world.setDynamic(dyn);
 
     // estado da câmera orbital
@@ -114,7 +116,7 @@ export function World3D(p: Props) {
     el.dataset.pronto = "1";
     return () => { stop(); ro.disconnect(); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("wheel", wheel); canvas.removeEventListener("webglcontextlost", lost); api.current = null; world.dispose(); disposeTree(scene); disposeMats(); envOff(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.q]);
+  }, [p.q, nivel]);
 
   useEffect(() => { api.current?.world.setDynamic(dyn); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [dynKey]);
 
@@ -155,7 +157,7 @@ export function World3D(p: Props) {
         })}
       </div>
       <div className="absolute right-2 top-2 flex flex-col gap-1.5">
-        <button type="button" className="g-btn sm ghost" onClick={() => p.onModo(p.modo === "mapa" ? "sala" : "mapa")} aria-pressed={p.modo === "mapa"}>{p.modo === "mapa" ? "🔍 Entrar na sala" : "🗺️ Ver a UPA toda"}</button>
+        <button type="button" className="g-btn sm ghost" onClick={() => p.onModo(p.modo === "mapa" ? "sala" : "mapa")} aria-pressed={p.modo === "mapa"}>{p.modo === "mapa" ? "🔍 Entrar na sala" : (nivel === 1 ? "🗺️ Ver a UPA toda" : "🗺️ Ver a Secretaria toda")}</button>
         <div className="flex gap-1.5"><button type="button" className="g-btn sm ghost" onClick={() => rot(-0.4)} aria-label="Girar para a esquerda">↺</button><button type="button" className="g-btn sm ghost" onClick={() => rot(0.4)} aria-label="Girar para a direita">↻</button><button type="button" className="g-btn sm ghost" onClick={() => zoom(0.85)} aria-label="Aproximar">＋</button><button type="button" className="g-btn sm ghost" onClick={() => zoom(1.18)} aria-label="Afastar">－</button></div>
       </div>
       <p className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-white/85 px-3 py-1 text-xs font-bold" aria-hidden>{p.modo === "mapa" ? "Arraste para girar · role ou pince para aproximar · toque numa sala" : LOCATIONS[p.s.location].nome}</p>

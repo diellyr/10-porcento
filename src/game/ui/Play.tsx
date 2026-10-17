@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { audio } from "../audio/AudioManager";
-import { CASE_BY_NUM, DECISION_BY_ID, TOTAL_CASES } from "../content/cases";
+import { CASE_BY_NUM, DECISION_BY_ID } from "../content/cases";
+import { levelOf } from "../content/levels";
 import { CONV_BY_ID } from "../content/conversations";
 import { LOCATIONS } from "../content/locations";
 import { makeCtx, txt } from "../engine/rules";
@@ -33,7 +34,7 @@ export function Play({ onExit }: { onExit: () => void }) {
   const [fail3d, setFail3d] = useState(false);
   const [toast, setToast] = useState<{ msg: string; tone: "ink" | "ok" | "bad" } | null>(null);
   const shown = useRef<number>(0);
-  const caso = CASE_BY_NUM[Math.min(s.caso, TOTAL_CASES)]!;
+  const caso = CASE_BY_NUM[Math.min(s.caso, levelOf(s).ultimo)]!;
   const ctx = useMemo(() => makeCtx(s.scenario, s, s.player.nome), [s]);
   const say = useCallback((msg: string, tone: "ink" | "ok" | "bad" = "ink") => { setToast({ msg, tone }); setTimeout(() => setToast(null), 3200); }, []);
   const world = worldView(s);
@@ -136,7 +137,7 @@ export function Play({ onExit }: { onExit: () => void }) {
           s.location === deveDecidir.mesa
             ? <button type="button" className="g-btn orange" onClick={() => setOv({ t: "decisao" })}>🖋️ Tomar a decisão</button>
             : <button type="button" className="g-btn yellow" onClick={() => { dispatch({ type: "go", location: deveDecidir.mesa }); say(`A decisão é assinada em: ${LOCATIONS[deveDecidir.mesa].nome}.`); }}>🖋️ Ir decidir ({LOCATIONS[deveDecidir.mesa].curto})</button>
-        ) : <button type="button" className="g-btn green" onClick={avancar}>{s.caso >= TOTAL_CASES ? "🏁 Ver o desfecho" : "➡ Próximo caso"}</button>}
+        ) : <button type="button" className="g-btn green" onClick={avancar}>{s.caso >= levelOf(s).ultimo ? "🏁 Ver o desfecho" : "➡ Próximo caso"}</button>}
         <button type="button" className="g-btn sm ghost" onClick={() => setOv({ t: "panel", p: "menu" })} aria-label="Menu">☰</button>
         <span className="w-full text-center text-[0.7rem] text-[color:var(--g-ink3)]" aria-live="polite">{sync === "pendente" ? "sincronizando com a conta…" : sync === "sincronizado" ? "salvo na conta e neste aparelho" : sync === "erro" ? "sem sincronizar com a conta (salvo neste aparelho)" : session.logado ? "salvo neste aparelho" : "salvo neste aparelho · entre para guardar na conta"}</span>
       </nav>

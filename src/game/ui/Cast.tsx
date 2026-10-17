@@ -15,7 +15,7 @@ export function Cast() {
         {Object.values(CHARACTERS).filter((c) => c.id !== "voce").map((c) => (
           <section key={c.id} className="g-card overflow-hidden p-4">
             <div className="flex items-center gap-3"><span className="size-3 rounded-full" style={{ background: c.cor }} /><h2 className="text-xl font-bold">{c.nome}</h2></div>
-            <p className="text-sm text-[color:var(--g-ink3)]">{c.papel}{c.naUpa ? "" : " · carreira completa"}</p>
+            <p className="text-sm text-[color:var(--g-ink3)]">{c.papel}</p>
             <div className="mt-3 grid grid-cols-4 gap-1" style={{ background: "linear-gradient(#fff,#ffeccc)", borderRadius: 14 }}>
               {EMO.map((e) => <Portrait key={e} look={c.look} emocao={e} enquadramento="rosto" title={`${c.nome} — ${e}`} className="h-28 w-full" />)}
             </div>

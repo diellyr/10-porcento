@@ -6,10 +6,12 @@ export interface MapPin { novo: number; objetivo: boolean }
 
 const ROOM_COLOR: Record<LocationId, [string, string]> = {
   recepcao: ["#ffe0a6", "#f2b54f"], farmacia: ["#cdf3e3", "#6fcfae"], enfermagem: ["#d4e8ff", "#7fb2ee"], administracao: ["#ffd9b8", "#f29a4a"], cofre: ["#d6e4dc", "#6f9a86"], patio: ["#e4ecd4", "#9bc27a"],
+  secretaria: ["#e6dfc8", "#b9a67c"], planejamento: ["#d6e3f5", "#8fa9cf"], prefeitura: ["#eed3a6", "#c98f55"], camara: ["#ddd0e8", "#8d72bf"], ubs: ["#cfeedd", "#6fcfae"],
 };
 
 /** Mapa da UPA: planta ilustrada com os locais investigáveis. Os botões são HTML (teclado/toque) sobre o desenho. */
-export function UpaMap({ atual, pins, onSelect, nome }: { atual: LocationId; pins: Record<LocationId, MapPin>; onSelect: (l: LocationId) => void; nome: string }) {
+export function UpaMap({ atual, pins, onSelect, nome, locais }: { atual: LocationId; pins: Partial<Record<LocationId, MapPin>>; onSelect: (l: LocationId) => void; nome: string; locais?: readonly LocationId[] }) {
+  const ids = (locais ?? (Object.keys(LOCATIONS) as LocationId[]).filter((k) => !["secretaria", "planejamento", "prefeitura", "camara", "ubs"].includes(k))) as LocationId[];
   return (
     <div className="relative w-full" style={{ aspectRatio: "1000 / 620" }}>
       <svg viewBox="0 0 1000 620" className="absolute inset-0 h-full w-full" role="img" aria-label={`Planta de ${nome}`}>
@@ -23,7 +25,7 @@ export function UpaMap({ atual, pins, onSelect, nome }: { atual: LocationId; pin
         {/* corredores */}
         <rect x="30" y="296" width="940" height="30" rx="10" fill="#fff8e6" opacity="0.9" />
         {[[900, 120], [980, 520], [350, 590], [640, 590]].map(([x, y], i) => <g key={i}><circle cx={x} cy={y} r="22" fill="#4aa56a" /><circle cx={(x as number) - 10} cy={(y as number) - 8} r="14" fill="#6cc487" /></g>)}
-        {(Object.keys(LOCATIONS) as LocationId[]).map((k) => {
+        {ids.map((k) => {
           const m = LOCATIONS[k].mapa;
           return (
             <g key={k} filter="url(#mp-sh)">
@@ -35,8 +37,8 @@ export function UpaMap({ atual, pins, onSelect, nome }: { atual: LocationId; pin
         <text x="500" y="318" textAnchor="middle" fontFamily="var(--g-display)" fontSize="15" fill="#8a7a58" letterSpacing="6">CORREDOR</text>
         <text x="500" y="607" textAnchor="middle" fontFamily="var(--g-display)" fontSize="14" fill="#fff" letterSpacing="4">RUA DA ESPERANÇA</text>
       </svg>
-      {(Object.keys(LOCATIONS) as LocationId[]).map((k) => {
-        const m = LOCATIONS[k].mapa; const pin = pins[k];
+      {ids.map((k) => {
+        const m = LOCATIONS[k].mapa; const pin = pins[k] ?? { novo: 0, objetivo: false };
         return (
           <button key={k} type="button" onClick={() => onSelect(k)} aria-label={`${LOCATIONS[k].nome}${atual === k ? " (você está aqui)" : ""}${pin.objetivo ? ", objetivo atual" : ""}${pin.novo ? `, ${pin.novo} novidade(s)` : ""}`}
             className="absolute flex items-start justify-center rounded-[22px] border-0 bg-transparent p-0 outline-offset-2 hover:bg-white/20 focus-visible:bg-white/25"

@@ -1,4 +1,5 @@
 "use client";
+import { decisoesDoNivel, levelOf } from "../content/levels";
 import { useMemo, useRef } from "react";
 import { avatarLook } from "../content/characters";
 import { brlShort } from "../engine/money";
@@ -10,9 +11,9 @@ export function ResultCard({ s }: { s: GameState }) {
   const e = s.ending!;
   const ref = useRef<HTMLDivElement>(null);
   const linhas = useMemo(() => {
-    const d = s.decisions;
+    const d = decisoesDoNivel(s, levelOf(s).nivel);
     const pri = d.find((x) => x.economia > 0);
-    if (e.id === "reconhecimento") return [`Espera de ${INICIO_FILA} min → ${Math.round(s.pub.filaMin)} min`, pri ? `Economia verificada: ${brlShort(d.reduce((a, b) => a + b.economia, 0))} mantendo o atendimento` : "Serviço recuperado", `Conhecimentos aplicados: ${Object.values(s.knowledge).reduce((a, k) => a + k.aplicadoEm.length, 0)}`];
+    if (e.id === "reconhecimento") return [`${levelOf(s).rotulos.fila.nome} de ${levelOf(s).inicio.filaMin}${levelOf(s).rotulos.fila.un} → ${Math.round(s.pub.filaMin)}${levelOf(s).rotulos.fila.un}`, pri ? `Economia verificada: ${brlShort(d.reduce((a, b) => a + b.economia, 0))} mantendo o atendimento` : "Serviço recuperado", `Conhecimentos aplicados: ${Object.values(s.knowledge).reduce((a, k) => a + k.aplicadoEm.length, 0)}`];
     if (e.id === "responsabilizacao") return [`Ilícito fictício: ${brlShort(s.personal.desviado)}`, `Bens perdidos: ${brlShort(e.bensPerdidos)}`, "Responsabilização — não é card de vitória"];
     return [`Legado ${e.legado.toFixed(0)} · Poder ${e.poder.toFixed(0)}`, "Revisão e nova tentativa"];
   }, [s, e]);
@@ -42,4 +43,3 @@ export function ResultCard({ s }: { s: GameState }) {
     </div>
   );
 }
-const INICIO_FILA = 94;
