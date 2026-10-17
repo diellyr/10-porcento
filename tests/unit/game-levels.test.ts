@@ -7,7 +7,7 @@ import { CONVERSATIONS } from "@/game/content/conversations";
 import { LEVELS } from "@/game/content/levels";
 import { LOCATIONS } from "@/game/content/locations";
 import { NIVEIS } from "@/game/content/niveis";
-import { fictionalScenario } from "@/game/content/scenario";
+import { fictionalScenario, levelScenario } from "@/game/content/scenario";
 import type { ConvNode } from "@/game/content/types";
 import { apply, optionLock } from "@/game/engine/rules";
 import type { Action, GameState } from "@/game/engine/types";
@@ -45,11 +45,17 @@ function playLevel(s0: GameState, pick: Pick, n: number) {
   }
   return s;
 }
-/** carreira íntegra até o INÍCIO do nível n (promoções por mérito) */
+/** carreira íntegra até o INÍCIO do nível n (promoções por mérito); se algum nível anterior ainda não tem conteúdo, o início do nível é montado a partir do fim do nível 2 */
 function ateNivel(n: number) {
   let s = run(null, { type: "start", playerName: "Teste", avatar: "av1", scenario, seed: 7, gameId: "gl" });
   ["q1", "q2", "q3"].forEach((q, i) => { s = run(s, { type: "quiz.answer", questionId: q, optionId: ["analisar", "dados", "provar"][i]! }); });
-  for (let l = 1; l < n; l++) { s = playLevel(s, best, l); s = run(s, { type: "promote" }); }
+  const real = [3, 4, 5, 6, 7].filter((l) => l < n).every((l) => NIVEIS[l]!.casos.length > 0);
+  for (let l = 1; l < (real ? n : 3); l++) { s = playLevel(s, best, l); s = run(s, { type: "promote" }); }
+  if (!real && n > 2) {
+    const N = LEVELS[n]!; const sc = levelScenario(s.scenario, n);
+    s = { ...s, nivel: n, scenario: sc, phase: "jogando", ending: null, caso: N.primeiro, casoAberto: true, location: N.inicial, visited: [N.inicial], pending: [], consequences: [],
+      pub: { ...s.pub, qualidade: N.inicio.qualidade, acesso: N.inicio.acesso, equipe: N.inicio.equipe, sustentabilidade: N.inicio.sustentabilidade, estoqueDias: N.inicio.estoqueDias, filaMin: N.inicio.filaMin } };
+  }
   return s;
 }
 
