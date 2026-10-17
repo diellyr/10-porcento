@@ -7,9 +7,9 @@ import type { LocationId } from "@/game/engine/types";
 
 /**
  * Jogo completo pela interface (toque/clique): campanha de 10 casos nas duas trajetórias.
- * Roda com qualidade 3D "baixa" para ser rápido no navegador sem GPU; a cena 3D é validada em outro teste.
+ * Roda com a vista 2D (qualidade 3D "2d") para ser rápido no navegador sem GPU; o mapa 3D da UPA é validado em teste próprio (/mundo3d).
  */
-const CONFIG = { mudo: true, voz: 0, musica: 0, efeitos: 0, reduzirMovimento: true, qualidade3d: "baixa", altoContraste: false, textoGrande: false };
+const CONFIG = { mudo: true, voz: 0, musica: 0, efeitos: 0, reduzirMovimento: true, qualidade3d: "2d", altoContraste: false, textoGrande: false };
 
 async function novaPartida(page: Page, nome: string, config: object = CONFIG) {
   await page.addInitScript((c) => { try { localStorage.setItem("meus10:config", JSON.stringify(c)); } catch { /* */ } }, config);
@@ -172,4 +172,21 @@ test("cancelar a confirmação não registra decisão", async ({ page }) => {
   await page.getByRole("button", { name: /Contas/ }).click();
   await expect(page.getByText("Sem movimentações ainda.").first()).toBeVisible();
   void CONV_BY_ID;
+});
+
+test("mapa 3D da UPA: visão geral com as 6 salas, entrar numa sala e marcadores interativos", async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.goto("/mundo3d?modo=mapa");
+  await page.locator("[data-pronto]").waitFor({ timeout: 90_000 });
+  const salas = page.getByRole("button", { name: /^Ir para / });
+  await expect(salas).toHaveCount(6);
+  await expect(salas.first()).toBeVisible({ timeout: 30_000 });
+  // girar e aproximar não quebram a cena
+  await page.getByRole("button", { name: "Girar para a direita" }).click();
+  await page.getByRole("button", { name: "Aproximar" }).click();
+  // entrar numa sala: aparecem os marcadores dos pontos interativos
+  await page.getByRole("button", { name: /^Ir para Recepção/ }).click();
+  const marcador = page.locator('[data-hotspot="celia"]');
+  await expect(marcador).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: /Ver a UPA toda/ })).toBeVisible();
 });

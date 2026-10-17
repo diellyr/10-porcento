@@ -11,7 +11,9 @@ import { AchievementsPanel, AgendaPanel, DataPanel, DossierPanel, LedgerPanel, M
 import { activeHotspots, GameScene, presentPeople, type ActiveHotspot } from "./GameScene";
 import { ConsequenceModal, DecisionSheet, PenModal } from "./Decision";
 import { Dialogue, Negotiation } from "./Dialogue";
-import { Modal, Toast } from "./atoms";
+import { Modal, Toast, useHydrated } from "./atoms";
+import { qualidadeFinal } from "./three/support";
+import { World3D, type Modo, type RoomPin } from "./three/World3D";
 import { Hud } from "./Hud";
 import { useGame } from "./store";
 import { Ending } from "./Ending";
@@ -26,6 +28,9 @@ export function Play({ onExit }: { onExit: () => void }) {
   const { state: st, dispatch, settings, sync, session } = useGame();
   const s = st!;
   const [ov, setOv] = useState<Overlay>(null);
+  const hy = useHydrated();
+  const [modo, setModo] = useState<Modo>("sala");
+  const [fail3d, setFail3d] = useState(false);
   const [toast, setToast] = useState<{ msg: string; tone: "ink" | "ok" | "bad" } | null>(null);
   const shown = useRef<number>(0);
   const caso = CASE_BY_NUM[Math.min(s.caso, TOTAL_CASES)]!;
@@ -42,6 +47,16 @@ export function Play({ onExit }: { onExit: () => void }) {
   const hs = useMemo(() => activeHotspots(s), [s]);
   const pendentes = hs.filter((a) => a.estado === "novo" || a.estado === "pessoa").length;
   const deveDecidir = DECISION_BY_ID[caso.decisao]!;
+  const q3d = hy ? qualidadeFinal(settings.qualidade3d) : "2d";
+  const pins = useMemo(() => {
+    const out = {} as Record<LocationId, RoomPin>;
+    for (const k of Object.keys(LOCATIONS) as LocationId[]) {
+      const novos = LOCATIONS[k].hotspots.filter((h) => h.kind === "pista" || h.kind === "pessoa").filter((h) => h.entradas.some((e) => e.casos.includes(s.caso) && !(s.clues[e.ref] || s.talked[e.ref])));
+      out[k] = { novo: s.casoAberto ? novos.length : 0, objetivo: s.casoAberto && caso.location === k };
+    }
+    return out;
+  }, [s, caso]);
+  const foco = ov?.t === "conv" ? (hs.find((a) => a.ref === ov.id)?.h.id ?? null) : null;
 
   const pick = (a: ActiveHotspot) => {
     audio.unlock(); audio.sfx("click");
@@ -98,8 +113,11 @@ export function Play({ onExit }: { onExit: () => void }) {
           {s.casoAberto && pendentes > 0 && <span className="g-chip es ml-auto">🔍 {pendentes} para ver aqui</span>}
           <button type="button" className="g-btn sm teal ml-auto md:ml-0" onClick={() => setOv({ t: "panel", p: "mapa" })}>🗺️ Mapa</button>
         </header>
-        <p className="px-3 pt-1 text-xs text-[color:var(--g-ink3)] md:hidden" aria-hidden>↔ Arraste a cena para os lados ou use a lista abaixo.</p>
-        <GameScene s={s} onPick={pick} falando={falando} reduzir={settings.reduzirMovimento} />
+        {q3d !== "2d" && !fail3d
+          ? <World3D s={s} hs={hs} q={q3d} modo={modo} foco={foco} pins={pins} onPick={pick} onModo={setModo} reduzir={settings.reduzirMovimento} onFail={() => setFail3d(true)}
+              onGoRoom={(l) => { audio.unlock(); audio.sfx("whoosh"); if (l !== s.location) dispatch({ type: "go", location: l }); setModo("sala"); }} />
+          : <><p className="px-3 pt-1 text-xs text-[color:var(--g-ink3)] md:hidden" aria-hidden>↔ Arraste a cena para os lados ou use a lista abaixo.</p>
+            <GameScene s={s} onPick={pick} falando={falando} reduzir={settings.reduzirMovimento} /></>}
         <ul className="grid gap-2 border-t-2 border-[color:var(--g-line)] bg-[#fffaf0] p-2.5 sm:grid-cols-2 lg:grid-cols-3" aria-label="O que você pode fazer aqui">
           {hs.map((a) => (
             <li key={a.h.id}><button type="button" onClick={() => pick(a)} className="g-btn ghost sm w-full !justify-start text-left !font-semibold" data-acao={a.h.id}>
