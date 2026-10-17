@@ -24,7 +24,7 @@ export const TEMAS: Record<Tema, { wall: [string, string]; wain: string; floor: 
 
 const T = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 const E = (casos: number[], ref: string, rotulo: string): HotspotEntry => ({ casos, ref, rotulo });
-const spread = (n: number, lo: number, hi: number) => (n <= 1 ? [(lo + hi) / 2] : Array.from({ length: n }, (_, i) => lo + ((hi - lo) * i) / (n - 1)));
+const spread = (n: number, lo: number, hi: number) => (n <= 0 ? [] : n === 1 ? [(lo + hi) / 2] : Array.from({ length: n }, (_, i) => lo + ((hi - lo) * i) / (n - 1)));
 
 export const hotspotId = (loc: string, id: string) => `${loc}:${id}`;
 
