@@ -14,6 +14,9 @@ export const DEFAULT_VOICE_IDS: Record<string, string> = {
   guardiao: "pNInz6obpgDQGcFmaJgB", toninho: "TxGEqnHWrfWFTfGW9XjX", juninho: "ErXwobaYiN019PkySvjV", roberto: "yoZ06aMxZJJ28mfd3POQ",
   bento: "TxGEqnHWrfWFTfGW9XjX", cornelio: "VR6AewLTigWG4xSOukaG", valdemar: "VR6AewLTigWG4xSOukaG",
   lucia: "EXAVITQu4vr4xnSDxMaL", nelson: "TxGEqnHWrfWFTfGW9XjX", rita: "MF3mGyEYCl7XYWbV9V6O", edu: "ErXwobaYiN019PkySvjV",
+  heitor: "pNInz6obpgDQGcFmaJgB", osvaldo: "TxGEqnHWrfWFTfGW9XjX", sonia: "AZnzlk1XvdvUeBnXmlld", teodoro: "VR6AewLTigWG4xSOukaG", leandro: "yoZ06aMxZJJ28mfd3POQ",
+  iara: "21m00Tcm4TlvDq8ikWAM", cecilia: "EXAVITQu4vr4xnSDxMaL", ramiro: "pNInz6obpgDQGcFmaJgB", pedro: "ErXwobaYiN019PkySvjV", augusto: "VR6AewLTigWG4xSOukaG",
+  helena: "MF3mGyEYCl7XYWbV9V6O", goncalo: "TxGEqnHWrfWFTfGW9XjX", vivian: "AZnzlk1XvdvUeBnXmlld", claudio: "yoZ06aMxZJJ28mfd3POQ", estevao: "pNInz6obpgDQGcFmaJgB",
 };
 
 export const ELEVENLABS_DEFINITION: SourceDefinition = {

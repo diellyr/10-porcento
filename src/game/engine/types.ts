@@ -11,15 +11,32 @@ export const MAX_DEVIATION_PCT = 10;
 
 export type Classification = "oficial" | "estimativa" | "simulado";
 
-export type CharId = "joana" | "celia" | "guardiao" | "toninho" | "juninho" | "roberto" | "ana" | "bento" | "cornelio" | "marlene" | "valdemar" | "voce" | "lucia" | "nelson" | "rita" | "edu";
-export const LOCATION_IDS = ["recepcao", "farmacia", "enfermagem", "administracao", "cofre", "patio", "secretaria", "planejamento", "prefeitura", "camara", "ubs"] as const;
+export type CharId = "joana" | "celia" | "guardiao" | "toninho" | "juninho" | "roberto" | "ana" | "bento" | "cornelio" | "marlene" | "valdemar" | "voce" | "lucia" | "nelson" | "rita" | "edu"
+  | "heitor" | "osvaldo" | "sonia" | "teodoro" | "leandro" | "iara" | "cecilia" | "ramiro" | "pedro" | "augusto" | "helena" | "goncalo" | "vivian" | "claudio" | "estevao";
+export const LOCATION_IDS = ["recepcao", "farmacia", "enfermagem", "administracao", "cofre", "patio", "secretaria", "planejamento", "prefeitura", "camara", "ubs",
+  // nível 3 — Consórcio Regional
+  "consorcio", "cir", "hospregional", "vizinho", "transporte",
+  // nível 4 — Secretaria Estadual
+  "gabinete-estadual", "painel-regioes", "assembleia", "canteiro", "tribunal",
+  // nível 5 — Órgão Federal
+  "diretoria", "sala-programas", "comissao-congresso", "controladoria", "almoxarifado-nacional",
+  // nível 6 — Ministério
+  "gabinete-ministro", "sala-crise", "casa-governo", "plenario", "fazenda",
+  // nível 7 — Topo do poder
+  "comite-campanha", "estudio-debate", "praca-comicio", "palacio-presidencial", "sala-situacao-nacional",
+] as const;
 export type LocationId = (typeof LOCATION_IDS)[number];
 export type AttrKey = "competencia" | "rede" | "persuasao" | "confianca" | "conhecimento" | "popularidade" | "caraDePau";
 export type PubKey = "qualidade" | "acesso" | "equipe" | "sustentabilidade";
 export type ConceptId =
   | "medir-antes" | "gargalo" | "custo-total" | "corte-linear" | "entrega-vs-anuncio"
   | "execucao-despesa" | "controle-interno" | "conflito-interesses" | "reserva-urgencia" | "transparencia"
-  | "planejamento-necessidade" | "emenda-custeio" | "compra-compartilhada" | "fila-regulada" | "folha-sustentavel" | "credito-adicional" | "emergencia-transparencia" | "audiencia-publica";
+  | "planejamento-necessidade" | "emenda-custeio" | "compra-compartilhada" | "fila-regulada" | "folha-sustentavel" | "credito-adicional" | "emergencia-transparencia" | "audiencia-publica"
+  | "consorcio-rateio" | "pactuacao-regional" | "transporte-sanitario" | "contrato-gestao" | "localizacao-regional" | "controle-social-regional"
+  | "equidade-regional" | "obra-parada" | "sobrepreco-obra" | "fundo-a-fundo" | "parceria-gestao" | "controle-externo"
+  | "programa-metas" | "repasse-condicionado" | "convenio-prestacao" | "compra-nacional" | "monitoramento-avaliacao" | "tomada-contas-especial"
+  | "regra-fiscal" | "contingenciamento" | "emenda-transparente" | "prioridade-nacional" | "crise-sanitaria-nacional" | "coalizao-limites"
+  | "plano-de-governo" | "debate-publico" | "financiamento-campanha" | "eleicao-limites" | "posse-prioridades" | "legado-prestacao";
 export type PenGesture = "assinar" | "recusar" | "esclarecer" | "parecer";
 export type OptionKind = "competente" | "prudente" | "comodo" | "fraco" | "desvio";
 export type Emotion = "neutro" | "feliz" | "serio" | "irritado" | "surpreso" | "triste" | "irônico" | "preocupado";
@@ -142,7 +159,7 @@ export interface Relation { confianca: number; favor: number; conhecido: boolean
 export interface ConversationRecord { choices: string[]; at: number }
 
 export interface EndingResult {
-  id: "reconhecimento" | "responsabilizacao" | "gestao-insuficiente" | "balanco-parcial";
+  id: "reconhecimento" | "responsabilizacao" | "gestao-insuficiente" | "balanco-parcial" | "presidencia" | "imperador";
   titulo: string;
   reparado: boolean;
   motivos: string[];
@@ -152,7 +169,7 @@ export interface EndingResult {
   /** bens perdidos na responsabilização (ilícito não restituído + multa fictícia de 20%) e patrimônio final */
   bensPerdidos: number;
   patrimonioFinal: number;
-  promocao: { elegivel: boolean; criterios: Array<{ rotulo: string; ok: boolean; detalhe: string }> };
+  promocao: { elegivel: boolean; viaRede?: boolean; criterios: Array<{ rotulo: string; ok: boolean; detalhe: string }> };
 }
 
 /** Registro de um nível já concluído (a carreira acumula níveis). */
@@ -165,6 +182,8 @@ export interface GameState {
   /** nível da carreira em andamento (1 = Administrador de UPA, 2 = Secretário Municipal…). Partidas antigas sem o campo valem 1. */
   nivel: number;
   historico: LevelRecord[];
+  /** eleição simulada do nível 7 (ausente até ser disputada) */
+  eleicao?: { pct: number; venceu: boolean };
   id: string;
   version: number;
   rulesVersion: string;

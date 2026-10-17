@@ -104,6 +104,98 @@ export const CHARACTERS: Record<CharId, Character> = {
     voz: { direcao: "Sem voz: o jogador é o personagem. Falas aparecem só em legenda.", rate: 1, pitch: 1, envVar: "TTS_VOICE_VOCE", genero: "f" },
     look: { pele: "#c68d64", peleSombra: "#a06b46", cabelo: "#241a14", cabeloEstilo: "curto", roupa: "#1a46d4", roupa2: "#e9efff", roupaTipo: "camisa", idade: 34, olhos: "#2b1b12", rosto: 1 },
   },
+
+  /* ───── níveis 3 a 7 ───── */
+  heitor: {
+    id: "heitor", nome: "Dr. Heitor Brandão", papel: "Diretor do Hospital Regional", cor: "#2a6fb0", naUpa: true,
+    interesse: "Quer o hospital cheio de recursos e vazio de pacientes que poderiam ser atendidos na atenção básica.",
+    voz: { direcao: "Grave e cansado, médico de plantão há trinta anos. Frases longas que terminam em pedido de verba.", rate: 0.96, pitch: 0.88, envVar: "TTS_VOICE_HEITOR", genero: "m" },
+    look: { pele: "#d9ab87", peleSombra: "#b08560", cabelo: "#cfcfcf", cabeloEstilo: "branco", oculos: "meia-lua", roupa: "#2a6fb0", roupa2: "#e8f1fb", roupaTipo: "jaleco", idade: 61, olhos: "#3a2a1c", rosto: 1.02 },
+  },
+  osvaldo: {
+    id: "osvaldo", nome: "Prefeito Osvaldo Reis", papel: "Prefeito do município vizinho", cor: "#a35a2a", naUpa: true,
+    interesse: "Quer que o hospital fique na sua cidade e que o rateio caia na conta dos outros.",
+    voz: { direcao: "Caloroso e teimoso, voz de comício. Ri alto antes de negar.", rate: 1.04, pitch: 0.92, envVar: "TTS_VOICE_OSVALDO", genero: "m" },
+    look: { pele: "#a9724f", peleSombra: "#85553a", cabelo: "#2b1d16", cabeloEstilo: "topete", barba: "bigode", roupa: "#a35a2a", roupa2: "#fff3dc", roupaTipo: "camisa", idade: 55, olhos: "#2d1c12", rosto: 1 },
+  },
+  sonia: {
+    id: "sonia", nome: "Sônia Pacheco", papel: "Secretária-executiva do Consórcio", cor: "#7a4fa8", naUpa: true,
+    interesse: "Quer cada pacto assinado, cada rateio pago e cada ata no lugar.",
+    voz: { direcao: "Precisa e paciente. Lê os números em voz alta, sem pressa, e repete o prazo.", rate: 1.0, pitch: 1.1, envVar: "TTS_VOICE_SONIA", genero: "f" },
+    look: { pele: "#e0b48f", peleSombra: "#b98a66", cabelo: "#4a2a1a", cabeloEstilo: "liso", oculos: "quadrado", roupa: "#7a4fa8", roupa2: "#efe6f7", roupaTipo: "blazer", idade: 44, olhos: "#3a2418", rosto: 0.98 },
+  },
+  teodoro: {
+    id: "teodoro", nome: "Governador Teodoro Lima", papel: "Governador do estado", cor: "#1d5fa8", naUpa: true,
+    interesse: "Quer obras que apareçam na foto e números que apareçam no jornal — nessa ordem.",
+    voz: { direcao: "Solene e articulado, voz de palanque. Faz pausa dramática antes de cada promessa.", rate: 0.98, pitch: 0.9, envVar: "TTS_VOICE_TEODORO", genero: "m" },
+    look: { pele: "#c68d64", peleSombra: "#a06a46", cabelo: "#3a3a3a", cabeloEstilo: "curto", roupa: "#1d5fa8", roupa2: "#e6eefb", roupaTipo: "terno", idade: 58, olhos: "#2d1c12", rosto: 1.02 },
+  },
+  leandro: {
+    id: "leandro", nome: "Leandro Matos", papel: "Engenheiro fiscal de obras", cor: "#d9822b", naUpa: true,
+    interesse: "Quer medir o que foi construído antes de pagar o que foi cobrado.",
+    voz: { direcao: "Direto e prático, voz de canteiro. Usa números e metros, não adjetivos.", rate: 1.02, pitch: 0.94, envVar: "TTS_VOICE_LEANDRO", genero: "m" },
+    look: { pele: "#8d5b3d", peleSombra: "#6b4229", cabelo: "#1f1612", cabeloEstilo: "curto", roupa: "#d9822b", roupa2: "#fff0d8", roupaTipo: "colete", idade: 40, olhos: "#2a1a10", rosto: 1 },
+  },
+  iara: {
+    id: "iara", nome: "Conselheira Iara Nogueira", papel: "Conselheira do Tribunal de Contas", cor: "#5b3a7a", naUpa: true,
+    interesse: "Quer saber quem decidiu, com base em quê e quanto custou. Nessa ordem, por escrito.",
+    voz: { direcao: "Serena e implacável. Voz baixa, ritmo pausado, cada pergunta soa como sentença.", rate: 0.92, pitch: 1.02, envVar: "TTS_VOICE_IARA", genero: "f" },
+    look: { pele: "#b9835c", peleSombra: "#8f5d3d", cabelo: "#cfcfcf", cabeloEstilo: "bob", oculos: "redondo", roupa: "#5b3a7a", roupa2: "#ece4f5", roupaTipo: "blazer", idade: 57, olhos: "#2d1c12", rosto: 1 },
+  },
+  cecilia: {
+    id: "cecilia", nome: "Cecília Moura", papel: "Coordenadora de programas federais", cor: "#0f8c6a", naUpa: true,
+    interesse: "Quer metas que dá para medir e repasses que chegam a tempo.",
+    voz: { direcao: "Organizada e animada, fala em listas. Diz 'primeiro, segundo, terceiro' sem perceber.", rate: 1.06, pitch: 1.08, envVar: "TTS_VOICE_CECILIA", genero: "f" },
+    look: { pele: "#c98f6b", peleSombra: "#a26a48", cabelo: "#2b1d16", cabeloEstilo: "cacheado", roupa: "#0f8c6a", roupa2: "#e0f6ee", roupaTipo: "blusa", idade: 41, olhos: "#2d1c12", rosto: 1 },
+  },
+  ramiro: {
+    id: "ramiro", nome: "Senador Ramiro Duarte", papel: "Senador, relator do orçamento da saúde", cor: "#8a2f2f", naUpa: true,
+    interesse: "Quer que o programa tenha o nome dele e a obra tenha a cidade dele.",
+    voz: { direcao: "Voz de plenário, cheia de 'Vossa Excelência'. Elogia antes de cobrar.", rate: 0.94, pitch: 0.86, envVar: "TTS_VOICE_RAMIRO", genero: "m" },
+    look: { pele: "#d9ab87", peleSombra: "#b08560", cabelo: "#9a9a9a", cabeloEstilo: "penteado", roupa: "#8a2f2f", roupa2: "#f6e6e6", roupaTipo: "terno", idade: 63, olhos: "#3a2a1c", rosto: 1.03 },
+  },
+  pedro: {
+    id: "pedro", nome: "Pedro Salgado", papel: "Auditor da Controladoria", cor: "#3a6d9e", naUpa: true,
+    interesse: "Quer comparar o que foi prometido, o que foi pago e o que chegou.",
+    voz: { direcao: "Seco e educado. Diz 'consta nos autos' e espera a resposta sem piscar.", rate: 1.0, pitch: 0.98, envVar: "TTS_VOICE_PEDRO", genero: "m" },
+    look: { pele: "#e0b48f", peleSombra: "#b98a66", cabelo: "#2b1d16", cabeloEstilo: "curto", oculos: "quadrado", roupa: "#3a6d9e", roupa2: "#e6eef7", roupaTipo: "camisa", idade: 36, olhos: "#2d1c12", rosto: 0.98 },
+  },
+  augusto: {
+    id: "augusto", nome: "Presidente Augusto Prado", papel: "Presidente da República (simulado)", cor: "#16784c", naUpa: true,
+    interesse: "Quer saber se o ministério entrega, se a coalizão aguenta e se a conta fecha.",
+    voz: { direcao: "Calmo e estratégico. Fala como quem já ouviu todas as desculpas e ainda escuta a próxima.", rate: 0.95, pitch: 0.9, envVar: "TTS_VOICE_AUGUSTO", genero: "m" },
+    look: { pele: "#b9835c", peleSombra: "#8f5d3d", cabelo: "#cfcfcf", cabeloEstilo: "curto", roupa: "#16784c", roupa2: "#e4f4ec", roupaTipo: "terno", idade: 62, olhos: "#2d1c12", rosto: 1.02 },
+  },
+  helena: {
+    id: "helena", nome: "Ministra Helena Costa", papel: "Ministra da Fazenda (simulada)", cor: "#8a6a1c", naUpa: true,
+    interesse: "Quer a conta fechando e a palavra 'prioridade' sempre acompanhada de uma fonte de recursos.",
+    voz: { direcao: "Seca e rápida. Corta frases pela metade quando o número já é conhecido.", rate: 1.1, pitch: 1.04, envVar: "TTS_VOICE_HELENA", genero: "f" },
+    look: { pele: "#e0b48f", peleSombra: "#b98a66", cabelo: "#3a2418", cabeloEstilo: "bob", oculos: "meia-lua", roupa: "#8a6a1c", roupa2: "#f6efd8", roupaTipo: "blazer", idade: 49, olhos: "#3a2418", rosto: 1 },
+  },
+  goncalo: {
+    id: "goncalo", nome: "Deputado Gonçalo Bastos", papel: "Líder do governo na Câmara", cor: "#c4622d", naUpa: true,
+    interesse: "Quer votos para o governo e emendas para a base — em pacotes que não se separam.",
+    voz: { direcao: "Fala macia e rápida, vende acordo como quem vende seguro. Termina frases com 'tamo junto'.", rate: 1.1, pitch: 0.96, envVar: "TTS_VOICE_GONCALO", genero: "m" },
+    look: { pele: "#a9724f", peleSombra: "#85553a", cabelo: "#2b1d16", cabeloEstilo: "topete", roupa: "#c4622d", roupa2: "#fbe9dc", roupaTipo: "camisa", idade: 47, olhos: "#2d1c12", rosto: 1 },
+  },
+  vivian: {
+    id: "vivian", nome: "Vivian Prates", papel: "Coordenadora de campanha", cor: "#d94a8c", naUpa: true,
+    interesse: "Quer transformar a sua gestão em três frases, uma cor e um jingle.",
+    voz: { direcao: "Elétrica e persuasiva. Fala em slogans, interrompe-se para testar uma versão melhor.", rate: 1.12, pitch: 1.1, envVar: "TTS_VOICE_VIVIAN", genero: "f" },
+    look: { pele: "#d9ab87", peleSombra: "#b08560", cabelo: "#d94a8c", cabeloEstilo: "liso", roupa: "#d94a8c", roupa2: "#fde6f0", roupaTipo: "bomber", idade: 34, olhos: "#2a1a10", rosto: 0.98 },
+  },
+  claudio: {
+    id: "claudio", nome: "Cláudio Veiga", papel: "Jornalista, mediador do debate", cor: "#444b5a", naUpa: true,
+    interesse: "Quer a pergunta que ninguém quer responder — e o tempo certo para cada resposta.",
+    voz: { direcao: "Neutro e firme, dicção de telejornal. Corta com educação quando o tempo acaba.", rate: 1.0, pitch: 0.95, envVar: "TTS_VOICE_CLAUDIO", genero: "m" },
+    look: { pele: "#c68d64", peleSombra: "#a06a46", cabelo: "#2b1d16", cabeloEstilo: "curto", roupa: "#444b5a", roupa2: "#e8eaef", roupaTipo: "terno", idade: 50, olhos: "#2d1c12", rosto: 1 },
+  },
+  estevao: {
+    id: "estevao", nome: "Barão Estevão", papel: "Empresário e “grande amigo da democracia”", cor: "#b8860b", naUpa: true,
+    interesse: "Oferece apoio generoso — com recibo apenas de um lado.",
+    voz: { direcao: "Untuoso e sorridente. Ri de tudo, inclusive do que não tem graça. Fala baixo ao dizer valores.", rate: 0.95, pitch: 0.9, envVar: "TTS_VOICE_ESTEVAO", genero: "m" },
+    look: { pele: "#e0b48f", peleSombra: "#b98a66", cabelo: "#b8b8b8", cabeloEstilo: "ralo", barba: "cavanhaque", roupa: "#b8860b", roupa2: "#fdf2c8", roupaTipo: "terno", idade: 66, olhos: "#3a2a1c", rosto: 1.02 },
+  },
 };
 
 /** Avatares prontos do jogador (mesma capacidade de jogo; só muda a aparência). */

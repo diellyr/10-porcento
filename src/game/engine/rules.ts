@@ -3,13 +3,14 @@ import { CLUE_BY_ID, FINDINGS } from "../content/clues";
 import { CONCEPTS, QUIZ } from "../content/concepts";
 import { CONV_BY_ID, NEG_BY_ID } from "../content/conversations";
 import { LOCATIONS } from "../content/locations";
-import { decisoesDoNivel, levelOf, LEVELS, MAX_NIVEL_DISPONIVEL, nivelDe } from "../content/levels";
+import { decisoesDoNivel, levelOf, LEVELS, nivelDe } from "../content/levels";
+import { NIVEL_MAX } from "../content/niveis";
 import { levelScenario } from "../content/scenario";
 import type { ConvNode, Ctx, DecisionDef, OptionDef, Txt } from "../content/types";
 import { buildEnding } from "./endings";
 import { brlShort, clamp, r2 } from "./money";
 import { scoreArgument } from "./negotiation";
-import { aplicadosTotal, trambicagem } from "./scoring";
+import { aplicadosTotal, qualidadeAcesso, trambicagem } from "./scoring";
 import {
   CONTENT_VERSION, MAX_DEVIATION_PCT, RULES_VERSION,
   type Action, type ActionResult, type Attrs, type CharId, type Consequence, type DecisionRecord, type Effects, type GameState, type Ledger, type LocationId, type Pending,
@@ -278,8 +279,10 @@ function step(s: GameState, id: string, a: Exclude<Action, { type: "start" }>): 
     case "promote": {
       if (s.phase !== "encerrada" || !s.ending) return no("a promoção só é possível ao concluir um nível");
       const n = nivelDe(s);
-      if (n >= MAX_NIVEL_DISPONIVEL) return no("o próximo nível ainda não está disponível");
-      if (s.ending.id !== "reconhecimento" || !s.ending.promocao.elegivel) return no("os critérios de promoção não foram cumpridos");
+      if (n >= NIVEL_MAX) return no("o próximo nível ainda não está disponível");
+      const porMerito = s.ending.id === "reconhecimento" && s.ending.promocao.elegivel;
+      const porRede = s.ending.id === "responsabilizacao" && !!s.ending.promocao.viaRede;
+      if (!porMerito && !porRede) return no("os critérios de promoção não foram cumpridos");
       const L = LEVELS[n]!, N = LEVELS[n + 1]!;
       s.historico.push({ nivel: n, cargo: L.cargo, ending: s.ending, pub: { ...s.pub }, attrs: { ...s.attrs }, decisoes: decisoesDoNivel(s, n).length });
       s.nivel = n + 1;
@@ -410,6 +413,12 @@ function decide(s: GameState, id: string, a: Extract<Action, { type: "decide" }>
 
   // 9) conquistas
   grantAchievements(s, dec, opt, economia);
+  if (dec.eleicao) {
+    const a = s.attrs;
+    const base = 0.3 * a.confianca + 0.15 * a.popularidade + 0.2 * qualidadeAcesso(s) + 0.1 * a.persuasao + 0.1 * a.competencia + 0.05 * a.rede;
+    const pct = r2(Math.max(0, Math.min(100, base + (opt.votos ?? 0) - 4)));
+    s.eleicao = { pct, venceu: pct >= 50 };
+  }
 
   // 10) caderno de gestão
   const c = CONCEPTS[dec.conceito];
@@ -436,6 +445,7 @@ function grantAchievements(s: GameState, dec: DecisionDef, opt: OptionDef, econo
   if (dec.id === "d4" && opt.id === "economia-direcionada" && economia > 0) unlock(s, "economia-sem-fechar-portas");
   if (dec.id === "d8" && (opt.id === "cotar-esclarecer" || opt.id === "recusar-cordial")) unlock(s, "aliado-sem-favor");
   if (dec.id === "d10" && opt.id === "prestacao-completa") unlock(s, "prestacao-clara");
+  if (opt.conquista) unlock(s, opt.conquista);
   const ok = opt.kind === "competente";
   if (dec.id === "d11") { if (opt.id === "ubs-cobertura") unlock(s, "cobertura-por-necessidade"); if (opt.id === "ubs-vereador") unlock(s, "caneta-do-vereador"); }
   if (dec.id === "d12" && opt.id === "emenda-com-plano") unlock(s, "emenda-com-plano");

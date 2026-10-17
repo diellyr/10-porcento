@@ -1,10 +1,11 @@
+import { NIVEIS_LISTA } from "./niveis";
 import type { ClueDef, FindingDef } from "./types";
 
 const SIM = { rotulo: "Documento do cenário (valores simulados)", classificacao: "simulado" as const };
 const EST = { rotulo: "Parâmetro do cenário (estimativa didática)", classificacao: "estimativa" as const };
 const CGU = { rotulo: "CGU — Execução da despesa pública", classificacao: "oficial" as const, url: "https://portaldatransparencia.gov.br/entenda-a-gestao-publica/execucao-despesa-publica" };
 
-export const CLUES: ClueDef[] = [
+const CLUES_N12: ClueDef[] = [
   /* ───── Caso 1 — estoque ───── */
   {
     id: "c1-consumo", caso: 1, location: "farmacia", titulo: "Planilha de consumo (3 meses)", tipo: "dado", confiabilidade: "confirmada", icone: "💻", fonte: SIM,
@@ -274,7 +275,7 @@ export const CLUES: ClueDef[] = [
   },
 ];
 
-export const FINDINGS: FindingDef[] = [
+const FINDINGS_N12: FindingDef[] = [
   {
     id: "f-vencimento", caso: 1, a: "c1-consumo", b: "c1-validade", titulo: "Falta e desperdício ao mesmo tempo",
     texto: (c) => `Cruzando consumo e validade: há dipirona para 115 dias (e 640 caixas vencem em 21) enquanto o salbutamol dura 6 dias. Perda estimada: ${c.money(0.52)}. Comprar mais não resolve — o problema é medir e remanejar.`,
@@ -338,5 +339,7 @@ export const FINDINGS: FindingDef[] = [
   },
 ];
 
+export const CLUES: ClueDef[] = [...CLUES_N12, ...NIVEIS_LISTA.flatMap((n) => n.pistas)];
+export const FINDINGS: FindingDef[] = [...FINDINGS_N12, ...NIVEIS_LISTA.flatMap((n) => n.achados)];
 export const CLUE_BY_ID = Object.fromEntries(CLUES.map((c) => [c.id, c])) as Record<string, ClueDef>;
 export const FINDING_BY_ID = Object.fromEntries(FINDINGS.map((f) => [f.id, f])) as Record<string, FindingDef>;

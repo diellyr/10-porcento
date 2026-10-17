@@ -1,11 +1,11 @@
 import type { CharId, Emotion, LocationId } from "../engine/types";
 import type { ConvChoice, ConvNode, ConversationDef, NegotiationDef } from "./types";
 
-type Line = [Emotion, string];
-type Pick = [label: string, reply: Line, fx?: ConvChoice["fx"]];
+export type Line = [Emotion, string];
+export type Pick = [label: string, reply: Line, fx?: ConvChoice["fx"]];
 
 /** Conversa curta: falas de abertura, uma pergunta com opções e uma resposta para cada uma. */
-function talk(id: string, caso: number, location: LocationId, who: CharId, titulo: string, intro: Line[], picks: Pick[], extra: Partial<ConversationDef> = {}): ConversationDef {
+export function talk(id: string, caso: number, location: LocationId, who: CharId, titulo: string, intro: Line[], picks: Pick[], extra: Partial<ConversationDef> = {}): ConversationDef {
   const nodes: Record<string, ConvNode> = {};
   intro.forEach(([emo, text], i) => {
     const last = i === intro.length - 1;

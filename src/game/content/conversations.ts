@@ -5,6 +5,7 @@ const n = (who: CharId, emo: Emotion, text: Txt, next?: string, extra: Partial<C
 const ch = (id: string, label: string, next: string, fx?: ConvChoice["fx"], revela?: string[]): ConvChoice => ({ id, label, next, fx, revela });
 
 import { CONVERSATIONS_N2, NEGOTIATIONS_N2 } from "./conversations-n2";
+import { NIVEIS_LISTA } from "./niveis";
 
 export const CONVERSATIONS_N1: ConversationDef[] = [
   /* ───── Caso 1 ───── */
@@ -254,7 +255,7 @@ export const CONVERSATIONS_N1: ConversationDef[] = [
   },
 ];
 
-export const CONVERSATIONS: ConversationDef[] = [...CONVERSATIONS_N1, ...CONVERSATIONS_N2];
+export const CONVERSATIONS: ConversationDef[] = [...CONVERSATIONS_N1, ...CONVERSATIONS_N2, ...NIVEIS_LISTA.flatMap((n) => n.conversas)];
 export const CONV_BY_ID = Object.fromEntries(CONVERSATIONS.map((c) => [c.id, c])) as Record<string, ConversationDef>;
 
 export const NEGOTIATIONS_N1: NegotiationDef[] = [
@@ -274,5 +275,5 @@ export const NEGOTIATIONS_N1: NegotiationDef[] = [
     },
   },
 ];
-export const NEGOTIATIONS: NegotiationDef[] = [...NEGOTIATIONS_N1, ...NEGOTIATIONS_N2];
+export const NEGOTIATIONS: NegotiationDef[] = [...NEGOTIATIONS_N1, ...NEGOTIATIONS_N2, ...NIVEIS_LISTA.flatMap((n) => n.negociacoes)];
 export const NEG_BY_ID = Object.fromEntries(NEGOTIATIONS.map((x) => [x.id, x])) as Record<string, NegotiationDef>;

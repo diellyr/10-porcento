@@ -34,8 +34,27 @@ export function referencedScenario(m: { code: string; nome: string; uf: string |
 /** Cenário do nível 2 (Secretaria Municipal), derivado do cenário do nível 1 de forma determinística (o servidor reproduz o mesmo resultado).
  *  Município referenciado: o total oficial de saúde do município passa a ser o orçamento da Secretaria (dado oficial); fictício: estimativa didática. */
 export const ORCAMENTO_SECRETARIA_PADRAO = 180_000_000;
+/** Unidades fictícias dos níveis 3 a 7 e seus orçamentos (estimativas didáticas; nenhum valor oficial é usado). */
+const UNIDADES_NX: Record<number, { unidade: (m: string) => string; orcamento: number }> = {
+  3: { unidade: (m) => `Consórcio Intermunicipal de Saúde da Região de ${m}`, orcamento: 420_000_000 },
+  4: { unidade: () => "Secretaria Estadual de Saúde (fictícia)", orcamento: 9_500_000_000 },
+  5: { unidade: () => "Agência Federal de Programas de Saúde (fictícia)", orcamento: 60_000_000_000 },
+  6: { unidade: () => "Ministério da Saúde (simulado)", orcamento: 180_000_000_000 },
+  7: { unidade: () => "Presidência da República (simulada)", orcamento: 300_000_000_000 },
+};
+
 export function levelScenario(sc: Scenario, nivel: number): Scenario {
   if (nivel === 1) return sc;
+  const nx = UNIDADES_NX[nivel];
+  if (nx) {
+    const nome = sc.municipio.nome.replace(/ \(fictícia\)/, "");
+    const base = { kind: sc.kind, municipio: sc.municipio, unidade: nx.unidade(nome), orcamentoAnual: nx.orcamento };
+    return {
+      ...sc, id: `${sc.id}-n${nivel}`, hash: hash32(JSON.stringify([sc.hash, "nivel", nivel, base])), ...base,
+      orcamentoClassificacao: "estimativa",
+      orcamentoNota: "O orçamento desta unidade é uma ESTIMATIVA DIDÁTICA do cenário fictício. Nenhum valor oficial foi usado e a ausência de dado não foi convertida em zero.",
+    };
+  }
   const hs = sc.reference?.healthSpending ?? null;
   const oficial = !!hs && hs > 0;
   const base = { kind: sc.kind, municipio: sc.municipio, unidade: `Secretaria Municipal de Saúde de ${sc.municipio.nome.replace(/ \(fictícia\)/, "")}${sc.kind === "ficticio" ? " (fictícia)" : ""}`, orcamentoAnual: r2(oficial ? hs! : ORCAMENTO_SECRETARIA_PADRAO) };
