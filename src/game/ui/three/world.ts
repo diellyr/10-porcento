@@ -2,12 +2,12 @@ import * as THREE from "three";
 import type { Look } from "../../content/types";
 import type { LocationId } from "../../engine/types";
 import { darken, lighten } from "../art/color";
-import { ambulance, ball, blob, board, box, boxPile, cabinet, chair, cone3, cyl, desk, extraLook, mat, monitor, papers, person, plant, safe, shelf, sign, sofa, tree, bed } from "./lowpoly";
+import { bakeGroup, ambulance, ball, blob, board, box, boxPile, cabinet, chair, cone3, cyl, desk, extraLook, mat, monitor, papers, person, plant, safe, shelf, sign, sofa, tree, bed } from "./lowpoly";
 import { ANCHORS, ROOM_D, ROOM_LIST, ROOM_W, ROOMS, WALL_H, WALL_T, type RoomDef } from "./world-data";
 import type { Quality } from "./support";
 
 /** Cenário 3D da UPA em corte (casa de bonecas): salas com paredes que baixam quando ficam entre a câmera e o interior. */
-export interface WorldDyn { filaNivel: number; estoqueNivel: number; melhoria: number; filaMin: number; people: Array<{ room: LocationId; hotspotId: string; look: Look; label: string }> }
+export interface WorldDyn { filaNivel: number; estoqueNivel: number; melhoria: number; luxo: number; degradacao: number; filaMin: number; people: Array<{ room: LocationId; hotspotId: string; look: Look; label: string }> }
 interface Wall { g: THREE.Group; nx: number; nz: number; roomId: LocationId; low: boolean; k: number }
 export interface World {
   root: THREE.Group;
@@ -15,6 +15,9 @@ export interface World {
   anchor: (room: LocationId, hotspotId: string) => THREE.Vector3;
   setDynamic: (d: WorldDyn) => void;
   updateWalls: (cam: THREE.Vector3, dt: number) => void;
+  /** vida: respiração e balanço de todos; quem está falando (hotspot) se mexe conforme o nível da voz */
+  animate: (t: number, speaking: string | null, level: number) => void;
+  drawCalls: () => number;
   dispose: () => void;
 }
 
@@ -62,7 +65,7 @@ export function buildWorld(q: Quality): World {
       for (let i = 0; i < n; i++) { const off = n === 1 ? 0 : (i === 0 ? -2.6 : 2.6); box(wg, alongX ? 1.7 : 0.1, 1.0, alongX ? 0.1 : 1.7, "#bfe3ff", alongX ? off : 0, 1.2, alongX ? (side === "N" ? 0.1 : 0) : off, { emissive: "#9fd4ff" }); box(wg, alongX ? 1.8 : 0.16, 0.08, alongX ? 0.16 : 1.8, "#f6efe0", alongX ? off : 0, 2.2, alongX ? 0.1 : off); }
     }
     const px = side === "W" ? -r.w / 2 : side === "E" ? r.w / 2 : 0, pz = side === "N" ? -r.d / 2 : side === "S" ? r.d / 2 : 0;
-    wg.position.set(px, 0, pz); g.add(wg);
+    wg.position.set(px, 0, pz); g.add(wg); bakeGroup(wg, wg);
     walls.push({ g: wg, nx: side === "W" ? -1 : side === "E" ? 1 : 0, nz: side === "N" ? -1 : side === "S" ? 1 : 0, roomId: r.id, low, k: 1 });
   };
 
@@ -120,6 +123,25 @@ export function buildWorld(q: Quality): World {
     }
   }
 
+  function decor(id: LocationId, g: THREE.Group) {
+    const clock = (x: number, y: number, z: number) => { const c = cyl(g, 0.3, 0.06, "#ffffff", x, y, z, {}, true); c.rotation.x = Math.PI / 2; const h1 = box(g, 0.03, 0.2, 0.02, "#1b2340", x, y - 0.0, z + 0.05); void h1; box(g, 0.14, 0.03, 0.02, "#1b2340", x + 0.05, y + 0.0, z + 0.05); };
+    const bin = (x: number, z: number, c = "#6b7280") => { cyl(g, 0.2, 0.5, c, x, 0, z, {}, true); cyl(g, 0.23, 0.05, darken(c, 0.2), x, 0.5, z, {}, true); };
+    const rug = (x: number, z: number, w: number, d: number, c: string) => { box(g, w, 0.03, d, c, x, 0, z); box(g, w - 0.3, 0.035, d - 0.3, lighten(c, 0.18), x, 0, z); };
+    const ext = (x: number, z: number, rot = 0) => { const e = new THREE.Group(); e.position.set(x, 0, z); e.rotation.y = rot; g.add(e); cyl(e, 0.09, 0.5, "#d12c2c", 0, 0.4, 0, {}, true); box(e, 0.1, 0.1, 0.1, "#222", 0, 0.9, 0); };
+    switch (id) {
+      case "recepcao": rug(-1.2, 0.3, 3.4, 2.4, "#4a72d9"); bin(-4.4, 2.0); clock(0.4, 2.4, -3.3); ext(4.3, -2.1); board(g, 3.2, 2.5, -3.33, 1.1, 0.8, 0, "#fff3dc"); break;
+      case "farmacia": clock(-0.8, 2.4, -3.3); bin(-2.4, 2.6); ext(4.4, 2.6, -Math.PI / 2); rug(0.4, 2.0, 2.6, 1.6, "#7fc4a6"); break;
+      case "enfermagem": clock(0.6, 2.4, -3.3); bin(3.8, -2.2, "#9aa5b5"); rug(1.0, 1.4, 2.8, 1.8, "#8fb4e6"); ext(-4.4, 2.4, Math.PI / 2); box(g, 0.3, 0.4, 0.12, "#f4f6fb", 0.2, 1.1, -3.25); break;
+      case "administracao": rug(0.4, 0.4, 4.4, 3.0, "#8a2f2f"); clock(-1.6, 2.5, -3.3); board(g, 4.0, 2.5, -3.33, 1.2, 0.8, 0, "#e8dcc4"); cyl(g, 0.06, 1.6, "#6b4a2a", 4.3, 0, 2.6); box(g, 0.5, 0.05, 0.05, "#6b4a2a", 4.3, 1.5, 2.6); bin(-1.8, -2.6, "#8a5528"); break;
+      case "cofre": rug(0.2, 1.4, 3.2, 2.0, "#4b6d5c"); clock(3.0, 2.5, -3.3); bin(-3.4, 2.8); ext(4.4, 2.8, -Math.PI / 2); box(g, 1.0, 0.02, 0.7, "#e8dcc4", 1.8, 1.16, 0.4); break;
+      case "patio": box(g, 1.8, 0.15, 0.5, "#8a5528", 3.8, 0.45, -2.9); box(g, 1.8, 0.4, 0.1, "#8a5528", 3.8, 0.6, -3.1); for (let i = 0; i < 4; i++) { cyl(g, 0.1, 0.8, "#f2b134", -4.4 + i * 0.01, 0, -2.0 + i * 1.3, {}, true); } break;
+    }
+  }
+  for (const r of ROOM_LIST) decor(r.id, roomG[r.id]!);
+
+  /** Junta as peças fixas (cor por vértice): o mundo todo vira poucas chamadas de desenho. Paredes e partes dinâmicas ficam de fora. */
+  bakeGroup(root, root, new Set<THREE.Object3D>([dynG, ...walls.map((w) => w.g)]));
+
   /* ───────── parte dinâmica: reconstruída quando o estado muda ───────── */
   const clearDyn = () => { for (const c of [...dynG.children]) { dynG.remove(c); c.traverse((o) => { const m = o as THREE.Mesh; if (m.geometry && (m.userData.own === true)) m.geometry.dispose(); const mm = m.material as THREE.Material | undefined; if (mm && (mm as THREE.MeshBasicMaterial).map) { (mm as THREE.MeshBasicMaterial).map!.dispose(); mm.dispose(); } }); } };
   const local = (room: LocationId, x: number, y: number, z: number) => new THREE.Vector3(ROOMS[room].cx + x, y, ROOMS[room].cz + z);
@@ -141,10 +163,29 @@ export function buildWorld(q: Quality): World {
     const fa = new THREE.Group(); fa.position.set(ROOMS.farmacia.cx, 0, ROOMS.farmacia.cz); dynG.add(fa);
     if (d.estoqueNivel <= 1) { box(fa, 0.9, 0.04, 0.9, "#e5484d", -3.3, 2.3, -2.55); sign(fa, "FALTA", 1.0, 0.36, -3.3, 2.65, -2.9, 0, "#e5484d"); } else boxPile(fa, 3.6, 1.8, Math.min(6, d.estoqueNivel + 2), "#d9a35b");
     if (d.melhoria > 0) { plant(dynG, ROOMS.recepcao.cx + 0.4, ROOMS.recepcao.cz - 2.9, 0.9, true); plant(dynG, ROOMS.enfermagem.cx - 4.3, ROOMS.enfermagem.cz + 3.0, 0.9, true); }
+    // equipe e figurantes das salas (dão vida; não têm fala)
+    const at = (room: LocationId, x: number, z: number, look: Look, o: { sit?: boolean; yaw?: number; scale?: number } = {}) => { const p = person(look, { sit: o.sit, scale: o.scale }); p.position.copy(local(room, x, o.sit ? 0.08 : 0, z)); p.rotation.y = o.yaw ?? 0; p.userData.extra = true; dynG.add(p); return p; };
+    const nurse = (c: string, skin: string) => ({ ...extraLook(c, skin), roupaTipo: "jaleco" as const, roupa2: "#e9fbf8" });
+    at("enfermagem", -2.4, 1.6, nurse("#2bb3a3", "#c4895e"), { yaw: -1.4 }); at("enfermagem", 2.2, -1.5, nurse("#5b8fd0", "#8d5b3d"), { sit: true, yaw: 0 });
+    { const pt = person(extraLook("#f7fbff", "#d9ab87", "#8a8a8a"), { sit: true }); pt.rotation.set(-Math.PI / 2 + 0.25, 0, 0); pt.position.copy(local("enfermagem", -3.6, 0.52, -1.35)); pt.rotation.order = "YXZ"; pt.rotation.y = 0; pt.rotation.x = -1.35; pt.userData.extra = true; dynG.add(pt); }
+    at("farmacia", -1.4, -1.6, nurse("#6fcfae", "#b57a52"), { yaw: Math.PI }); at("farmacia", 0.6, 1.9, nurse("#4fb596", "#d9ab87"), { sit: true, yaw: Math.PI });
+    at("cofre", 0.2, 1.7, extraLook("#6b7a99", "#c68d64"), { sit: true, yaw: Math.PI }); at("cofre", -2.4, -2.2, extraLook("#2e8a7a", "#8d5b3d"), { yaw: 0.6 });
+    at("administracao", -1.2, 1.0, extraLook("#a34a2a", "#e0b48f", "#c9b27a"), { sit: true, yaw: Math.PI });
+    at("patio", -4.2, 1.4, { ...extraLook("#ffffff", "#c88a62"), roupa2: "#e5484d" }, { yaw: 1.2 }); at("patio", 3.6, 1.6, { ...extraLook("#ffcf44", "#a9724f"), cabeloEstilo: "careca" }, { yaw: -2.3 });
+    at("recepcao", -4.2, -1.9, extraLook("#e5e7eb", "#c68d64"), { yaw: 0.4 });
+    for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"], [11.5, "#6d6fc4", "#c68d64"]] as Array<[number, string, string]>) { const w = person(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
+    // luxo: o gabinete ganha ostentação (sátira); degradação: lixo e luzes frias
+    if (d.luxo > 0) {
+      const ad = new THREE.Group(); ad.position.set(ROOMS.administracao.cx, 0, ROOMS.administracao.cz); dynG.add(ad);
+      box(ad, 1.5, 1.0, 0.08, "#d9b44a", -2.4, 1.4, -3.3, { metal: 0.7, rough: 0.35 }); box(ad, 1.3, 0.8, 0.04, "#7fb6ea", -2.4, 1.5, -3.26);
+      cyl(ad, 0.25, 0.1, "#d9b44a", 3.6, 0, -1.2, { metal: 0.8 }, true); cyl(ad, 0.18, 0.5, "#d9b44a", 3.6, 0.1, -1.2, { metal: 0.8 }, true); ball(ad, 0.28, "#d9b44a", 3.6, 0.9, -1.2, { metal: 0.8 });
+      if (d.luxo > 1) { box(ad, 3.6, 0.02, 2.4, "#d9b44a", 0.4, 0.02, 1.4, { metal: 0.5 }); cyl(ad, 0.4, 0.6, "#c4262e", -4.0, 0, 1.6, {}, true); }
+    }
+    if (d.degradacao > 1) { for (const [rm, x, z] of [["recepcao", 3.4, 2.8], ["farmacia", -1.2, 2.6], ["enfermagem", -1.0, 2.8]] as Array<[LocationId, number, number]>) { const t = new THREE.Group(); t.position.copy(local(rm, x, 0, z)); dynG.add(t); cyl(t, 0.22, 0.5, "#6b7280", 0, 0, 0, {}, true); for (let i = 0; i < 5; i++) box(t, 0.14, 0.12, 0.14, ["#e7e1c8", "#c9c3a8", "#9aa5b5"][i % 3]!, (i - 2) * 0.1, 0.5 + (i % 2) * 0.08, ((i * 7) % 3) * 0.05); } }
     // personagens presentes (os que têm conversa neste caso)
     for (const pe of d.people) {
       const a = ANCHORS[pe.hotspotId]; if (!a) continue;
-      const p = person(pe.look); p.position.copy(local(pe.room, a[0], 0, a[2])); p.rotation.y = ROOMS[pe.room].door === "N" ? 0.35 : -0.35; p.userData.hotspot = pe.hotspotId; dynG.add(p);
+      const p = person(pe.look); p.position.copy(local(pe.room, a[0], 0, a[2])); p.rotation.y = ROOMS[pe.room].door === "N" ? 0.35 : -0.35; p.userData.hotspot = pe.hotspotId; p.userData.base = p.rotation.y; dynG.add(p);
     }
   };
 
@@ -158,10 +199,24 @@ export function buildWorld(q: Quality): World {
     }
   };
 
+  const animate = (t: number, speaking: string | null, level: number) => {
+    for (const o of dynG.children) {
+      const u = o.userData as { hotspot?: string; extra?: boolean; walk?: { x0: number; amp: number }; ph?: number; base?: number; y0?: number };
+      if (!u.hotspot && !u.extra) continue;
+      u.ph ??= (o.id * 1.7) % 6.28; u.y0 ??= o.position.y;
+      const talk = u.hotspot && u.hotspot === speaking;
+      if (u.walk) { o.position.x = u.walk.x0 + Math.sin(t * 0.35 + u.ph) * u.walk.amp; o.position.y = u.y0 + Math.abs(Math.sin(t * 4.2 + u.ph)) * 0.04; continue; }
+      if (o.rotation.x === 0) o.position.y = u.y0 + Math.sin(t * 1.5 + u.ph) * 0.012;
+      if (u.hotspot) { const b = u.base ?? 0; o.rotation.y = b + Math.sin(t * 0.6 + u.ph) * 0.05 + (talk ? Math.sin(t * 2.2) * 0.12 : 0); }
+      if (talk) o.position.y = u.y0 + Math.abs(Math.sin(t * 11)) * (0.015 + level * 0.09);
+    }
+  };
+  const drawCalls = () => walls.length + 1;
+
   const dispose = () => {
     root.traverse((o) => { const m = o as THREE.Mesh; const mm = m.material as THREE.Material | undefined; if (mm && (mm as THREE.MeshBasicMaterial).map) (mm as THREE.MeshBasicMaterial).map!.dispose(); });
     // geometrias compartilhadas ficam no módulo; materiais em cache são liberados por disposeMats (chamado pelo componente)
   };
   void blob; void darken; void lighten; void ROOM_W; void ROOM_D; void q;
-  return { root, center: (id) => new THREE.Vector3(ROOMS[id].cx, 0, ROOMS[id].cz), anchor: (room, hs) => { const a = ANCHORS[hs] ?? [0, 1, 0]; return local(room, a[0], a[1], a[2]); }, setDynamic, updateWalls, dispose };
+  return { root, center: (id) => new THREE.Vector3(ROOMS[id].cx, 0, ROOMS[id].cz), anchor: (room, hs) => { const a = ANCHORS[hs] ?? [0, 1, 0]; return local(room, a[0], a[1], a[2]); }, setDynamic, updateWalls, animate, drawCalls, dispose };
 }

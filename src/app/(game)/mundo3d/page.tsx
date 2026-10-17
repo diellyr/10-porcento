@@ -18,6 +18,6 @@ function G() {
   }, [loc, caso]);
   const hs = activeHotspots(s);
   const pins = Object.fromEntries((["recepcao", "farmacia", "enfermagem", "administracao", "cofre", "patio"] as LocationId[]).map((k, i) => [k, { novo: i % 3, objetivo: k === "farmacia" }])) as Record<LocationId, { novo: number; objetivo: boolean }>;
-  return <div className="mx-auto max-w-[1200px] p-3"><World3D s={s} hs={hs} q="alta" modo={modo} foco={sp.get("foco")} pins={pins} onPick={() => undefined} onGoRoom={(l) => { setLoc(l); setModo("sala"); }} onModo={setModo} reduzir={false} onFail={() => undefined} /></div>;
+  return <div className="mx-auto max-w-[1200px] p-3"><World3D s={s} hs={hs} q={(sp.get("q") as "alta" | "media" | "baixa") || "alta"} modo={modo} foco={sp.get("foco")} pins={pins} onPick={() => undefined} onGoRoom={(l) => { setLoc(l); setModo("sala"); }} onModo={setModo} reduzir={false} onFail={() => undefined} /></div>;
 }
 export default function Page() { return <Suspense><G /></Suspense>; }

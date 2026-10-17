@@ -28,3 +28,7 @@ Este arquivo separa **o que está concluído**, **o que está preparado** e **o 
 ## Escopo da campanha
 - Concluído: campanha curta da UPA (10 casos), quiz, dossiê/confronto, negociação com o Guardião, decisões com confirmação, desvio fictício até 10% por evento, restituição, consequências posteriores, Caderno, relatório, card de resultado, perfil, salvamento local e na conta.
 - **Não implementado** (fases 2–5 do documento): sete níveis além da UPA, mapa do Brasil jogável, eleição simulada, Imperador Supremo, Presidência, garagem/imóveis/amigos repentinos, avatar evolutivo, foto/caricatura, rankings e desafios entre amigos, vídeos, monetização.
+
+## Mapa 3D da UPA (low-poly)
+- **Feito:** casa de bonecas em corte com seis salas, paredes que baixam ao girar, fila/estoque/TV de espera dinâmicos, figurantes com vida (respiração, quem fala se mexe), luxo e degradação visíveis, câmera de conversa, iluminação por clima. Peças fixas e cada boneco são fundidos com cor por vértice (≈100–200 chamadas de desenho por quadro, antes ≈1100).
+- **Pendente:** medir fps em celular real (o navegador de teste usa renderização por CPU); modelos `.glb` artísticos e animação de andar para os bonecos; interiores dos níveis 2–7.
