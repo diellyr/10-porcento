@@ -1,5 +1,12 @@
 # Dados oficiais e vozes — como alimentar o jogo
 
+> **Jeito mais fácil: painel Admin → "Jogo · MEUS 10%"** (`/admin/jogo`). Lá você vê o estado do banco, testa as APIs, cadastra as chaves,
+> escolhe as vozes, pré-carrega as 27 capitais e gera as falas — tudo pelo navegador, sem rodar comando. As seções abaixo (scripts) são a alternativa local.
+
+**Já vem pré-configurado:** SICONFI e IBGE (sem chave), endereços, limites, cache, modelos e vozes sugeridas.
+**Pendente com você (não há como automatizar):** chave do Portal da Transparência, token do dados.gov.br, chave do ElevenLabs e (opcional) chave da Anthropic.
+Cada uma é colada em *Configurar* da fonte; fica cifrada e nunca é exibida de novo. Variáveis de ambiente continuam valendo como alternativa.
+
 Os dois passos abaixo rodam **no seu computador** (precisam de internet aberta e, no caso das vozes, de uma chave do ElevenLabs).
 Nenhuma chave vai para o repositório.
 

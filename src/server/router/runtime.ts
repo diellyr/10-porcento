@@ -7,6 +7,8 @@ import { createHttpClient } from "../sources/http";
 export const ENV_CREDENTIALS: Record<string, string> = {
   "portal-transparencia": "PORTAL_TRANSPARENCIA_API_KEY",
   "dados-gov-br": "DADOS_GOV_BR_TOKEN",
+  "elevenlabs-voz": "ELEVENLABS_API_KEY",
+  "anthropic-ia": "ANTHROPIC_API_KEY",
 };
 
 export interface RuntimeDeps {

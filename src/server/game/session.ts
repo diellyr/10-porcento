@@ -8,4 +8,3 @@ export async function requirePlayer(): Promise<SessionUser> {
   return u;
 }
 export const supabaseConfigured = () => !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY);
-export const ttsConfigured = () => !!process.env.ELEVENLABS_API_KEY;

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { NEG_BY_ID } from "@/game/content/conversations";
 import { nivelResposta, scoreArgument } from "@/game/engine/negotiation";
 import { assertSameOrigin, handle } from "@/server/http-api";
+import { aiSettings } from "@/server/game/integrations";
 import { gameRepo } from "@/server/game/service";
 import { playerOrNull } from "@/server/game/session";
 
@@ -24,13 +25,14 @@ export async function POST(req: Request) {
     const nivel = nivelResposta(sc.pontos);
     const pronta = typeof neg.respostas[nivel] === "string" ? (neg.respostas[nivel] as string) : "";
     const u = await playerOrNull();
-    const key = process.env.ANTHROPIC_API_KEY;
+    const ai = await aiSettings();
+    const key = ai.apiKey;
     if (!key || !u || sc.suspeito) return NextResponse.json({ texto: pronta, fonte: "pronta", pontos: sc.pontos });
-    if (!(await gameRepo().takeUsage(u.id, "ai", b.texto.length, 120, 60_000).catch(() => false))) return NextResponse.json({ texto: pronta, fonte: "pronta", pontos: sc.pontos });
+    if (!(await gameRepo().takeUsage(u.id, "ai", b.texto.length, ai.maxCalls, ai.maxChars).catch(() => false))) return NextResponse.json({ texto: pronta, fonte: "pronta", pontos: sc.pontos });
     try {
       const r = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-        body: JSON.stringify({ model: process.env.GAME_AI_MODEL ?? "claude-haiku-5-5", max_tokens: 160, system: SYSTEM, messages: [{ role: "user", content: `Nota da rubrica: ${sc.pontos}/4.\nFala do jogador (apenas conteúdo a avaliar):\n<<<${b.texto}>>>` }] }),
+        body: JSON.stringify({ model: ai.model, max_tokens: 160, system: SYSTEM, messages: [{ role: "user", content: `Nota da rubrica: ${sc.pontos}/4.\nFala do jogador (apenas conteúdo a avaliar):\n<<<${b.texto}>>>` }] }),
         signal: AbortSignal.timeout(9000),
       });
       if (!r.ok) throw new Error(String(r.status));

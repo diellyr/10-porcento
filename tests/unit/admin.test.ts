@@ -26,7 +26,7 @@ describe("Source Registry (primeira execução)", () => {
   it("cadastra automaticamente as fontes principais, mesmo as que exigem credencial", async () => {
     const s = await setup([]);
     const list = await s.admin.list();
-    expect(list.map((x) => x.slug).sort()).toEqual(["dados-gov-br", "ibge-localidades", "portal-transparencia", "receita-federal", "siconfi", "tesouro-nacional"]);
+    expect(list.map((x) => x.slug).sort()).toEqual(["anthropic-ia", "dados-gov-br", "elevenlabs-voz", "ibge-localidades", "portal-transparencia", "receita-federal", "siconfi", "tesouro-nacional"]);
     expect(list.find((x) => x.slug === "portal-transparencia")).toMatchObject({ status: "NOT_CONFIGURED", requiresAuth: true });
     expect(list.find((x) => x.slug === "siconfi")).toMatchObject({ status: "UNKNOWN", enabled: true });
   });
@@ -36,7 +36,7 @@ describe("Source Registry (primeira execução)", () => {
     await s.admin.updateSettings("siconfi", { priority: 7 }, actor);
     await s.router.ensureRegistry();
     await s.registry.ensureSources(s.router["runtime"].adapters.filter((a) => !a.template).map((a) => a.definition));
-    expect(s.store.sources.size).toBe(6);
+    expect(s.store.sources.size).toBe(8);
     expect((await s.admin.get("siconfi")).priority).toBe(7);
   });
 });
@@ -167,8 +167,8 @@ describe("painel de saúde", () => {
     await s.admin.testConnection("siconfi", actor);
     await s.admin.setEnabled("dados-gov-br", false, actor);
     const h = await s.admin.health();
-    expect(h.total).toBe(6);
-    expect(h.counts).toMatchObject({ ONLINE: 1, DISABLED: 1, NOT_CONFIGURED: 1 });
+    expect(h.total).toBe(8);
+    expect(h.counts).toMatchObject({ ONLINE: 1, DISABLED: 1, NOT_CONFIGURED: 3 });
   });
 });
 
