@@ -1,3 +1,4 @@
+import { decisoesDoNivel, levelOf, nivelDe } from "../content/levels";
 import { r2 } from "./money";
 import { aplicadosTotal, economiaTotal, legado, powerScore, qualidadeAcesso, trambicagem } from "./scoring";
 import type { EndingResult, GameState } from "./types";
@@ -32,7 +33,7 @@ export function buildEnding(s: GameState, force?: EndingResult["id"]): EndingRes
     id = "responsabilizacao";
     motivos.push(`Foram registrados ${s.decisions.filter((d) => d.deliberado).length} desvio(s) deliberado(s) no histórico (convenção da ficção, informada desde o início).`);
     motivos.push(reparado ? "A restituição voluntária foi registrada como novo evento e modifica o epílogo, sem apagar os desvios." : "Nenhuma restituição foi registrada.");
-  } else if (leg >= LIMIARES.legado && s.pub.qualidade >= LIMIARES.qualidade && s.pub.acesso >= LIMIARES.acesso && s.attrs.confianca >= LIMIARES.confianca && s.decisions.length >= LIMIARES.decisoes) {
+  } else if (leg >= LIMIARES.legado && s.pub.qualidade >= LIMIARES.qualidade && s.pub.acesso >= LIMIARES.acesso && s.attrs.confianca >= LIMIARES.confianca && decisoesDoNivel(s, nivelDe(s)).length >= levelOf(s).ultimo - levelOf(s).primeiro + 1) {
     id = "reconhecimento";
     motivos.push("Sem desvios deliberados registrados, com serviços, acesso e confiança acima dos mínimos e conhecimento aplicado.");
   } else {
@@ -44,7 +45,7 @@ export function buildEnding(s: GameState, force?: EndingResult["id"]): EndingRes
     if (s.attrs.confianca < LIMIARES.confianca) motivos.push(`Confiança pública ${s.attrs.confianca.toFixed(0)} (mínimo ${LIMIARES.confianca}).`);
   }
   const titulos: Record<EndingResult["id"], string> = {
-    reconhecimento: "Reconhecimento da comunidade", responsabilizacao: "Responsabilização", "gestao-insuficiente": "Gestão insuficiente: revisão e nova tentativa", "balanco-parcial": "Balanço parcial",
+    reconhecimento: nivelDe(s) >= 2 ? "Reconhecimento do município" : "Reconhecimento da comunidade", responsabilizacao: "Responsabilização", "gestao-insuficiente": "Gestão insuficiente: revisão e nova tentativa", "balanco-parcial": "Balanço parcial",
   };
   const devido = Math.max(0, s.personal.desviado - s.personal.restituido);
   const bensPerdidos = id === "responsabilizacao" || (id === "balanco-parcial" && devido > 0) ? r2(Math.min(s.personal.patrimonio, devido * 1.2)) : 0;

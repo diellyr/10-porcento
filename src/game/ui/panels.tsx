@@ -3,7 +3,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { audio } from "../audio/AudioManager";
 import { InstallShortcut } from "./Install";
-import { CASE_BY_NUM, TOTAL_CASES } from "../content/cases";
+import { CASE_BY_NUM } from "../content/cases";
+import { levelOf } from "../content/levels";
 import { CHARACTERS } from "../content/characters";
 import { CLUES, CLUE_BY_ID, FINDING_BY_ID, FINDINGS } from "../content/clues";
 import { ACHIEVEMENTS, CONCEPTS } from "../content/concepts";
@@ -226,7 +227,7 @@ export function MapPanel({ onClose, onGo }: { onClose: () => void; onGo: (l: Loc
   const s = st!;
   const pins = useMemo(() => {
     const out = {} as Record<LocationId, MapPin>;
-    const caso = CASE_BY_NUM[Math.min(s.caso, TOTAL_CASES)]!;
+    const caso = CASE_BY_NUM[Math.min(s.caso, levelOf(s).ultimo)]!;
     for (const k of Object.keys(LOCATIONS) as LocationId[]) {
       const hs = LOCATIONS[k].hotspots.filter((h) => h.kind === "pista" || h.kind === "pessoa").filter((h) => h.entradas.some((e) => e.casos.includes(s.caso) && !(s.clues[e.ref] || s.talked[e.ref])));
       out[k] = { novo: s.casoAberto ? hs.length : 0, objetivo: s.casoAberto && caso.location === k };
@@ -236,8 +237,8 @@ export function MapPanel({ onClose, onGo }: { onClose: () => void; onGo: (l: Loc
   return (
     <Modal title={`Mapa — ${s.scenario.unidade.split(" (")[0]}`} onClose={onClose} wide>
       <p className="mb-3 text-sm text-[color:var(--g-ink2)]">Toque num local para ir até lá. O número laranja mostra pistas e pessoas ainda não vistas neste caso.</p>
-      <UpaMap atual={s.location} pins={pins} nome={s.scenario.unidade} onSelect={(l) => { audio.sfx("whoosh"); onGo(l); onClose(); }} />
-      <ul className="sr-only">{(Object.keys(LOCATIONS) as LocationId[]).map((k) => <li key={k}>{LOCATIONS[k].nome}: {pins[k].novo} novidades</li>)}</ul>
+      <UpaMap atual={s.location} locais={levelOf(s).locais} pins={pins} nome={s.scenario.unidade} onSelect={(l) => { audio.sfx("whoosh"); onGo(l); onClose(); }} />
+      <ul className="sr-only">{levelOf(s).locais.map((k) => <li key={k}>{LOCATIONS[k].nome}: {pins[k].novo} novidades</li>)}</ul>
     </Modal>
   );
 }

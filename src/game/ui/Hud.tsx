@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { CASE_BY_NUM, TOTAL_CASES } from "../content/cases";
+import { CASE_BY_NUM } from "../content/cases";
+import { levelOf, posicaoNoNivel } from "../content/levels";
 import { brlShort } from "../engine/money";
 import { powerScore, trambicagem, qualidadeAcesso } from "../engine/scoring";
 import { txt, makeCtx } from "../engine/rules";
@@ -11,7 +12,7 @@ function useDelta(v: number) { const p = useRef(v); const [d, setD] = useState(0
 
 /** HUD integrado à aventura: missão atual, dois mundos (você × população) e recursos. */
 export function Hud({ s, onOpenDados, onOpenConta }: { s: GameState; onOpenDados: () => void; onOpenConta: () => void }) {
-  const caso = CASE_BY_NUM[Math.min(s.caso, TOTAL_CASES)]!;
+  const caso = CASE_BY_NUM[Math.min(s.caso, levelOf(s).ultimo)]!;
   const ctx = makeCtx(s.scenario, s, s.player.nome);
   const dq = useDelta(s.pub.qualidade), da = useDelta(s.pub.acesso), dc = useDelta(s.attrs.confianca), df = useDelta(s.pub.filaMin), dx = useDelta(s.pub.estoqueDias);
   const poder = powerScore(s.attrs);
@@ -22,17 +23,17 @@ export function Hud({ s, onOpenDados, onOpenConta }: { s: GameState; onOpenDados
       <section className="g-card flex items-center gap-3 px-3 py-2.5" aria-label="Missão atual">
         <div className="grid size-11 shrink-0 place-items-center rounded-2xl text-2xl" style={{ background: "var(--g-yellow)" }} aria-hidden>📍</div>
         <div className="min-w-0">
-          <p className="text-[0.72rem] font-extrabold uppercase tracking-wider text-[color:var(--g-orange-d)]">{caso.episodio} de {TOTAL_CASES} · {s.casoAberto ? "Missão atual" : "Decisão registrada"}</p>
+          <p className="text-[0.72rem] font-extrabold uppercase tracking-wider text-[color:var(--g-orange-d)]">{caso.episodio} de {posicaoNoNivel(s).de} · {s.casoAberto ? "Missão atual" : "Decisão registrada"}</p>
           <p className="truncate text-base font-bold leading-tight" style={{ fontFamily: "var(--g-display)" }}>{caso.titulo}</p>
           <p className="text-[0.82rem] leading-snug text-[color:var(--g-ink2)]">{s.casoAberto ? txt(caso.objetivo, ctx) : "Veja as consequências e avance para o próximo caso."}</p>
         </div>
       </section>
       <div className="flex flex-wrap items-center gap-1.5 lg:hidden" aria-label="Resumo">
-        <span className="g-chip">💙 {Math.round(s.attrs.confianca)}</span><span className="g-chip">🩺 {Math.round(s.pub.qualidade)}</span><span className="g-chip">🚪 {Math.round(s.pub.acesso)}</span><span className="g-chip">⏱️ {Math.round(s.pub.filaMin)} min</span><span className="g-chip">💰 {brlShort(s.pub.caixa)}</span><span className="g-chip si">🎭 {brlShort(s.personal.patrimonio)}</span>
+        <span className="g-chip">💙 {Math.round(s.attrs.confianca)}</span><span className="g-chip">🩺 {Math.round(s.pub.qualidade)}</span><span className="g-chip">🚪 {Math.round(s.pub.acesso)}</span><span className="g-chip">⏱️ {Math.round(s.pub.filaMin)}{levelOf(s).rotulos.fila.un}</span><span className="g-chip">💰 {brlShort(s.pub.caixa)}</span><span className="g-chip si">🎭 {brlShort(s.personal.patrimonio)}</span>
         <button type="button" className="g-btn ghost sm ml-auto" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>📊 {aberto ? "Recolher" : "Painel completo"}</button>
       </div>
       <section className={`g-card px-3 py-2.5 ${aberto ? "" : "hidden lg:block"}`} aria-label="Você">
-        <div className="mb-1.5 flex items-center justify-between gap-2"><h2 className="text-sm font-bold">🧑‍💼 Você · Administrador(a)</h2><button type="button" onClick={onOpenConta} className="g-chip si cursor-pointer" aria-label="Abrir minha conta fictícia">🎭 conta fictícia</button></div>
+        <div className="mb-1.5 flex items-center justify-between gap-2"><h2 className="text-sm font-bold">🧑‍💼 Você · {levelOf(s).cargo}</h2><button type="button" onClick={onOpenConta} className="g-chip si cursor-pointer" aria-label="Abrir minha conta fictícia">🎭 conta fictícia</button></div>
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
           <div><p className="text-[0.7rem] font-bold text-[color:var(--g-ink3)]">Patrimônio</p><p className="font-extrabold tabular-nums" style={{ fontFamily: "var(--g-display)" }}>{brlShort(s.personal.patrimonio)}</p></div>
           <div><p className="text-[0.7rem] font-bold text-[color:var(--g-ink3)]">Pontuação de Poder</p><p className="font-extrabold tabular-nums" style={{ fontFamily: "var(--g-display)" }}>{poder.toFixed(0)}</p></div>
@@ -47,8 +48,8 @@ export function Hud({ s, onOpenDados, onOpenConta }: { s: GameState; onOpenDados
           <Meter icon="💙" label="Confiança" value={s.attrs.confianca} delta={dc} compact />
           <Meter icon="🩺" label="Qualidade" value={s.pub.qualidade} delta={dq} compact />
           <Meter icon="🚪" label="Acesso" value={s.pub.acesso} delta={da} compact />
-          <Meter icon="⏱️" label="Espera" value={s.pub.filaMin} max={150} unit=" min" good="down" delta={df} compact />
-          <Meter icon="📦" label="Estoque" value={s.pub.estoqueDias} max={20} unit=" d" delta={dx} compact />
+          <Meter icon="⏱️" label={levelOf(s).rotulos.fila.nome} value={s.pub.filaMin} max={levelOf(s).nivel === 1 ? 150 : 120} unit={levelOf(s).rotulos.fila.un} good="down" delta={df} compact />
+          <Meter icon="📦" label={levelOf(s).nivel === 1 ? "Estoque" : "Insumos"} value={s.pub.estoqueDias} max={20} unit=" d" delta={dx} compact />
           <div><p className="text-[0.7rem] font-bold text-[color:var(--g-ink3)]">💰 Caixa público</p><p className={`font-extrabold tabular-nums ${s.pub.caixa < 0 ? "text-[color:var(--g-red-d)]" : ""}`} style={{ fontFamily: "var(--g-display)" }}>{brlShort(s.pub.caixa)}</p><p className="sr-only">Qualidade e acesso médios {qualidadeAcesso(s).toFixed(0)}</p></div>
         </div>
       </section>

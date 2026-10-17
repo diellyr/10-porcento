@@ -1,8 +1,10 @@
-import { CASE_BY_NUM, DECISION_BY_ID, TOTAL_CASES } from "../content/cases";
+import { CASE_BY_NUM, DECISION_BY_ID } from "../content/cases";
 import { CLUE_BY_ID, FINDINGS } from "../content/clues";
 import { CONCEPTS, QUIZ } from "../content/concepts";
 import { CONV_BY_ID, NEG_BY_ID } from "../content/conversations";
 import { LOCATIONS } from "../content/locations";
+import { decisoesDoNivel, levelOf, LEVELS, MAX_NIVEL_DISPONIVEL, nivelDe } from "../content/levels";
+import { levelScenario } from "../content/scenario";
 import type { ConvNode, Ctx, DecisionDef, OptionDef, Txt } from "../content/types";
 import { buildEnding } from "./endings";
 import { brlShort, clamp, r2 } from "./money";
@@ -27,17 +29,15 @@ export const txt = (t: Txt, c: Ctx) => (typeof t === "function" ? t(c) : t);
 
 /* ───────── estado inicial ───────── */
 
-const SALARIO = 9_800; // remuneração legítima fictícia por caso ("mês")
-const CAIXA_INICIAL_PCT = 20;
 const ID_LIMIT = 800;
 
 function initialState(a: Extract<Action, { type: "start" }>): GameState {
   const nome = a.playerName.trim().slice(0, 28) || "Jogador(a)";
   return {
-    v: 1, id: a.gameId, version: 0, rulesVersion: RULES_VERSION, contentVersion: CONTENT_VERSION, scenario: a.scenario, seed: a.seed >>> 0,
+    v: 1, nivel: 1, historico: [], id: a.gameId, version: 0, rulesVersion: RULES_VERSION, contentVersion: CONTENT_VERSION, scenario: a.scenario, seed: a.seed >>> 0,
     player: { nome, avatar: a.avatar }, phase: "quiz", quizStep: 0, quizAnswers: {}, caso: 1, casoAberto: true, location: "recepcao", visited: ["recepcao"],
     attrs: { competencia: 30, rede: 20, persuasao: 25, confianca: 40, conhecimento: 8, popularidade: 35, caraDePau: 25 },
-    pub: { qualidade: 50, acesso: 45, equipe: 55, sustentabilidade: 60, estoqueDias: 7, filaMin: 94, caixa: r2((a.scenario.orcamentoAnual * CAIXA_INICIAL_PCT) / 100) },
+    pub: { qualidade: 50, acesso: 45, equipe: 55, sustentabilidade: 60, estoqueDias: 7, filaMin: 94, caixa: r2((a.scenario.orcamentoAnual * LEVELS[1]!.inicio.caixaPct) / 100) },
     personal: { patrimonio: 18_000, remuneracao: 0, desviado: 0, restituido: 0, baseAcumulada: 0, evidencias: 0, dependencia: 0, influencia: 5 },
     rel: {}, clues: {}, findings: {}, talked: {}, negociacoes: {}, decisions: [], ledger: [], pending: [], consequences: [], notebook: [], knowledge: {},
     achievements: [], repairs: [], ending: null, actionIds: [], actions: [], steps: 0,
@@ -138,7 +138,7 @@ export function apply(prev: GameState | null, id: string, action: Action): Actio
   if (!prev) return fail(prev as unknown as GameState, "partida inexistente");
   if (prev.actionIds.includes(id)) return { state: prev, ok: true, duplicate: true };
   if (prev.phase === "encerrada" || prev.phase === "abandonada") {
-    if (action.type !== "favorite") return fail(prev, "a partida já foi encerrada");
+    if (action.type !== "favorite" && !(action.type === "promote" && prev.phase === "encerrada")) return fail(prev, "a partida já foi encerrada");
   }
   const s: GameState = structuredClone(prev);
   const res = step(s, id, action);
@@ -169,7 +169,7 @@ function step(s: GameState, id: string, a: Exclude<Action, { type: "start" }>): 
     }
     case "go": {
       if (s.phase !== "jogando") return no("a campanha ainda não começou");
-      if (!LOCATIONS[a.location]) return no("local inexistente");
+      if (!LOCATIONS[a.location] || !levelOf(s).locais.includes(a.location)) return no("local inexistente neste nível");
       s.location = a.location;
       if (!s.visited.includes(a.location)) s.visited.push(a.location);
       return OK;
@@ -273,6 +273,24 @@ function step(s: GameState, id: string, a: Exclude<Action, { type: "start" }>): 
       const e = s.notebook.find((x) => x.id === a.entryId);
       if (!e) return no("cartão inexistente");
       e.favorito = !e.favorito;
+      return OK;
+    }
+    case "promote": {
+      if (s.phase !== "encerrada" || !s.ending) return no("a promoção só é possível ao concluir um nível");
+      const n = nivelDe(s);
+      if (n >= MAX_NIVEL_DISPONIVEL) return no("o próximo nível ainda não está disponível");
+      if (s.ending.id !== "reconhecimento" || !s.ending.promocao.elegivel) return no("os critérios de promoção não foram cumpridos");
+      const L = LEVELS[n]!, N = LEVELS[n + 1]!;
+      s.historico.push({ nivel: n, cargo: L.cargo, ending: s.ending, pub: { ...s.pub }, attrs: { ...s.attrs }, decisoes: decisoesDoNivel(s, n).length });
+      s.nivel = n + 1;
+      s.scenario = levelScenario(s.scenario, n + 1);
+      const A = s.scenario.orcamentoAnual;
+      s.pub = { qualidade: N.inicio.qualidade, acesso: N.inicio.acesso, equipe: N.inicio.equipe, sustentabilidade: N.inicio.sustentabilidade, estoqueDias: N.inicio.estoqueDias, filaMin: N.inicio.filaMin, caixa: r2((A * N.inicio.caixaPct) / 100) };
+      s.attrs.rede = clamp(s.attrs.rede + 6); s.attrs.popularidade = clamp(s.attrs.popularidade + 3);
+      s.phase = "jogando"; s.ending = null; s.caso = N.primeiro; s.casoAberto = true; s.consequences = []; s.pending = [];
+      s.location = CASE_BY_NUM[N.primeiro]!.location; s.visited = [s.location];
+      unlock(s, `promovido-${n + 1}`);
+      s.steps++;
       return OK;
     }
     case "abandon": {
@@ -418,6 +436,15 @@ function grantAchievements(s: GameState, dec: DecisionDef, opt: OptionDef, econo
   if (dec.id === "d4" && opt.id === "economia-direcionada" && economia > 0) unlock(s, "economia-sem-fechar-portas");
   if (dec.id === "d8" && (opt.id === "cotar-esclarecer" || opt.id === "recusar-cordial")) unlock(s, "aliado-sem-favor");
   if (dec.id === "d10" && opt.id === "prestacao-completa") unlock(s, "prestacao-clara");
+  const ok = opt.kind === "competente";
+  if (dec.id === "d11") { if (opt.id === "ubs-cobertura") unlock(s, "cobertura-por-necessidade"); if (opt.id === "ubs-vereador") unlock(s, "caneta-do-vereador"); }
+  if (dec.id === "d12" && opt.id === "emenda-com-plano") unlock(s, "emenda-com-plano");
+  if (dec.id === "d13" && (opt.id === "aderir-ata" || opt.id === "licitar-conjunto")) unlock(s, "compra-sem-fracionar");
+  if (dec.id === "d14") { if (ok) unlock(s, "fila-transparente"); if (opt.id === "pedido-vereador") unlock(s, "caneta-do-vereador"); }
+  if (dec.id === "d15" && ok) unlock(s, "folha-no-limite");
+  if (dec.id === "d16") { if (ok) unlock(s, "credito-legal"); if (opt.id === "remanejar-sem-lei") unlock(s, "pedalada-municipal"); }
+  if (dec.id === "d17" && ok) unlock(s, "emergencia-com-recibo");
+  if (dec.id === "d18" && ok) unlock(s, "contas-na-audiencia");
   if (aplicadosTotal(s) >= 3) unlock(s, "conhecimento-aplicado");
   if (s.attrs.confianca >= 75) unlock(s, "confianca-conquistada");
 }
@@ -429,6 +456,7 @@ function advance(s: GameState, id: string): Step {
   if (s.casoAberto) return no("registre a decisão deste caso antes de avançar");
   s.consequences = [];
   // remuneração legítima (fictícia): única entrada regular na conta pessoal
+  const SALARIO = levelOf(s).salario;
   s.personal.patrimonio = r2(s.personal.patrimonio + SALARIO);
   s.personal.remuneracao = r2(s.personal.remuneracao + SALARIO);
   addLedger(s, id, { escopo: "pessoal", tipo: "remuneracao", valor: SALARIO, rotulo: "Remuneração mensal fictícia do cargo", classificacao: "simulado" });
@@ -445,7 +473,7 @@ function advance(s: GameState, id: string): Step {
   }
 
   s.caso++;
-  if (s.caso > TOTAL_CASES) return finish(s, press);
+  if (s.caso > levelOf(s).ultimo) return finish(s, press);
   // consequências atrasadas que vencem ao entrar neste caso
   const due = s.pending.filter((p) => p.dueCase <= s.caso);
   s.pending = s.pending.filter((p) => p.dueCase > s.caso);
@@ -463,7 +491,7 @@ function advance(s: GameState, id: string): Step {
   s.location = next.location;
   if (!s.visited.includes(next.location)) s.visited.push(next.location);
   autoFindings(s);
-  if (s.pub.estoqueDias >= 12 && s.caso >= 9) unlock(s, "estoque-sem-surpresa");
+  if (nivelDe(s) === 1 && s.pub.estoqueDias >= 12 && s.caso >= 9) unlock(s, "estoque-sem-surpresa");
   s.steps++;
   return OK;
 }
@@ -473,13 +501,13 @@ function finish(s: GameState, press: Consequence[]): Step {
   const out: Consequence[] = [...press];
   for (const p of s.pending) {
     applyEffects(s, p.effects);
-    const cons: Consequence = { id: p.id, caso: TOTAL_CASES, title: p.title, message: p.message, reason: p.reason, tom: p.tone, delayed: true, decisionId: p.decisionId };
+    const cons: Consequence = { id: p.id, caso: levelOf(s).ultimo, title: p.title, message: p.message, reason: p.reason, tom: p.tone, delayed: true, decisionId: p.decisionId };
     out.push(cons);
     s.decisions.find((d) => d.id === p.decisionId)?.consequences.push(cons);
   }
   s.pending = [];
   s.consequences = out;
-  s.caso = TOTAL_CASES;
+  s.caso = levelOf(s).ultimo;
   s.casoAberto = false;
   if (s.pub.acesso >= 70 && s.pub.qualidade >= 70) unlock(s, "servico-recuperado");
   s.ending = buildEnding(s);

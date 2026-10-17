@@ -3,6 +3,10 @@ import type { AchievementDef, Concept, QuizQuestion } from "./types";
 
 const CGU = "https://portaldatransparencia.gov.br/entenda-a-gestao-publica/execucao-despesa-publica";
 const SIOPS = "https://www.gov.br/saude/pt-br/acesso-a-informacao/siops";
+const LC141 = "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp141.htm";
+const LRF = "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm";
+const L14133 = "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm";
+const L4320 = "https://www.planalto.gov.br/ccivil_03/leis/l4320.htm";
 const SICONFI = "https://www.gov.br/conecta/catalogo/apis/siconfi-extratos-das-declaracoes-contabeis";
 
 /** Cartões do Caderno de Gestão. Linguagem simples; a fonte aparece quando cabe. */
@@ -61,6 +65,54 @@ export const CONCEPTS: Record<ConceptId, Concept> = {
     aplicacao: "Na vida real: ter uma reserva para imprevistos evita decidir no desespero.",
     fonte: { rotulo: "Conceito didático; saúde municipal: SIOPS (Ministério da Saúde)", url: SIOPS, classificacao: "oficial" },
   },
+  "planejamento-necessidade": {
+    id: "planejamento-necessidade", titulo: "Planeje pela necessidade, não pelo pedido", tema: "Planejamento e prioridades", dificuldade: 2,
+    texto: "Antes de escolher onde investir, cruze duas coisas: quem está sem cobertura e de onde vem a demanda (por exemplo, a origem dos atendimentos de urgência). O Plano Municipal de Saúde e a Programação Anual existem para tornar esses critérios públicos — assim, a prioridade deixa de depender de quem pede mais alto.",
+    aplicacao: "Na vida real: ao priorizar algo na associação do bairro ou em casa, escreva os critérios antes de ouvir os pedidos e compare cada pedido com eles.",
+    fonte: { rotulo: "Lei Complementar 141/2012 (planejamento e prestação de contas em saúde)", url: LC141, classificacao: "oficial" },
+  },
+  "emenda-custeio": {
+    id: "emenda-custeio", titulo: "Equipamento sem custeio vira peça de museu", tema: "Investimento e custeio", dificuldade: 2,
+    texto: "Uma emenda pode pagar a compra de um equipamento, mas quem o põe para funcionar é o orçamento do município: equipe, laudos, manutenção, energia e insumos, todos os anos. Antes de aceitar, some o custo de toda a vida útil e confirme se há quem opere. Um bom equipamento sem custeio fica parado.",
+    aplicacao: "Na vida real: antes de aceitar uma doação grande (um carro, uma máquina), pergunte quanto custa mantê-la por cinco anos e quem vai usar.",
+    fonte: { rotulo: "Conceito didático: custo total de propriedade", url: null, classificacao: "estimativa" },
+  },
+  "compra-compartilhada": {
+    id: "compra-compartilhada", titulo: "Comprar junto é comprar melhor — sem fatiar a compra", tema: "Compras públicas", dificuldade: 2,
+    texto: "A lei de licitações prevê caminhos como o registro de preços e a adesão a atas já licitadas, que podem reduzir preço e prazo quando são adequados ao que o município precisa. Dividir uma mesma compra em partes pequenas só para ficar abaixo do limite de dispensa é fracionamento: burla a regra, mesmo que cada parte pareça pequena.",
+    aplicacao: "Na vida real: ao comprar para a escola ou a associação, compare com outras compras do grupo e junte pedidos iguais para negociar melhor — nunca divida para escapar de uma regra.",
+    fonte: { rotulo: "Lei 14.133/2021 (nova lei de licitações e contratos)", url: L14133, classificacao: "oficial" },
+  },
+  "fila-regulada": {
+    id: "fila-regulada", titulo: "Fila boa tem critério e é pública", tema: "Acesso e regulação", dificuldade: 2,
+    texto: "Quem espera mais nem sempre precisa mais. A regulação ordena a fila por risco e tempo de espera, com protocolos claros e retorno para a UBS quando o caso não exige o especialista. Mostrar a fila (sem expor nomes) reduz o “jeitinho” e permite cobrar resultado.",
+    aplicacao: "Na vida real: em qualquer fila (matrícula, consulta, benefício), pergunte qual é o critério de ordem e se ele é divulgado.",
+    fonte: { rotulo: "Conceito didático: regulação do acesso no SUS", url: null, classificacao: "estimativa" },
+  },
+  "folha-sustentavel": {
+    id: "folha-sustentavel", titulo: "A folha tem teto — e o teto vale para o disfarce também", tema: "Pessoal e responsabilidade fiscal", dificuldade: 3,
+    texto: "A Lei de Responsabilidade Fiscal limita a despesa com pessoal à receita corrente líquida e cria faixas de alerta e de limite prudencial. A despesa com terceirização de mão de obra que substitui servidores também conta como pessoal. Na faixa prudencial há vedações, mas a lei ressalva a reposição de aposentadorias e falecimentos nas áreas de saúde, educação e segurança.",
+    aplicacao: "Na vida real: ao ouvir “não é contratação, é prestação de serviço”, pergunte se o trabalho é o mesmo e se a conta entra no mesmo limite.",
+    fonte: { rotulo: "Lei de Responsabilidade Fiscal (LC 101/2000), arts. 18, 19 e 22", url: LRF, classificacao: "oficial" },
+  },
+  "credito-adicional": {
+    id: "credito-adicional", titulo: "Mexer no orçamento exige autorização", tema: "Orçamento e execução", dificuldade: 2,
+    texto: "A lei orçamentária fixa quanto cada área pode gastar. Quando falta dotação, o caminho legal é o crédito adicional (suplementar, especial ou extraordinário), com autorização e indicação da fonte de recursos. Gastar sem dotação ou remanejar sem autorização é irregular, mesmo com boa intenção.",
+    aplicacao: "Na vida real: se o orçamento da associação não prevê um gasto, leve o pedido à assembleia e indique de onde sairá o dinheiro, em vez de “dar um jeito”.",
+    fonte: { rotulo: "Lei 4.320/1964 (normas gerais de direito financeiro), créditos adicionais", url: L4320, classificacao: "oficial" },
+  },
+  "emergencia-transparencia": {
+    id: "emergencia-transparencia", titulo: "Emergência não dispensa o recibo", tema: "Crises e contratação", dificuldade: 2,
+    texto: "Em surtos e calamidades, a lei permite contratação emergencial com dispensa de licitação, desde que haja justificativa, pesquisa de preço e publicidade. A urgência acelera o processo; não apaga o registro nem autoriza preço fora da realidade. Quem registra a emergência protege a decisão — e as pessoas.",
+    aplicacao: "Na vida real: numa compra apressada, tire foto da nota, peça dois preços por mensagem e guarde: registrar leva minutos e evita meses de dúvida.",
+    fonte: { rotulo: "Lei 14.133/2021, contratação direta por emergência", url: L14133, classificacao: "oficial" },
+  },
+  "audiencia-publica": {
+    id: "audiencia-publica", titulo: "Prestar contas é uma audiência, não um anúncio", tema: "Prestação de contas", dificuldade: 2,
+    texto: "O gestor de saúde apresenta, a cada quadrimestre, um relatório detalhado em audiência pública na Casa Legislativa, com receitas, despesas, indicadores e metas. A honestidade inclui as metas não cumpridas e o plano de correção — é isso que permite ao Conselho e à população cobrar.",
+    aplicacao: "Na vida real: acompanhe a audiência de prestação de contas da saúde do seu município e pergunte pelas metas que não foram cumpridas.",
+    fonte: { rotulo: "Lei Complementar 141/2012, art. 36 (prestação de contas quadrimestral)", url: LC141, classificacao: "oficial" },
+  },
   transparencia: {
     id: "transparencia", titulo: "Prestar contas inclui as más notícias", tema: "Prestação de contas", dificuldade: 2,
     texto: "Uma prestação de contas honesta mostra resultados, falhas e o plano de correção. Mostrar só o que agrada reduz a confiança quando a verdade aparece. Os dados de municípios estão no Siconfi e no SIOPS.",
@@ -117,6 +169,17 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "sobrevivente-auditoria", nome: "Sobrevivente da Auditoria", descricao: "Atravessou a auditoria com registros consistentes.", trilha: "gestao", icone: "🔍" },
   { id: "correcao-publica", nome: "Corrigiu o Rumo", descricao: "Admitiu e corrigiu um erro administrativo ou devolveu um valor.", trilha: "gestao", icone: "🧭" },
   { id: "legado-continua", nome: "Legado que Continua", descricao: "Encerrou a campanha com a UPA funcionando melhor.", trilha: "gestao", icone: "🌱" },
+  { id: "promovido-2", nome: "Secretário(a) Municipal", descricao: "Foi promovido(a) de Administrador(a) de UPA a Secretário(a) Municipal de Saúde.", trilha: "gestao", icone: "🏛️" },
+  { id: "cobertura-por-necessidade", nome: "Cobertura Onde Falta", descricao: "Abriu a unidade onde a população estava sem cobertura.", trilha: "gestao", icone: "🗺️" },
+  { id: "emenda-com-plano", nome: "Emenda com Plano de Custeio", descricao: "Aceitou o equipamento só com equipe, sala e manutenção garantidas.", trilha: "gestao", icone: "🩻" },
+  { id: "compra-sem-fracionar", nome: "Compra Sem Fatiar", descricao: "Comprou em conjunto ou licitou, sem fracionar para escapar da regra.", trilha: "gestao", icone: "🧾" },
+  { id: "fila-transparente", nome: "Fila Transparente", descricao: "Organizou a fila por risco e publicou o critério.", trilha: "gestao", icone: "🧭" },
+  { id: "folha-no-limite", nome: "Folha Dentro do Limite", descricao: "Reforçou a equipe sem estourar o limite de pessoal nem disfarçar a conta.", trilha: "gestao", icone: "👥" },
+  { id: "credito-legal", nome: "Crédito pelo Caminho Legal", descricao: "Pediu o crédito adicional à Câmara em vez de remanejar por conta própria.", trilha: "gestao", icone: "📜" },
+  { id: "emergencia-com-recibo", nome: "Emergência com Recibo", descricao: "Enfrentou o surto com contratação emergencial documentada e publicada.", trilha: "gestao", icone: "🦟" },
+  { id: "contas-na-audiencia", nome: "Contas na Audiência", descricao: "Prestou contas com resultados, metas não cumpridas e plano de correção.", trilha: "gestao", icone: "📣" },
+  { id: "caneta-do-vereador", nome: "A Caneta do Vereador", descricao: "Atendeu um pedido político sem olhar os dados.", trilha: "satira", icone: "🖊️" },
+  { id: "pedalada-municipal", nome: "Pedalada Municipal", descricao: "Remanejou dinheiro sem autorização (e a Câmara percebeu).", trilha: "satira", icone: "🚲" },
   { id: "primeiro-milhao", nome: "Quase um Milhão Imaginário", descricao: "Acumulou patrimônio fictício elevado (e muitas pendências).", trilha: "satira", icone: "💸" },
   { id: "o-primo-descobriu", nome: "O Primo Descobriu", descricao: "Aceitou ajuda do Primo Juninho sem pensar duas vezes.", trilha: "satira", icone: "🍹" },
   { id: "mestre-labia", nome: "Mestre da Lábia", descricao: "Convenceu o Guardião do Cofre com um argumento afiado.", trilha: "satira", icone: "🎤" },

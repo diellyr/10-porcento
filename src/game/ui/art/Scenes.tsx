@@ -289,14 +289,85 @@ function Patio(p: SceneProps) {
   );
 }
 
-const SCENES: Record<LocationId, (p: SceneProps) => ReactNode> = { recepcao: Recepcao, farmacia: Farmacia, enfermagem: Enfermagem, administracao: Administracao, cofre: Cofre, patio: Patio };
+/* ───────────────────────── Nível 2: salas da Secretaria ───────────────────────── */
+const SALAS_N2: Record<string, { id: string; sign: string; signC: string; wall: [string, string]; wain: string; floor: [string, string]; extra: "mapa" | "bandeira" | "plenario" | "posto" | "gabinete" }> = {
+  secretaria: { id: "sc", sign: "Secretaria Municipal de Saúde", signC: PAL.teal, wall: ["#f4f1e6", "#e6dfc8"], wain: "#9fb7a8", floor: ["#d6c7a4", "#b9a67c"], extra: "gabinete" },
+  planejamento: { id: "pl", sign: "Sala de Situação · Regulação", signC: PAL.blue, wall: ["#eaf1fb", "#d6e3f5"], wain: "#8fa9cf", floor: ["#c9d3e0", "#a5b3c7"], extra: "mapa" },
+  prefeitura: { id: "pf", sign: "Gabinete da Prefeita", signC: PAL.orange, wall: ["#f9ecd6", "#eed3a6"], wain: "#8a5a2b", floor: ["#b0764a", "#7d4d2a"], extra: "bandeira" },
+  camara: { id: "cm", sign: "Câmara · Comissão de Saúde", signC: "#6a4fa8", wall: ["#efe6f3", "#ddd0e8"], wain: "#6a4fa8", floor: ["#bfae9a", "#9c8a74"], extra: "plenario" },
+  ubs: { id: "ub", sign: "UBS Esperança", signC: PAL.teal, wall: ["#e8f7ef", "#cfeedd"], wain: "#6fcfae", floor: ["#e0e8d6", "#c2cdb2"], extra: "posto" },
+};
+
+function SalaN2({ loc, ...p }: SceneProps & { loc: LocationId }) {
+  const S = SALAS_N2[loc]!; const id = S.id;
+  const mesa = LOCATIONS[loc].hotspots.find((h) => h.kind === "mesa");
+  return (
+    <>
+      <Room id={id} c={{ wall: S.wall, wain: S.wain, floor: S.floor }}>
+        <Sign x={60} y={56} t={S.sign} c={S.signC} />
+        <Window x={870} y={100} w={150} h={150} id={id} />
+        <Window x={250} y={100} w={130} h={130} id={id} />
+        <Door x={24} y={170} w={120} h={310} c="#7b5330" />
+        {S.extra === "mapa" && (
+          <g>
+            <rect x="420" y="84" width="380" height="190" rx="8" fill="#fffdf8" stroke="#8fa9cf" strokeWidth="4" />
+            {[[450, 120, "#e5484d"], [560, 160, "#e5484d"], [660, 120, "#f2b54f"], [740, 200, "#34ad70"], [500, 220, "#f2b54f"]].map(([x, y, c], i) => <g key={i}><circle cx={x as number} cy={y as number} r="16" fill={c as string} opacity="0.85" /><circle cx={x as number} cy={y as number} r="6" fill="#fff" /></g>)}
+            <path d="M440,250 L520,170 L600,210 L690,140 L780,230" stroke="#2a5be0" strokeWidth="4" fill="none" />
+          </g>
+        )}
+        {S.extra === "bandeira" && (
+          <g>
+            <rect x="460" y="80" width="12" height="190" fill="#c9a24a" />
+            <rect x="472" y="88" width="190" height="120" fill="#2e9a5f" /><path d="M567,100 L650,148 L567,196 L484,148Z" fill="#f2c94c" /><circle cx="567" cy="148" r="30" fill="#2a5be0" />
+            <rect x="700" y="100" width="130" height="150" rx="6" fill="#fff" stroke="#d9c9a6" strokeWidth="3" /><rect x="716" y="122" width="98" height="8" fill="#2a5be0" /><rect x="716" y="144" width="98" height="5" fill="#c9bb98" /><rect x="716" y="158" width="80" height="5" fill="#c9bb98" />
+          </g>
+        )}
+        {S.extra === "plenario" && (
+          <g>
+            <rect x="420" y="84" width="380" height="150" rx="10" fill="#6a4fa8" opacity="0.9" /><text x="610" y="148" textAnchor="middle" fontFamily="var(--g-display)" fontWeight="700" fontSize="34" fill="#fff" letterSpacing="5">CÂMARA MUNICIPAL</text><text x="610" y="190" textAnchor="middle" fontFamily="var(--g-display)" fontSize="18" fill="#e4d8f6" letterSpacing="3">COMISSÃO DE SAÚDE</text>
+            {[100, 220, 340].map((x) => <rect key={x} x={x} y="410" width="90" height="56" rx="8" fill="#8a6a4a" />)}
+          </g>
+        )}
+        {S.extra === "posto" && (
+          <g>
+            <rect x="420" y="90" width="300" height="170" rx="8" fill="#fff" stroke="#6fcfae" strokeWidth="4" /><text x="570" y="140" textAnchor="middle" fontFamily="var(--g-display)" fontWeight="700" fontSize="26" fill="#2e8a7a">Agenda do dia</text>
+            {[170, 196, 222].map((y) => <rect key={y} x="446" y={y} width="250" height="8" fill="#b9e0d0" />)}
+            <rect x="760" y="110" width="40" height="150" rx="6" fill="#fff" stroke="#6fcfae" strokeWidth="3" /><rect x="773" y="130" width="14" height="40" fill="#e5484d" /><rect x="760" y="144" width="40" height="12" fill="#e5484d" opacity="0.0" />
+          </g>
+        )}
+        {S.extra === "gabinete" && (
+          <g>
+            <rect x="420" y="90" width="260" height="170" rx="8" fill="#fffdf8" stroke="#d9c9a6" strokeWidth="3" /><rect x="444" y="112" width="120" height="8" fill="#2a5be0" />{[136, 154, 172, 190].map((y) => <rect key={y} x="444" y={y} width="200" height="5" fill="#c9bb98" />)}
+            <rect x="720" y="110" width="80" height="150" rx="6" fill="#9aa7b8" />
+          </g>
+        )}
+        <Plant x={300} y={480} s={1.1} />
+        <Chair x={210} y={470} c={PAL.blue} s={0.95} />
+      </Room>
+      <People loc={loc} p={p} />
+      {mesa && (
+        <Desk x={mesa.x} y={mesa.y + 20} w={mesa.w} id={id}>
+          <Monitor x={mesa.x + mesa.w * 0.35} y={mesa.y + 22} s={0.8} screen="#e6f1ff" />
+          <Papers x={mesa.x + mesa.w * 0.7} y={mesa.y + 20} n={4} tilt={-3} />
+        </Desk>
+      )}
+      <Finish id={id} />
+    </>
+  );
+}
+const salaN2 = (loc: LocationId) => (p: SceneProps) => <SalaN2 loc={loc} {...p} />;
+
+const SCENES: Record<LocationId, (p: SceneProps) => ReactNode> = {
+  recepcao: Recepcao, farmacia: Farmacia, enfermagem: Enfermagem, administracao: Administracao, cofre: Cofre, patio: Patio,
+  secretaria: salaN2("secretaria"), planejamento: salaN2("planejamento"), prefeitura: salaN2("prefeitura"), camara: salaN2("camara"), ubs: salaN2("ubs"),
+};
 
 /** Cena completa de um local: SVG ilustrado em 3 camadas (paralaxe controlada por --px/--py do contêiner). */
 export function LocationScene({ location, ...p }: SceneProps & { location: LocationId }) {
   const Comp = SCENES[location];
   return (
     <svg viewBox="0 0 1200 675" className="h-full w-full" role="img" aria-label={`Cenário: ${LOCATIONS[location].nome}`} preserveAspectRatio="xMidYMid slice">
-      <SceneDefs id={location === "patio" ? "pt" : { recepcao: "rc", farmacia: "fa", enfermagem: "en", administracao: "ad", cofre: "cf" }[location]} />
+      <SceneDefs id={({ recepcao: "rc", farmacia: "fa", enfermagem: "en", administracao: "ad", cofre: "cf", patio: "pt", secretaria: "sc", planejamento: "pl", prefeitura: "pf", camara: "cm", ubs: "ub" } as Record<LocationId, string>)[location]} />
       <g style={{ transform: "translate(calc(var(--px, 0) * -8px), calc(var(--py, 0) * -4px)) scale(1.02)", transformOrigin: "600px 340px", transition: "transform .2s ease-out" }}>
         <Comp {...p} />
       </g>

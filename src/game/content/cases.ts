@@ -1,11 +1,12 @@
 import type { GameState } from "../engine/types";
 import type { CaseDef, DecisionDef, OptionDef } from "./types";
+import { CASES_N2, DECISIONS_N2 } from "./cases-n2";
 
 const DEV = (rotulo: string, explicacao: string): OptionDef["desvio"] => ({ rotulo, explicacao });
 const hasFlag = (s: GameState) => s.decisions.some((d) => ["atestar-sem-conferir", "consultoria-primo", "aceitar-indicacao", "inflar", "mais-barato"].includes(d.optionId));
 
 /** Opções de MEUS 10% — UPA. Todos os valores são % do orçamento anual (estimado) da UPA no cenário. */
-export const DECISIONS: DecisionDef[] = [
+export const DECISIONS_N1: DecisionDef[] = [
   /* ───────── D1 — estoque ───────── */
   {
     id: "d1", caso: 1, mesa: "administracao", titulo: "O estoque que vence antes do paciente", conceito: "medir-antes", basePct: 6, gestoPadrao: "assinar",
@@ -411,9 +412,10 @@ export const DECISIONS: DecisionDef[] = [
   },
 ];
 
+export const DECISIONS: DecisionDef[] = [...DECISIONS_N1, ...DECISIONS_N2];
 export const DECISION_BY_ID = Object.fromEntries(DECISIONS.map((d) => [d.id, d])) as Record<string, DecisionDef>;
 
-export const CASES: CaseDef[] = [
+export const CASES_N1: CaseDef[] = [
   { id: "caso1", caso: 1, titulo: "O estoque que vence antes do paciente", episodio: "Episódio 1", location: "recepcao", pistas: ["c1-consumo", "c1-validade", "c1-pedido", "c1-oferta"], conversas: ["abertura", "joana-estoque", "toninho-estoque"], decisao: "d1",
     chamada: "Dona Célia está na fila com uma família: a bombinha de asma do Davi acabou, e a UPA diz que “não tem previsão”. Descubra o que há de verdade no estoque antes de decidir.",
     objetivo: "Descubra por que faltam remédios (farmácia, enfermagem e gabinete).", dica: "Dica do Professor Bento: cruze duas pistas — o que se consome com o que vence. Os números contam o que as opiniões escondem." },
@@ -445,5 +447,7 @@ export const CASES: CaseDef[] = [
     chamada: "O ciclo terminou. É hora de contar à população e à Secretaria o que aconteceu — inclusive o que não deu certo.",
     objetivo: "Veja os indicadores e escolha como prestar contas.", dica: "Dica do Professor Bento: prestar contas é mostrar resultado, falha e plano de correção. Um relatório que só agrada, não informa." },
 ];
+export const CASES: CaseDef[] = [...CASES_N1, ...CASES_N2];
 export const CASE_BY_NUM = Object.fromEntries(CASES.map((c) => [c.caso, c])) as Record<number, CaseDef>;
+/** Total de casos da carreira construída até aqui (use `casosDoNivel` para o total de um nível). */
 export const TOTAL_CASES = CASES.length;

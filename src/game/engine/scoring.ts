@@ -1,4 +1,5 @@
 import { clamp, r2 } from "./money";
+import { nivelDe } from "../content/levels";
 import type { Attrs, GameState } from "./types";
 
 /** Pesos da Pontuação de Poder (seção 7 do documento). Regras propostas, sujeitas a balanceamento. */
@@ -38,8 +39,9 @@ export const deviosDeliberados = (s: GameState) => s.decisions.filter((d) => d.d
 /** Mundo visual (derivado, nunca o contrário): a apresentação lê estes níveis para mostrar fila, estoque, luxo e degradação. */
 export function worldView(s: GameState) {
   const fila = s.pub.filaMin;
+  const dias = nivelDe(s) >= 2; // no nível 2 a "fila" é a espera por consulta, em dias
   return {
-    filaNivel: fila > 110 ? 4 : fila > 80 ? 3 : fila > 55 ? 2 : fila > 35 ? 1 : 0,
+    filaNivel: dias ? (fila > 90 ? 4 : fila > 60 ? 3 : fila > 40 ? 2 : fila > 25 ? 1 : 0) : fila > 110 ? 4 : fila > 80 ? 3 : fila > 55 ? 2 : fila > 35 ? 1 : 0,
     estoqueNivel: s.pub.estoqueDias < 5 ? 0 : s.pub.estoqueDias < 9 ? 1 : s.pub.estoqueDias < 14 ? 2 : 3,
     luxoNivel: s.personal.patrimonio > 600_000 ? 3 : s.personal.patrimonio > 250_000 ? 2 : s.personal.patrimonio > 90_000 ? 1 : 0,
     degradacao: s.pub.qualidade < 40 ? 2 : s.pub.qualidade < 58 ? 1 : 0,

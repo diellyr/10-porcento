@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { audio } from "../audio/AudioManager";
 import { DECISION_BY_ID } from "../content/cases";
+import { levelOf } from "../content/levels";
 import type { OptionDef } from "../content/types";
 import { brl, brlShort } from "../engine/money";
 import { makeCtx, optionCost, optionLock, txt } from "../engine/rules";
@@ -144,7 +145,7 @@ const TOM = { bom: ["✅", "var(--g-green)"], ruim: ["⚠️", "var(--g-red)"], 
 export function diffChips(a: GameState, b: GameState) {
   const rows: Array<[string, number, string, "up" | "down"]> = [
     ["Qualidade", b.pub.qualidade - a.pub.qualidade, "", "up"], ["Acesso", b.pub.acesso - a.pub.acesso, "", "up"], ["Confiança", b.attrs.confianca - a.attrs.confianca, "", "up"],
-    ["Equipe", b.pub.equipe - a.pub.equipe, "", "up"], ["Espera", b.pub.filaMin - a.pub.filaMin, " min", "down"], ["Estoque", b.pub.estoqueDias - a.pub.estoqueDias, " d", "up"],
+    ["Equipe", b.pub.equipe - a.pub.equipe, "", "up"], ["Espera", b.pub.filaMin - a.pub.filaMin, levelOf(b).rotulos.fila.un, "down"], ["Estoque", b.pub.estoqueDias - a.pub.estoqueDias, " d", "up"],
     ["Sustentabilidade", b.pub.sustentabilidade - a.pub.sustentabilidade, "", "up"], ["Popularidade", b.attrs.popularidade - a.attrs.popularidade, "", "up"], ["Competência", b.attrs.competencia - a.attrs.competencia, "", "up"],
   ];
   return rows.filter((r) => Math.round(r[1]) !== 0);

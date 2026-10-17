@@ -13,6 +13,7 @@ export const DEFAULT_VOICE_IDS: Record<string, string> = {
   joana: "EXAVITQu4vr4xnSDxMaL", celia: "21m00Tcm4TlvDq8ikWAM", ana: "MF3mGyEYCl7XYWbV9V6O", marlene: "AZnzlk1XvdvUeBnXmlld",
   guardiao: "pNInz6obpgDQGcFmaJgB", toninho: "TxGEqnHWrfWFTfGW9XjX", juninho: "ErXwobaYiN019PkySvjV", roberto: "yoZ06aMxZJJ28mfd3POQ",
   bento: "TxGEqnHWrfWFTfGW9XjX", cornelio: "VR6AewLTigWG4xSOukaG", valdemar: "VR6AewLTigWG4xSOukaG",
+  lucia: "EXAVITQu4vr4xnSDxMaL", nelson: "TxGEqnHWrfWFTfGW9XjX", rita: "MF3mGyEYCl7XYWbV9V6O", edu: "ErXwobaYiN019PkySvjV",
 };
 
 export const ELEVENLABS_DEFINITION: SourceDefinition = {

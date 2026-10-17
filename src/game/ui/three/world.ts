@@ -3,7 +3,7 @@ import type { Look } from "../../content/types";
 import type { LocationId } from "../../engine/types";
 import { darken, lighten } from "../art/color";
 import { bakeGroup, ambulance, ball, blob, board, box, boxPile, cabinet, chair, cone3, cyl, desk, extraLook, mat, monitor, papers, person, plant, safe, shelf, sign, sofa, tree, bed } from "./lowpoly";
-import { ANCHORS, ROOM_D, ROOM_LIST, ROOM_W, ROOMS, WALL_H, WALL_T, type RoomDef } from "./world-data";
+import { ANCHORS, ROOM_D, ROOM_W, ROOMS, WALL_H, WALL_T, roomsDoNivel, type RoomDef } from "./world-data";
 import type { Quality } from "./support";
 
 /** Cenário 3D da UPA em corte (casa de bonecas): salas com paredes que baixam quando ficam entre a câmera e o interior. */
@@ -28,7 +28,8 @@ function floorTexture(c1: string, c2: string, tiles: number, rep: [number, numbe
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
 
-export function buildWorld(q: Quality): World {
+export function buildWorld(q: Quality, nivel = 1): World {
+  const ROOM_LIST = roomsDoNivel(nivel);
   const root = new THREE.Group();
   const roomG: Record<string, THREE.Group> = {};
   const dynG = new THREE.Group(); root.add(dynG);
@@ -110,6 +111,33 @@ export function buildWorld(q: Quality): World {
         cabinet(g, -4.3, -1.2, Math.PI / 2, "#8c97a6", 1.2, 1.7); cabinet(g, -4.3, 0.4, Math.PI / 2, "#8c97a6", 1.2, 1.7); cabinet(g, -4.3, 2.0, Math.PI / 2, "#8c97a6", 1.2, 1.7);
         sign(g, "Tesouraria", 2.2, 0.5, -1.4, 2.5, -3.33, 0, "#4b6d5c"); chair(g, 0.2, 1.7, "#4b6d5c", Math.PI, true); plant(g, 4.3, 3.0, 0.9);
         break; }
+      case "secretaria": {
+        desk(g, 0.4, -0.6, 3.4, 1.3, "#d8d0bc"); chair(g, 0.4, -1.7, "#17a493", 0, true); monitor(g, -0.6, 0.82, -0.5, 0); papers(g, 1.6, 0.82, -0.4, 5);
+        shelf(g, -3.8, -3.0, 3.0, 0, 4, 0.9, ["#2f6f4f", "#3a6d9e", "#d9b44a"]); board(g, 1.4, 2.5, -3.33, 1.6, 1.0, 0, "#fffdf8"); desk(g, 2.2, -2.7, 2.0, 0.9, "#c9d2dc"); monitor(g, 2.2, 0.8, -2.7);
+        sofa(g, 3.6, 2.4, Math.PI, "#3a8f86"); chair(g, -1.2, 1.0, "#17a493", Math.PI); chair(g, 2.0, 0.9, "#17a493", Math.PI);
+        sign(g, "Secretaria de Saúde", 2.6, 0.5, -1.0, 2.7, -3.33, 0, "#17a493"); plant(g, -4.3, 3.0, 1.1);
+        break; }
+      case "planejamento": {
+        board(g, -2.0, 2.2, -3.33, 2.8, 1.6, 0, "#fffdf8"); board(g, 0.8, 2.2, -3.33, 1.8, 1.4, 0, "#eaf1fb"); board(g, 3.0, 2.2, -3.33, 1.6, 1.4, 0, "#f5f7ff");
+        desk(g, 0.2, -0.2, 3.4, 1.4, "#eef2f7"); monitor(g, -0.8, 0.8, -0.2); monitor(g, 0.8, 0.8, -0.2); papers(g, 1.8, 0.8, 0, 4); chair(g, 0.2, -1.4, "#2a5be0", 0, true); chair(g, -1.2, 1.1, "#2a5be0", Math.PI); chair(g, 1.6, 1.1, "#2a5be0", Math.PI);
+        cabinet(g, -4.2, 0.5, Math.PI / 2, "#8c97a6", 1.2, 1.7); sign(g, "Sala de Situação", 2.6, 0.5, -0.4, 2.8, -3.33, 0, "#2a5be0"); plant(g, 4.3, 3.0, 0.9);
+        break; }
+      case "prefeitura": {
+        desk(g, 0.4, -0.6, 3.2, 1.3, "#7a4b32"); chair(g, 0.4, -1.8, "#a34a2a", 0, true); monitor(g, -0.5, 0.82, -0.5, 0); papers(g, 1.5, 0.82, -0.4, 5);
+        cyl(g, 0.03, 2.4, "#c8c8c8", -4.2, 0, -2.9); box(g, 1.0, 0.65, 0.02, "#2fa66a", -3.7, 1.7, -2.9); box(g, 0.5, 0.5, 0.02, "#f2c94c", -3.7, 1.7, -2.88);
+        shelf(g, 3.2, -3.0, 2.6, 0, 4, 0.9, ["#7a4b32", "#a34a2a", "#3a6d9e"]); sofa(g, 3.4, 2.4, Math.PI, "#7a4b32"); chair(g, -1.0, 1.2, "#d9a335", Math.PI); chair(g, 1.8, 1.2, "#d9a335", Math.PI);
+        sign(g, "Gabinete da Prefeita", 2.8, 0.5, 0.4, 2.7, -3.33, 0, "#8a5528"); plant(g, -4.3, 3.0, 1.1);
+        break; }
+      case "camara": {
+        box(g, 4.4, 0.5, 1.0, "#6a4fa8", 0, 0, -2.2); box(g, 4.5, 0.08, 1.1, "#8d72bf", 0, 0.5, -2.2); desk(g, 0, 0.2, 3.0, 1.2, "#8a6a4a");
+        for (let i = 0; i < 4; i++) chair(g, -3.4 + i * 2.2, 2.2, "#6a4fa8", Math.PI); for (let i = 0; i < 4; i++) chair(g, -3.4 + i * 2.2, 1.2, "#6a4fa8", Math.PI);
+        sign(g, "Comissão de Saúde", 3.0, 0.5, 0, 2.5, 3.33, Math.PI, "#6a4fa8"); cyl(g, 0.03, 2.4, "#c8c8c8", 4.2, 0, 2.9); box(g, 0.9, 0.6, 0.02, "#2fa66a", 3.75, 1.75, 2.9); plant(g, -4.3, 3.0, 1);
+        break; }
+      case "ubs": {
+        desk(g, -0.6, -1.4, 3.0, 1.0, "#eef2f7"); monitor(g, -0.6, 0.8, -1.4); chair(g, -0.6, -2.4, "#4fb596", 0, true);
+        bed(g, 3.4, -1.7, Math.PI / 2); cabinet(g, -4.2, 0.6, Math.PI / 2, "#dfe6f0", 1.2, 1.4); board(g, -1.2, 2.4, 3.15, 2.0, 1.1, Math.PI, "#fffdf8");
+        for (let i = 0; i < 4; i++) chair(g, -3.2 + i * 1.3, 2.2, "#4fb596", Math.PI); sign(g, "UBS Esperança", 2.4, 0.5, 1.6, 2.6, 3.33, Math.PI, "#4fb596"); plant(g, 4.3, 3.0, 0.9);
+        break; }
       case "patio": {
         ambulance(g, -2.8, -2.4, 0.05); ambulance(g, -2.2, 0.3, -0.06);
         // obra da sala de observação: andaime, madeira e faixa
@@ -134,6 +162,7 @@ export function buildWorld(q: Quality): World {
       case "enfermagem": clock(0.6, 2.4, -3.3); bin(3.8, -2.2, "#9aa5b5"); rug(1.0, 1.4, 2.8, 1.8, "#8fb4e6"); ext(-4.4, 2.4, Math.PI / 2); box(g, 0.3, 0.4, 0.12, "#f4f6fb", 0.2, 1.1, -3.25); break;
       case "administracao": rug(0.4, 0.4, 4.4, 3.0, "#8a2f2f"); clock(-1.6, 2.5, -3.3); board(g, 4.0, 2.5, -3.33, 1.2, 0.8, 0, "#e8dcc4"); cyl(g, 0.06, 1.6, "#6b4a2a", 4.3, 0, 2.6); box(g, 0.5, 0.05, 0.05, "#6b4a2a", 4.3, 1.5, 2.6); bin(-1.8, -2.6, "#8a5528"); break;
       case "cofre": rug(0.2, 1.4, 3.2, 2.0, "#4b6d5c"); clock(3.0, 2.5, -3.3); bin(-3.4, 2.8); ext(4.4, 2.8, -Math.PI / 2); box(g, 1.0, 0.02, 0.7, "#e8dcc4", 1.8, 1.16, 0.4); break;
+      case "secretaria": case "planejamento": case "prefeitura": case "camara": case "ubs": clock(-2.8, 2.5, id === "camara" || id === "ubs" ? 3.3 : -3.3); bin(-4.4, -2.6); rug(0.4, 1.4, 3.2, 2.0, id === "prefeitura" ? "#8a2f2f" : "#4a72d9"); break;
       case "patio": box(g, 1.8, 0.15, 0.5, "#8a5528", 3.8, 0.45, -2.9); box(g, 1.8, 0.4, 0.1, "#8a5528", 3.8, 0.6, -3.1); for (let i = 0; i < 4; i++) { cyl(g, 0.1, 0.8, "#f2b134", -4.4 + i * 0.01, 0, -2.0 + i * 1.3, {}, true); } break;
     }
   }
@@ -147,6 +176,10 @@ export function buildWorld(q: Quality): World {
   const local = (room: LocationId, x: number, y: number, z: number) => new THREE.Vector3(ROOMS[room].cx + x, y, ROOMS[room].cz + z);
   const setDynamic = (d: WorldDyn) => {
     clearDyn();
+    // equipe e figurantes das salas (dão vida; não têm fala)
+    const at = (room: LocationId, x: number, z: number, look: Look, o: { sit?: boolean; yaw?: number; scale?: number } = {}) => { const p = person(look, { sit: o.sit, scale: o.scale }); p.position.copy(local(room, x, o.sit ? 0.08 : 0, z)); p.rotation.y = o.yaw ?? 0; p.userData.extra = true; dynG.add(p); return p; };
+    const nurse = (c: string, skin: string) => ({ ...extraLook(c, skin), roupaTipo: "jaleco" as const, roupa2: "#e9fbf8" });
+    if (nivel === 1) {
     // TV de espera na recepção
     const tvc = d.filaMin > 80 ? "#ff7a6b" : d.filaMin > 50 ? "#ffd85a" : "#6ff0a6";
     const c = document.createElement("canvas"); c.width = 512; c.height = 256; const x = c.getContext("2d")!;
@@ -163,9 +196,6 @@ export function buildWorld(q: Quality): World {
     const fa = new THREE.Group(); fa.position.set(ROOMS.farmacia.cx, 0, ROOMS.farmacia.cz); dynG.add(fa);
     if (d.estoqueNivel <= 1) { box(fa, 0.9, 0.04, 0.9, "#e5484d", -3.3, 2.3, -2.55); sign(fa, "FALTA", 1.0, 0.36, -3.3, 2.65, -2.9, 0, "#e5484d"); } else boxPile(fa, 3.6, 1.8, Math.min(6, d.estoqueNivel + 2), "#d9a35b");
     if (d.melhoria > 0) { plant(dynG, ROOMS.recepcao.cx + 0.4, ROOMS.recepcao.cz - 2.9, 0.9, true); plant(dynG, ROOMS.enfermagem.cx - 4.3, ROOMS.enfermagem.cz + 3.0, 0.9, true); }
-    // equipe e figurantes das salas (dão vida; não têm fala)
-    const at = (room: LocationId, x: number, z: number, look: Look, o: { sit?: boolean; yaw?: number; scale?: number } = {}) => { const p = person(look, { sit: o.sit, scale: o.scale }); p.position.copy(local(room, x, o.sit ? 0.08 : 0, z)); p.rotation.y = o.yaw ?? 0; p.userData.extra = true; dynG.add(p); return p; };
-    const nurse = (c: string, skin: string) => ({ ...extraLook(c, skin), roupaTipo: "jaleco" as const, roupa2: "#e9fbf8" });
     at("enfermagem", -2.4, 1.6, nurse("#2bb3a3", "#c4895e"), { yaw: -1.4 }); at("enfermagem", 2.2, -1.5, nurse("#5b8fd0", "#8d5b3d"), { sit: true, yaw: 0 });
     { const pt = person(extraLook("#f7fbff", "#d9ab87", "#8a8a8a"), { sit: true }); pt.rotation.set(-Math.PI / 2 + 0.25, 0, 0); pt.position.copy(local("enfermagem", -3.6, 0.52, -1.35)); pt.rotation.order = "YXZ"; pt.rotation.y = 0; pt.rotation.x = -1.35; pt.userData.extra = true; dynG.add(pt); }
     at("farmacia", -1.4, -1.6, nurse("#6fcfae", "#b57a52"), { yaw: Math.PI }); at("farmacia", 0.6, 1.9, nurse("#4fb596", "#d9ab87"), { sit: true, yaw: Math.PI });
@@ -182,6 +212,16 @@ export function buildWorld(q: Quality): World {
       if (d.luxo > 1) { box(ad, 3.6, 0.02, 2.4, "#d9b44a", 0.4, 0.02, 1.4, { metal: 0.5 }); cyl(ad, 0.4, 0.6, "#c4262e", -4.0, 0, 1.6, {}, true); }
     }
     if (d.degradacao > 1) { for (const [rm, x, z] of [["recepcao", 3.4, 2.8], ["farmacia", -1.2, 2.6], ["enfermagem", -1.0, 2.8]] as Array<[LocationId, number, number]>) { const t = new THREE.Group(); t.position.copy(local(rm, x, 0, z)); dynG.add(t); cyl(t, 0.22, 0.5, "#6b7280", 0, 0, 0, {}, true); for (let i = 0; i < 5; i++) box(t, 0.14, 0.12, 0.14, ["#e7e1c8", "#c9c3a8", "#9aa5b5"][i % 3]!, (i - 2) * 0.1, 0.5 + (i % 2) * 0.08, ((i * 7) % 3) * 0.05); } }
+    } else {
+      const staff = (c: string, skin: string) => ({ ...extraLook(c, skin), roupaTipo: "blazer" as const });
+      at("secretaria", -1.2, 1.0, staff("#17a493", "#c68d64"), { sit: true, yaw: Math.PI }); at("secretaria", 2.2, -1.9, staff("#3a6d9e", "#8d5b3d"), { sit: true, yaw: 0 });
+      at("planejamento", -2.4, 1.6, staff("#2a5be0", "#e0b48f"), { yaw: -1.4 }); at("planejamento", -0.8, -1.2, staff("#5b8fd0", "#a9724f"), { sit: true, yaw: 0 });
+      at("prefeitura", 3.2, 1.8, staff("#8a5528", "#d9ab87"), { sit: true, yaw: Math.PI });
+      at("camara", -3.4, 2.2, staff("#6a4fa8", "#c68d64"), { sit: true, yaw: Math.PI }); at("camara", 0.2, 1.2, staff("#8d72bf", "#7a4a30"), { sit: true, yaw: Math.PI }); at("camara", 2.8, -2.6, staff("#6a4fa8", "#e0b48f"), { yaw: 0 });
+      at("ubs", -3.2, 2.2, { ...extraLook("#e5484d", "#c88a62"), roupa2: "#fff" }, { sit: true, yaw: Math.PI }); at("ubs", -2.0, 2.2, extraLook("#6d6fc4", "#a9724f"), { sit: true, yaw: Math.PI }); at("ubs", 3.0, 0.4, { ...extraLook("#4fb596", "#d9ab87"), roupaTipo: "jaleco", roupa2: "#e9fbf8" }, { yaw: -1.5 });
+      for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"]] as Array<[number, string, string]>) { const w = person(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
+      if (d.melhoria > 0) { plant(dynG, ROOMS.ubs.cx + 0.4, ROOMS.ubs.cz - 2.9, 0.9, true); plant(dynG, ROOMS.secretaria.cx + 4.3, ROOMS.secretaria.cz - 3.0, 0.9, true); }
+    }
     // personagens presentes (os que têm conversa neste caso)
     for (const pe of d.people) {
       const a = ANCHORS[pe.hotspotId]; if (!a) continue;

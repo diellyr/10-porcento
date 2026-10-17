@@ -11,13 +11,15 @@ export const MAX_DEVIATION_PCT = 10;
 
 export type Classification = "oficial" | "estimativa" | "simulado";
 
-export type CharId = "joana" | "celia" | "guardiao" | "toninho" | "juninho" | "roberto" | "ana" | "bento" | "cornelio" | "marlene" | "valdemar" | "voce";
-export type LocationId = "recepcao" | "farmacia" | "enfermagem" | "administracao" | "cofre" | "patio";
+export type CharId = "joana" | "celia" | "guardiao" | "toninho" | "juninho" | "roberto" | "ana" | "bento" | "cornelio" | "marlene" | "valdemar" | "voce" | "lucia" | "nelson" | "rita" | "edu";
+export const LOCATION_IDS = ["recepcao", "farmacia", "enfermagem", "administracao", "cofre", "patio", "secretaria", "planejamento", "prefeitura", "camara", "ubs"] as const;
+export type LocationId = (typeof LOCATION_IDS)[number];
 export type AttrKey = "competencia" | "rede" | "persuasao" | "confianca" | "conhecimento" | "popularidade" | "caraDePau";
 export type PubKey = "qualidade" | "acesso" | "equipe" | "sustentabilidade";
 export type ConceptId =
   | "medir-antes" | "gargalo" | "custo-total" | "corte-linear" | "entrega-vs-anuncio"
-  | "execucao-despesa" | "controle-interno" | "conflito-interesses" | "reserva-urgencia" | "transparencia";
+  | "execucao-despesa" | "controle-interno" | "conflito-interesses" | "reserva-urgencia" | "transparencia"
+  | "planejamento-necessidade" | "emenda-custeio" | "compra-compartilhada" | "fila-regulada" | "folha-sustentavel" | "credito-adicional" | "emergencia-transparencia" | "audiencia-publica";
 export type PenGesture = "assinar" | "recusar" | "esclarecer" | "parecer";
 export type OptionKind = "competente" | "prudente" | "comodo" | "fraco" | "desvio";
 export type Emotion = "neutro" | "feliz" | "serio" | "irritado" | "surpreso" | "triste" | "irônico" | "preocupado";
@@ -153,10 +155,16 @@ export interface EndingResult {
   promocao: { elegivel: boolean; criterios: Array<{ rotulo: string; ok: boolean; detalhe: string }> };
 }
 
+/** Registro de um nível já concluído (a carreira acumula níveis). */
+export interface LevelRecord { nivel: number; cargo: string; ending: EndingResult; pub: Pub; attrs: Attrs; decisoes: number }
+
 export type Phase = "inicio" | "quiz" | "jogando" | "encerrada" | "abandonada";
 
 export interface GameState {
   v: 1;
+  /** nível da carreira em andamento (1 = Administrador de UPA, 2 = Secretário Municipal…). Partidas antigas sem o campo valem 1. */
+  nivel: number;
+  historico: LevelRecord[];
   id: string;
   version: number;
   rulesVersion: string;
@@ -207,6 +215,7 @@ export type Action =
   | { type: "advance" }
   | { type: "repair"; valor: number }
   | { type: "favorite"; entryId: string }
+  | { type: "promote" }
   | { type: "abandon" };
 
 export interface ActionResult { state: GameState; ok: boolean; duplicate?: boolean; error?: string; note?: string }
