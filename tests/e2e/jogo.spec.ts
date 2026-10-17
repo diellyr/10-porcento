@@ -9,7 +9,7 @@ import type { LocationId } from "@/game/engine/types";
  * Jogo completo pela interface (toque/clique): campanha de 10 casos nas duas trajetórias.
  * Roda com a vista 2D (qualidade 3D "2d") para ser rápido no navegador sem GPU; o mapa 3D da UPA é validado em teste próprio (/mundo3d).
  */
-const CONFIG = { mudo: true, voz: 0, musica: 0, efeitos: 0, reduzirMovimento: true, qualidade3d: "2d", altoContraste: false, textoGrande: false };
+const CONFIG = { mudo: true, voz: 0, musica: 0, efeitos: 0, reduzirMovimento: true, qualidade3d: process.env.E2E_Q3D ?? "2d", altoContraste: false, textoGrande: false };
 
 async function novaPartida(page: Page, nome: string, config: object = CONFIG) {
   await page.addInitScript((c) => { try { localStorage.setItem("meus10:config", JSON.stringify(c)); } catch { /* */ } }, config);
@@ -101,7 +101,7 @@ async function proximo(page: Page) {
 }
 
 async function jogarCampanha(page: Page, escolher: (caso: number) => { opcao: string; pct?: number }) {
-  for (const c of CASES) {
+  for (const c of CASES.filter((x) => x.caso <= 10)) {
     await page.getByRole("button", { name: /Começar a investigar/ }).click();
     await conversar(page); // abertura automática (caso 1)
     await expect(page.locator("[role=dialog]")).toHaveCount(0);
@@ -130,7 +130,7 @@ test("campanha competente pela interface: reconhecimento, relatório coerente e 
   await tela.click();
   await page.getByRole("button", { name: "Continuar", exact: true }).first().click();
   await expect(page.getByText("Episódio 3 de 10").first()).toBeVisible();
-  for (const c of CASES.slice(2)) {
+  for (const c of CASES.filter((x) => x.caso <= 10).slice(2)) {
     await page.getByRole("button", { name: /Começar a investigar/ }).click(); await conversar(page); await explorar(page, c.caso); await confrontar(page, c.caso); await decidir(page, c.caso, best[c.caso]!); await proximo(page);
   }
   // cena final (diálogo de encerramento) e resultado
@@ -142,6 +142,10 @@ test("campanha competente pela interface: reconhecimento, relatório coerente e 
   await expect(page.getByText("Recursos desviados (fictício)")).toBeVisible();
   await page.getByRole("tab", { name: /Card de resultado/ }).click();
   await expect(page.getByRole("img", { name: /Card de resultado/ })).toBeVisible();
+  // promoção ao nível 2: a interface abre o primeiro caso da Secretaria sem erro
+  await page.getByRole("button", { name: /Assumir como/ }).click();
+  await expect(page.getByText("Episódio 1 de 8").first()).toBeVisible({ timeout: 20000 });
+  await expect(page.getByText("Algo deu errado")).toHaveCount(0);
 });
 
 test("campanha com desvio confirmado termina em responsabilização e o relatório lista o desvio", async ({ page }) => {
