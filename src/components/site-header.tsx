@@ -23,7 +23,7 @@ const MORE = [
   { href: "/glossario", label: "Glossário" },
 ];
 
-const ADMIN = { href: "/admin", label: "Admin" };
+const ADMIN = { href: "/login?next=/admin", label: "Admin" };
 
 export function SiteHeader() {
   const path = usePathname();

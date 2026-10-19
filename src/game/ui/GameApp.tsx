@@ -62,6 +62,7 @@ function Title({ onNovo, onContinuar, onConfig }: { onNovo: () => void; onContin
           <button className="g-btn ghost xl" onClick={() => { audio.unlock(); onConfig(); }}>⚙️ Configurações</button>
           <div className="mt-1 flex flex-wrap justify-center gap-2 text-sm font-bold">
             <Link href={session.logado ? "/perfil" : "/entrar?next=/jogo"} className="g-btn sm ghost">{session.logado ? `👤 ${session.nome ?? "Meu perfil"}` : "👤 Entrar / criar perfil"}</Link>
+            {session.logado && <Link href="/entrar?next=/jogo" className="g-btn sm ghost">🔁 Trocar de conta</Link>}
             <Link href="/" className="g-btn sm ghost">Sobre o jogo</Link><Link href="/elenco" className="g-btn sm ghost">Elenco</Link><InstallShortcut />
           </div>
         </div>

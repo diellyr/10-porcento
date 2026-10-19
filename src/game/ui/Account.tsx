@@ -1,4 +1,5 @@
 "use client";
+import { CONTAS_SUGERIDAS, useConta } from "@/lib/use-conta";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -22,6 +23,7 @@ async function ensureProfile(sb: ReturnType<typeof supabaseBrowser>) {
 
 function EntrarForm() {
   const sp = useSearchParams(); const router = useRouter();
+  const conta = useConta();
   const next = safeNextGame(sp.get("next"));
   const [modo, setModo] = useState<"entrar" | "criar" | "esqueci" | "nova-senha">(sp.get("recuperar") ? "nova-senha" : "entrar");
   const [email, setEmail] = useState(""); const [senha, setSenha] = useState(""); const [nome, setNome] = useState(""); const [avatar, setAvatar] = useState("av1");
@@ -66,13 +68,20 @@ function EntrarForm() {
         <h1 className="mt-3 text-3xl font-bold">{modo === "criar" ? "Criar meu perfil" : modo === "esqueci" ? "Recuperar senha" : modo === "nova-senha" ? "Nova senha" : "Entrar"}</h1>
         <p className="mt-1 text-sm text-[color:var(--g-ink2)]">Entrar é <b>opcional</b>: você joga sem cadastro. O perfil serve para recuperar a campanha em outros aparelhos.</p>
         {!ok && <p role="alert" className="mt-3 rounded-2xl bg-[#fff3d6] p-3 text-sm font-bold">O Supabase ainda não foi conectado neste ambiente, então o login está indisponível. Você continua podendo jogar como convidado, salvando neste aparelho.</p>}
+        {conta.email && modo === "entrar" && (
+          <div role="status" className="mt-3 rounded-2xl bg-[#eef2fe] p-3 text-sm">
+            <p>Conectado como <b>{conta.email}</b>.</p>
+            <div className="mt-2 flex flex-wrap gap-2"><button type="button" className="g-btn sm" onClick={() => router.replace(next)}>Continuar com esta conta</button><button type="button" className="g-btn sm ghost" onClick={() => void conta.sair()}>🔁 Entrar com outra conta</button></div>
+          </div>
+        )}
         {modo !== "nova-senha" && <div role="tablist" className="mt-3 flex gap-2">{(["entrar", "criar"] as const).map((m) => <button key={m} type="button" role="tab" aria-selected={modo === m} className={`g-btn sm ${modo === m ? "" : "ghost"}`} onClick={() => { setModo(m); setMsg(null); }}>{m === "entrar" ? "Entrar" : "Criar perfil"}</button>)}</div>}
+        <datalist id="contas-sugeridas">{CONTAS_SUGERIDAS.map((c) => <option key={c} value={c} />)}</datalist>
         <form onSubmit={submit} className="mt-3 space-y-3">
           {modo === "criar" && (<>
             <label className="block font-bold">Nome de jogador<input className={input} value={nome} onChange={(e) => setNome(e.target.value.slice(0, 28))} required minLength={2} autoComplete="nickname" /></label>
             <fieldset><legend className="font-bold">Avatar</legend><div className="mt-1 grid grid-cols-6 gap-1.5">{AVATARS.map((a) => <label key={a.id} className={`cursor-pointer rounded-xl border-[3px] p-0.5 ${avatar === a.id ? "border-[color:var(--g-blue)] bg-[#eef2fe]" : "border-[color:var(--g-line)]"}`}><input type="radio" name="av" className="g-sr" checked={avatar === a.id} onChange={() => setAvatar(a.id)} /><span className="sr-only">{a.nome}</span><div className="aspect-square overflow-hidden rounded-lg" style={{ background: "linear-gradient(#fff,#ffeccc)" }}><Portrait look={a.look} enquadramento="rosto" className="h-full w-full" /></div></label>)}</div></fieldset>
           </>)}
-          {modo !== "nova-senha" && <label className="block font-bold">E-mail<input type="email" className={input} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></label>}
+          {modo !== "nova-senha" && <label className="block font-bold">E-mail<input type="email" list="contas-sugeridas" className={input} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></label>}
           {modo !== "esqueci" && <label className="block font-bold">{modo === "nova-senha" ? "Nova senha" : "Senha"}<input type="password" className={input} value={senha} onChange={(e) => setSenha(e.target.value)} required minLength={modo === "entrar" ? 1 : 8} autoComplete={modo === "entrar" ? "current-password" : "new-password"} />{modo !== "entrar" && <span className="text-xs font-normal text-[color:var(--g-ink3)]">mínimo de 8 caracteres</span>}</label>}
           {msg && <p role={msg.t === "erro" ? "alert" : "status"} className={`rounded-2xl p-3 font-bold ${msg.t === "erro" ? "bg-[#fff1f1] text-[color:var(--g-red-d)]" : "bg-[#e6f6ee] text-[color:var(--g-green-d)]"}`}>{msg.s}</p>}
           <button className="g-btn orange xl w-full" disabled={busy || !ok}>{busy ? "Aguarde…" : modo === "criar" ? "Criar perfil" : modo === "esqueci" ? "Enviar link" : modo === "nova-senha" ? "Salvar nova senha" : "Entrar"}</button>
