@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { audio, AUDIO_DEFAULTS, type AudioSettings } from "../audio/AudioManager";
-import { apply } from "../engine/rules";
+import { apply, migrarEstado } from "../engine/rules";
 import type { Action, GameState } from "../engine/types";
 
 export interface Settings extends AudioSettings { reduzirMovimento: boolean; qualidade3d: "auto" | "alta" | "media" | "baixa" | "2d"; altoContraste: boolean; textoGrande: boolean }
@@ -26,7 +26,7 @@ export function metaOf(s: GameState, origem: SaveMeta["origem"] = "local"): Save
   return { id: s.id, nome: s.player.nome, unidade: s.scenario.unidade, caso: s.caso, fase: s.phase, final: s.ending?.titulo ?? null, atualizadoEm: new Date().toISOString(), origem };
 }
 export function loadLocal(id: string): GameState | null {
-  try { const s = JSON.parse(safe.get(K_SAVE(id)) ?? "null") as GameState | null; return s && s.v === 1 ? s : null; } catch { return null; }
+  try { const s = JSON.parse(safe.get(K_SAVE(id)) ?? "null") as GameState | null; return s && s.v === 1 ? migrarEstado(s) : null; } catch { return null; }
 }
 function saveLocal(s: GameState) {
   safe.set(K_SAVE(s.id), JSON.stringify(s));
@@ -92,7 +92,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (!r.ok) throw new Error(String(r.status));
         const j = (await r.json()) as { state?: GameState };
         // o servidor é a autoridade: se divergir (regras diferentes), adota o estado validado
-        if (j.state && ref.current && j.state.id === ref.current.id && j.state.version === ref.current.version && JSON.stringify(j.state.ending) !== JSON.stringify(ref.current.ending)) { ref.current = j.state; setState(j.state); saveLocal(j.state); }
+        if (j.state && ref.current && j.state.id === ref.current.id && j.state.version === ref.current.version && JSON.stringify(j.state.ending) !== JSON.stringify(ref.current.ending)) { const m = migrarEstado(j.state); ref.current = m; setState(m); saveLocal(m); }
         setSync("sincronizado");
       } catch { setSync("erro"); }
     });
@@ -122,7 +122,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const load = useCallback(async (id: string, origem: "local" | "conta" = "local") => {
     let s: GameState | null = null;
     if (origem === "conta") { try { const r = await fetch(`/api/game/saves/${id}`, { cache: "no-store" }); if (r.ok) s = ((await r.json()) as { state: GameState }).state; } catch { /* usa local */ } }
-    s = s ?? loadLocal(id);
+    s = migrarEstado(s) ?? loadLocal(id);
     if (!s) return false;
     ref.current = s; setState(s); safe.set(K_ACTIVE, id); setSync(sessionRef.current.logado ? "sincronizado" : "local");
     return true;

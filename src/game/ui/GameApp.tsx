@@ -1,4 +1,5 @@
 "use client";
+import { Versao } from "./Versao";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -54,7 +55,7 @@ function Title({ onNovo, onContinuar, onConfig }: { onNovo: () => void; onContin
       <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-transparent to-white/45" aria-hidden />
       <div className="relative z-10 flex flex-1 flex-col items-center px-4 pb-8 pt-8 text-center">
         <p className="g-chip es">🎭 Sátira · tudo é ficção</p>
-        <h1 className="mt-2 text-[clamp(3.2rem,12vw,7.5rem)] font-bold leading-none tracking-tight" style={{ textShadow: "0 4px 0 #fff, 0 10px 30px rgb(27 35 64 / .35)", color: "var(--g-blue)" }}>MEUS <span style={{ color: "var(--g-orange-t)" }}>10%</span></h1>
+        <h1 className="mt-2 text-[clamp(3.2rem,12vw,7.5rem)] font-bold leading-none tracking-tight" style={{ textShadow: "0 4px 0 #fff, 0 10px 30px rgb(27 35 64 / .35)", color: "var(--g-blue)" }}>MEUS <span style={{ color: "var(--g-orange-t)" }}>10%</span> <Versao className="!text-base" /></h1>
         <p className="mt-2 max-w-xl text-lg font-bold sm:text-xl" style={{ textShadow: "0 2px 0 #fff" }}>Você recebeu uma caneta e dinheiro público. O que vai fazer com eles?</p>
         <div className="mt-auto flex w-full max-w-sm flex-col gap-3 pt-10">
           <button className="g-btn orange xl" onClick={() => { audio.unlock(); audio.sfx("confirm"); onNovo(); }}>▶ Nova partida</button>

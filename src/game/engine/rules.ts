@@ -128,7 +128,14 @@ function auditOutcome(s: GameState, optionId: string): { tom: "bom" | "ruim" | "
 
 const fail = (state: GameState, error: string): ActionResult => ({ state, ok: false, error });
 
+/** Partidas salvas antes dos níveis não têm `nivel`/`historico`: valem nível 1 sem histórico. */
+export function migrarEstado<T extends GameState | null>(s: T): T {
+  if (!s || (s.nivel !== undefined && s.historico !== undefined)) return s;
+  return { ...s, nivel: s.nivel ?? 1, historico: s.historico ?? [] } as T;
+}
+
 export function apply(prev: GameState | null, id: string, action: Action): ActionResult {
+  prev = migrarEstado(prev);
   if (!id || id.length > 80) return fail(prev as GameState, "id de ação inválido");
   if (action.type === "start") {
     if (prev) return fail(prev, "a partida já foi iniciada");

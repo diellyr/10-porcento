@@ -9,7 +9,7 @@ import { LOCATIONS } from "@/game/content/locations";
 import { NIVEIS } from "@/game/content/niveis";
 import { fictionalScenario, levelScenario } from "@/game/content/scenario";
 import type { ConvNode } from "@/game/content/types";
-import { apply, optionLock } from "@/game/engine/rules";
+import { apply, migrarEstado, optionLock } from "@/game/engine/rules";
 import type { Action, GameState } from "@/game/engine/types";
 
 /** Testes dos níveis 3 a 7 (conteúdo e trajetórias). Níveis ainda sem conteúdo são ignorados. */
@@ -146,5 +146,20 @@ describe("níveis 3–7 — infraestrutura", () => {
     for (let n = 1; n <= 7; n++) expect(LEVELS[n], String(n)).toBeTruthy();
     for (let n = 2; n <= 7; n++) expect(LEVELS[n]!.primeiro).toBe(LEVELS[n - 1]!.ultimo + 1);
     for (const n of [3, 4, 5, 6, 7]) expect(LEVELS[n]!.locais).toHaveLength(5);
+  });
+});
+
+describe("saves antigos", () => {
+  it("estado sem nivel/historico é migrado e pode ser promovido ao fim do nível 1", () => {
+    const fim = ateNivel(2); // início do nível 2 vindo de promoção; para o teste usamos o estado encerrado do nível 1
+    expect(fim.nivel).toBe(2);
+    let s = run(null, { type: "start", playerName: "Velho", avatar: "av1", scenario, seed: 7, gameId: "gl-old" });
+    ["q1", "q2", "q3"].forEach((q, i) => { s = run(s, { type: "quiz.answer", questionId: q, optionId: ["analisar", "dados", "provar"][i]! }); });
+    s = playLevel(s, best, 1);
+    const velho = { ...s } as Partial<GameState>; delete velho.nivel; delete velho.historico;
+    expect(migrarEstado(velho as GameState).nivel).toBe(1);
+    const r = apply(velho as GameState, "promo-old", { type: "promote" });
+    expect(r.ok).toBe(true);
+    if (r.ok) { expect(r.state.nivel).toBe(2); expect(r.state.historico).toHaveLength(1); }
   });
 });

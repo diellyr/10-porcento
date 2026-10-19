@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { audio } from "../audio/AudioManager";
 import type { ConvNode, ConversationDef } from "../content/types";
-import { LEVELS, levelOf } from "../content/levels";
+import { LEVELS, levelOf, nivelDe } from "../content/levels";
 import { NIVEL_MAX } from "../content/niveis";
 import { brl, brlShort } from "../engine/money";
 import { buildReport } from "../engine/report";
@@ -52,10 +52,10 @@ function endingConvNx(s: GameState): ConversationDef | null {
 
 function endingConv(s: GameState): ConversationDef | null {
   const e = s.ending!;
-  if ((s.nivel ?? 1) >= 3) return endingConvNx(s);
+  if ((nivelDe(s) ?? 1) >= 3) return endingConvNx(s);
   const dev = s.decisions.filter((d) => d.deliberado);
   const base = { caso: 99, location: levelOf(s).inicial, titulo: "Encerramento", negociacao: undefined };
-  if (e.id === "reconhecimento" && (s.nivel ?? 1) >= 2) return { ...base, id: "fim-reconhecimento-2", who: "lucia", apresentacao: "3d", start: "e1", nodes: {
+  if (e.id === "reconhecimento" && (nivelDe(s) ?? 1) >= 2) return { ...base, id: "fim-reconhecimento-2", who: "lucia", apresentacao: "3d", start: "e1", nodes: {
     e1: n("lucia", "feliz", `A espera por consulta com especialista caiu para ${Math.round(s.pub.filaMin)} dias. A população viu isso — e a Câmara também.`, "e2"),
     e2: n("lucia", "serio", "Você decidiu com dados, pediu o dinheiro pelo caminho legal e prestou contas sem esconder falhas. É raro e é o que sustenta uma gestão.", "e3"),
     e3: n("celia", "feliz", "Eu estava na primeira fila da audiência. Saí com o caderno cheio — e com menos desconfiança.", "e4"),
@@ -93,6 +93,7 @@ export function Ending({ onExit }: { onExit: () => void }) {
   const [aba, setAba] = useState<"resumo" | "relatorio" | "cartao">("resumo");
   useEffect(() => { audio.music(e.id === "reconhecimento" ? "final" : "tenso"); if (fase === "resultado") audio.sfx(e.id === "reconhecimento" ? "level" : "alert"); }, [e.id, fase]);
   const report = useMemo(() => buildReport(s), [s]);
+  const nv = nivelDe(s);
   const L = levelOf(s);
   const ini = L.inicio;
   const inicial = useMemo(() => worldView({ ...s, pub: { ...s.pub, qualidade: ini.qualidade, acesso: ini.acesso, equipe: ini.equipe, sustentabilidade: ini.sustentabilidade, filaMin: ini.filaMin, caixa: 0, estoqueDias: ini.estoqueDias }, personal: { ...s.personal, patrimonio: 18000 }, decisions: [], caso: L.primeiro }), [s, ini, L.primeiro]);
@@ -100,20 +101,20 @@ export function Ending({ onExit }: { onExit: () => void }) {
 
   if (fase === "cena" && conv) return <Dialogue conv={conv} s={s} onFinish={() => setFase("resultado")} onExit={() => setFase("resultado")} />;
   const bom = e.id === "reconhecimento" || e.id === "presidencia";
-  const podeAvancar = ((e.id === "reconhecimento" && e.promocao.elegivel) || (e.id === "responsabilizacao" && e.promocao.viaRede)) && s.nivel < NIVEL_MAX;
+  const podeAvancar = ((e.id === "reconhecimento" && e.promocao.elegivel) || (e.id === "responsabilizacao" && e.promocao.viaRede)) && nv < NIVEL_MAX;
   const faltam = e.promocao.criterios.filter((c) => !c.ok);
   const proxima = podeAvancar
-    ? <button className="g-btn green xl" onClick={() => { audio.sfx("level"); dispatch({ type: "promote" }); }}>{e.id === "reconhecimento" ? "➡ Ir para a próxima fase:" : "🕸️ Subir pelas conexões:"} {LEVELS[s.nivel + 1]!.cargo}</button>
+    ? <button className="g-btn green xl" onClick={() => { audio.sfx("level"); dispatch({ type: "promote" }); }}>{e.id === "reconhecimento" ? "➡ Ir para a próxima fase:" : "🕸️ Subir pelas conexões:"} {LEVELS[nv + 1]!.cargo}</button>
     : null;
   return (
     <div className="mx-auto max-w-5xl space-y-3 p-2 sm:p-4">
       <header className="g-card g-pop p-4 text-center sm:p-6" style={{ borderColor: bom ? "var(--g-green)" : e.id === "responsabilizacao" ? "var(--g-red)" : "var(--g-yellow)" }}>
         <p className="text-sm font-extrabold uppercase tracking-widest text-[color:var(--g-ink3)]">Encerramento local · {L.cargo}</p>
         <h1 className="mt-1 text-3xl font-bold sm:text-5xl">{bom ? "🏆" : e.id === "imperador" ? "👑" : e.id === "responsabilizacao" ? "⚖️" : e.id === "balanco-parcial" ? "🚩" : "🔁"} {e.titulo}</h1>
-        <ul className="mx-auto mt-3 max-w-2xl text-left text-[color:var(--g-ink2)]">{e.motivos.map((m, i) => <li key={i} className="mt-1">• {m}</li>)}</ul>
         {podeAvancar && <div className="mt-4 flex justify-center">{proxima}</div>}
-        {!podeAvancar && s.nivel < NIVEL_MAX && e.id !== "responsabilizacao" && faltam.length > 0 && <p className="mx-auto mt-3 max-w-2xl rounded-2xl bg-[#fff6dd] p-3 text-left text-sm"><b>Para liberar a próxima fase</b> ({LEVELS[s.nivel + 1]!.cargo}): {faltam.map((c) => `${c.rotulo} (${c.detalhe})`).join("; ")}. Revise o Caderno e jogue de novo.</p>}
-        <p className="mx-auto mt-3 max-w-2xl rounded-2xl bg-[#eef2fe] p-3 text-sm"><b>Atenção:</b> {s.nivel >= 7 ? "este é o desfecho da carreira. Tudo é simulação: eleição, cargos, valores e finais são regras do jogo, não previsão sobre pessoas ou instituições reais." : `este é o encerramento do nível ${s.nivel} de 7. Os finais nacionais — Imperador Supremo e Presidência — vêm no fim da carreira.`}</p>
+        <ul className="mx-auto mt-3 max-w-2xl text-left text-[color:var(--g-ink2)]">{e.motivos.map((m, i) => <li key={i} className="mt-1">• {m}</li>)}</ul>
+        {!podeAvancar && nv < NIVEL_MAX && e.id !== "responsabilizacao" && faltam.length > 0 && <p className="mx-auto mt-3 max-w-2xl rounded-2xl bg-[#fff6dd] p-3 text-left text-sm"><b>Para liberar a próxima fase</b> ({LEVELS[nv + 1]!.cargo}): {faltam.map((c) => `${c.rotulo} (${c.detalhe})`).join("; ")}. Revise o Caderno e jogue de novo.</p>}
+        <p className="mx-auto mt-3 max-w-2xl rounded-2xl bg-[#eef2fe] p-3 text-sm"><b>Atenção:</b> {nv >= 7 ? "este é o desfecho da carreira. Tudo é simulação: eleição, cargos, valores e finais são regras do jogo, não previsão sobre pessoas ou instituições reais." : `este é o encerramento do nível ${nv} de 7. Os finais nacionais — Imperador Supremo e Presidência — vêm no fim da carreira.`}</p>
       </header>
       <div role="tablist" className="flex flex-wrap justify-center gap-2">
         {([["resumo", "📊 Resultado"], ["relatorio", "📄 Relatório e plano"], ["cartao", "🖼️ Card de resultado"]] as const).map(([k, l]) => <button key={k} role="tab" aria-selected={aba === k} className={`g-btn ${aba === k ? "" : "ghost"}`} onClick={() => setAba(k)}>{l}</button>)}
@@ -131,7 +132,7 @@ export function Ending({ onExit }: { onExit: () => void }) {
               <dl className="mt-2 grid grid-cols-2 gap-2 text-sm"><div><dt className="font-bold">Pontuação de Poder</dt><dd className="text-2xl font-extrabold">{e.poder.toFixed(0)}</dd></div><div><dt className="font-bold">Índice de legado</dt><dd className="text-2xl font-extrabold">{e.legado.toFixed(0)}</dd></div>
                 <div><dt className="font-bold">Índice de Trambicagem</dt><dd className="text-2xl font-extrabold">{e.trambicagem.toFixed(2).replace(".", ",")}%</dd></div><div><dt className="font-bold">Patrimônio final (fictício)</dt><dd className="text-2xl font-extrabold">{brlShort(e.patrimonioFinal)}</dd></div></dl>
               {e.bensPerdidos > 0 && <p className="mt-2 text-sm">Bruto antes da responsabilização: {brl(s.personal.patrimonio)} · bens perdidos: {brl(e.bensPerdidos)}. Riqueza antes da punição não é sucesso.</p>}
-              <h3 className="mt-3 font-bold">Promoção</h3><p className="text-sm">{s.nivel >= 7 ? "Você chegou ao topo da carreira: o que vale agora é o legado e o relatório." : e.promocao.elegivel || e.promocao.viaRede ? (s.nivel < NIVEL_MAX ? `Critérios atendidos: convite para ${LEVELS[s.nivel + 1]!.cargo} (nível ${s.nivel + 1}).` : `Critérios atendidos: o convite para ${L.proximo ?? "o próximo cargo"} (nível ${s.nivel + 1}) chega quando o próximo nível for publicado — em breve.`) : "Critérios não atendidos nesta campanha."}</p>
+              <h3 className="mt-3 font-bold">Promoção</h3><p className="text-sm">{nv >= 7 ? "Você chegou ao topo da carreira: o que vale agora é o legado e o relatório." : e.promocao.elegivel || e.promocao.viaRede ? (nv < NIVEL_MAX ? `Critérios atendidos: convite para ${LEVELS[nv + 1]!.cargo} (nível ${nv + 1}).` : `Critérios atendidos: o convite para ${L.proximo ?? "o próximo cargo"} (nível ${nv + 1}) chega quando o próximo nível for publicado — em breve.`) : "Critérios não atendidos nesta campanha."}</p>
               <ul className="mt-1 text-sm">{e.promocao.criterios.map((c) => <li key={c.rotulo}>{c.ok ? "✔" : "✖"} {c.rotulo}: {c.detalhe}</li>)}</ul></div>
           </section>
           <section className="g-card p-4"><h2 className="text-xl font-bold">🏅 Conquistas</h2><p className="mt-1 text-sm">{s.achievements.length ? s.achievements.join(" · ") : "Nenhuma desta vez."}</p></section>

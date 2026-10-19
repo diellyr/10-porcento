@@ -1,9 +1,9 @@
-# Versão do Brasil Fiscal
+# Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.5.0**
+**Versão atual: 0.6.0**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
-(cabeçalho do site, painel admin e tela de login). A fonte única do número é o campo `version` do `package.json`; este
+(cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
 arquivo guarda o histórico, e um teste (`tests/unit/version.test.ts`) falha se os dois divergirem.
 
 ## Aviso de atualização para quem usa o site
@@ -23,6 +23,14 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.6.0 — 2026-10-19
+- **MEUS 10%**: carreira completa em 7 níveis (48 casos): Administrador de UPA → Secretário Municipal → Articulador Regional → Secretário Estadual → Diretor de Órgão Federal → Ministro → Presidência (eleição simulada), com finais "Presidente" e "Imperador Supremo".
+- Botão **"Ir para a próxima fase"** em destaque no topo da tela final; lista o que falta quando a promoção não é liberada. Subida pelas conexões na trajetória de desvio.
+- Mapas 2D e salas 3D low-poly para todos os níveis; 15 personagens novos; relatório com plano de melhoria por nível.
+- Correção: partidas salvas antes dos níveis (sem o campo de nível) agora são migradas ao carregar — o botão da próxima fase aparece e a tela final mostra o nível certo.
+- Login: "Entrar com outra conta" (admin e jogo), com sugestão `ti@local`; tela de erro própria do jogo.
+- A versão passa a aparecer ao lado do nome **MEUS 10%**.
 
 ### 0.5.0 — 2026-10-09
 - **MEUS 10%**: novo jogo (aventura investigativa satírica de gestão pública) sobre a base do Brasil Fiscal. Página inicial `/` agora é a do jogo; o Brasil Fiscal passa a ficar em `/brasil-fiscal` (todas as páginas de dados seguem iguais).
