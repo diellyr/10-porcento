@@ -146,8 +146,9 @@ export function apply(prev: GameState | null, id: string, action: Action): Actio
   if (!prev) return fail(prev as unknown as GameState, "partida inexistente");
   if (prev.actionIds.includes(id)) return { state: prev, ok: true, duplicate: true };
   if (prev.phase === "encerrada" || prev.phase === "abandonada") {
-    if (action.type !== "favorite" && !(action.type === "promote" && prev.phase === "encerrada")) return fail(prev, "a partida já foi encerrada");
+    if (action.type !== "favorite" && !((action.type === "promote" || action.type === "replay") && prev.phase === "encerrada")) return fail(prev, "a partida já foi encerrada");
   }
+  if (action.type === "replay") return replayNivel(prev, id);
   const s: GameState = structuredClone(prev);
   const res = step(s, id, action);
   if (!res.ok) return { state: prev, ok: false, error: res.error };
@@ -155,6 +156,29 @@ export function apply(prev: GameState | null, id: string, action: Action): Actio
   s.actionIds = [...prev.actionIds, id].slice(-ID_LIMIT);
   s.actions = [...prev.actions, { id, action }];
   return { state: s, ok: true, note: res.note };
+}
+
+/**
+ * "Jogar de novo": reconstrói, a partir do próprio registro de ações, o estado do início da fase que terminou
+ * (depois da última promoção ou do quiz). Determinístico: o servidor, ao reproduzir o histórico, chega ao mesmo estado.
+ */
+function replayNivel(prev: GameState, id: string): ActionResult {
+  if (prev.phase !== "encerrada") return fail(prev, "só é possível jogar de novo ao fim da fase");
+  let corte = -1;
+  prev.actions.forEach((a, i) => { if (a.action.type === "promote") corte = i; });
+  if (corte < 0) prev.actions.forEach((a, i) => { if (a.action.type === "quiz.answer") corte = i; });
+  if (corte < 0) return fail(prev, "não há início de fase para recomeçar");
+  let st: GameState | null = null;
+  for (const a of prev.actions.slice(0, corte + 1)) {
+    const r: ActionResult = apply(st, a.id, a.action);
+    if (!r.ok) return fail(prev, "não foi possível reconstruir o início da fase");
+    st = r.state;
+  }
+  if (!st) return fail(prev, "não foi possível reconstruir o início da fase");
+  st.version = prev.version + 1;
+  st.actionIds = [...prev.actionIds, id].slice(-ID_LIMIT);
+  st.actions = [...st.actions, { id, action: { type: "replay" } }];
+  return { state: st, ok: true };
 }
 
 type Step = { ok: true; note?: string } | { ok: false; error: string };
@@ -303,6 +327,7 @@ function step(s: GameState, id: string, a: Exclude<Action, { type: "start" }>): 
       s.steps++;
       return OK;
     }
+    case "replay": return no("tratado fora do passo");
     case "abandon": {
       if (s.phase !== "jogando" && s.phase !== "quiz") return no("a partida já foi encerrada");
       s.phase = "abandonada";

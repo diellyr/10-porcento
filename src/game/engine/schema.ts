@@ -18,6 +18,7 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("repair"), valor: z.number().positive().max(1e9) }),
   z.object({ type: z.literal("favorite"), entryId: id }),
   z.object({ type: z.literal("promote") }),
+  z.object({ type: z.literal("replay") }),
   z.object({ type: z.literal("abandon") }),
 ]);
 export const ActionLogSchema = z.array(z.object({ id, action: ActionSchema })).min(1).max(400);

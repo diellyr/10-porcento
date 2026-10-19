@@ -111,7 +111,7 @@ export function Ending({ onExit }: { onExit: () => void }) {
       <header className="g-card g-pop p-4 text-center sm:p-6" style={{ borderColor: bom ? "var(--g-green)" : e.id === "responsabilizacao" ? "var(--g-red)" : "var(--g-yellow)" }}>
         <p className="text-sm font-extrabold uppercase tracking-widest text-[color:var(--g-ink3)]">Encerramento local · {L.cargo}</p>
         <h1 className="mt-1 text-3xl font-bold sm:text-5xl">{bom ? "🏆" : e.id === "imperador" ? "👑" : e.id === "responsabilizacao" ? "⚖️" : e.id === "balanco-parcial" ? "🚩" : "🔁"} {e.titulo}</h1>
-        {podeAvancar && <div className="mt-4 flex justify-center">{proxima}</div>}
+        {s.phase === "encerrada" && <div className="mt-4 flex flex-wrap justify-center gap-2">{podeAvancar && proxima}<button className="g-btn yellow" onClick={() => { if (window.confirm(`Jogar de novo a fase "${L.cargo}"? Ela recomeça do início e este resultado é descartado neste save (as fases anteriores ficam como estão).`)) { audio.sfx("click"); dispatch({ type: "replay" }); } }}>🔁 Jogar esta fase de novo</button></div>}
         <ul className="mx-auto mt-3 max-w-2xl text-left text-[color:var(--g-ink2)]">{e.motivos.map((m, i) => <li key={i} className="mt-1">• {m}</li>)}</ul>
         {!podeAvancar && nv < NIVEL_MAX && e.id !== "responsabilizacao" && faltam.length > 0 && <p className="mx-auto mt-3 max-w-2xl rounded-2xl bg-[#fff6dd] p-3 text-left text-sm"><b>Para liberar a próxima fase</b> ({LEVELS[nv + 1]!.cargo}): {faltam.map((c) => `${c.rotulo} (${c.detalhe})`).join("; ")}. Revise o Caderno e jogue de novo.</p>}
         <p className="mx-auto mt-3 max-w-2xl rounded-2xl bg-[#eef2fe] p-3 text-sm"><b>Atenção:</b> {nv >= 7 ? "este é o desfecho da carreira. Tudo é simulação: eleição, cargos, valores e finais são regras do jogo, não previsão sobre pessoas ou instituições reais." : `este é o encerramento do nível ${nv} de 7. Os finais nacionais — Imperador Supremo e Presidência — vêm no fim da carreira.`}</p>
@@ -142,6 +142,7 @@ export function Ending({ onExit }: { onExit: () => void }) {
       {aba === "cartao" && <ResultCard s={s} />}
       <footer className="flex flex-wrap justify-center gap-2 pb-6">
         {proxima}
+        {s.phase === "encerrada" && <button className="g-btn yellow" onClick={() => { if (window.confirm(`Jogar de novo a fase "${L.cargo}"? Ela recomeça do início e este resultado é descartado neste save (as fases anteriores ficam como estão).`)) { audio.sfx("click"); dispatch({ type: "replay" }); } }}>🔁 Jogar esta fase de novo</button>}
         <button className="g-btn orange" onClick={() => { close(); onExit(); }}>🏠 Menu principal</button>
         <Link href="/brasil-fiscal" className="g-btn ghost" target="_blank">📊 Brasil Fiscal ↗</Link>
         <span className="w-full text-center text-xs text-[color:var(--g-ink3)]">Jogue outra trajetória no mesmo cenário (<ClassChip c="estimativa" curto /> e dados congelados {s.scenario.hash}) para comparar decisões.</span>

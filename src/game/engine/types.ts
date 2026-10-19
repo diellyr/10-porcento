@@ -235,6 +235,8 @@ export type Action =
   | { type: "repair"; valor: number }
   | { type: "favorite"; entryId: string }
   | { type: "promote" }
+  /** joga de novo a fase que acabou de terminar (volta ao início dela; fases anteriores e histórico ficam) */
+  | { type: "replay" }
   | { type: "abandon" };
 
 export interface ActionResult { state: GameState; ok: boolean; duplicate?: boolean; error?: string; note?: string }

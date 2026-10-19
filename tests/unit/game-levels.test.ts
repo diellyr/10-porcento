@@ -163,3 +163,35 @@ describe("saves antigos", () => {
     if (r.ok) { expect(r.state.nivel).toBe(2); expect(r.state.historico).toHaveLength(1); }
   });
 });
+
+describe("jogar a fase de novo", () => {
+  it("recomeça a fase encerrada com o mesmo estado inicial, preservando as fases anteriores e permitindo outro resultado", () => {
+    const ini = ateNivel(2);                       // início do nível 2 (promovido por mérito)
+    const fim = playLevel(ini, best, 2);
+    expect(fim.phase).toBe("encerrada");
+    const r = apply(fim, "rp1", { type: "replay" });
+    expect(r.ok).toBe(true); if (!r.ok) return;
+    const s = r.state;
+    expect(s.phase).toBe("jogando"); expect(s.nivel).toBe(2); expect(s.caso).toBe(LEVELS[2]!.primeiro);
+    expect(s.decisions.filter((d) => d.caso >= LEVELS[2]!.primeiro)).toHaveLength(0);
+    expect(s.historico).toHaveLength(1);
+    expect(s.version).toBe(fim.version + 1);
+    expect(JSON.stringify({ ...s, version: 0, actionIds: 0, actions: 0 })).toBe(JSON.stringify({ ...ini, version: 0, actionIds: 0, actions: 0 }));
+    // mesma ação repetida não refaz; e dá para jogar de novo com outro caminho
+    expect(apply(s, "rp1", { type: "replay" }).ok).toBe(true);
+    const outro = playLevel(s, desvia, 2);
+    expect(outro.ending?.id).toBe("responsabilizacao");
+    // e jogar de novo mais uma vez volta ao mesmo início
+    const r2 = apply(outro, "rp2", { type: "replay" }); expect(r2.ok).toBe(true);
+    if (r2.ok) expect(r2.state.caso).toBe(LEVELS[2]!.primeiro);
+  });
+  it("vale também para a fase 1 (volta ao fim do quiz) e não vale durante a partida", () => {
+    let s = run(null, { type: "start", playerName: "T", avatar: "av1", scenario, seed: 7, gameId: "rp-1" });
+    ["q1", "q2", "q3"].forEach((q, i) => { s = run(s, { type: "quiz.answer", questionId: q, optionId: ["analisar", "dados", "provar"][i]! }); });
+    expect(apply(s, "rp-x", { type: "replay" }).ok).toBe(false);
+    const fim = playLevel(s, best, 1);
+    const r = apply(fim, "rp-y", { type: "replay" });
+    expect(r.ok).toBe(true);
+    if (r.ok) { expect(r.state.phase).toBe("jogando"); expect(r.state.caso).toBe(1); expect(r.state.decisions).toHaveLength(0); }
+  });
+});
