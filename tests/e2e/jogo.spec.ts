@@ -143,7 +143,7 @@ test("campanha competente pela interface: reconhecimento, relatório coerente e 
   await page.getByRole("tab", { name: /Card de resultado/ }).click();
   await expect(page.getByRole("img", { name: /Card de resultado/ })).toBeVisible();
   // promoção ao nível 2: a interface abre o primeiro caso da Secretaria sem erro
-  await page.getByRole("button", { name: /Assumir como/ }).click();
+  await page.getByRole("button", { name: /próxima fase/ }).first().click();
   await expect(page.getByText("Episódio 1 de 8").first()).toBeVisible({ timeout: 20000 });
   await expect(page.getByText("Algo deu errado")).toHaveCount(0);
 });

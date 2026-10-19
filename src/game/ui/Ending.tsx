@@ -100,12 +100,19 @@ export function Ending({ onExit }: { onExit: () => void }) {
 
   if (fase === "cena" && conv) return <Dialogue conv={conv} s={s} onFinish={() => setFase("resultado")} onExit={() => setFase("resultado")} />;
   const bom = e.id === "reconhecimento" || e.id === "presidencia";
+  const podeAvancar = ((e.id === "reconhecimento" && e.promocao.elegivel) || (e.id === "responsabilizacao" && e.promocao.viaRede)) && s.nivel < NIVEL_MAX;
+  const faltam = e.promocao.criterios.filter((c) => !c.ok);
+  const proxima = podeAvancar
+    ? <button className="g-btn green xl" onClick={() => { audio.sfx("level"); dispatch({ type: "promote" }); }}>{e.id === "reconhecimento" ? "➡ Ir para a próxima fase:" : "🕸️ Subir pelas conexões:"} {LEVELS[s.nivel + 1]!.cargo}</button>
+    : null;
   return (
     <div className="mx-auto max-w-5xl space-y-3 p-2 sm:p-4">
       <header className="g-card g-pop p-4 text-center sm:p-6" style={{ borderColor: bom ? "var(--g-green)" : e.id === "responsabilizacao" ? "var(--g-red)" : "var(--g-yellow)" }}>
         <p className="text-sm font-extrabold uppercase tracking-widest text-[color:var(--g-ink3)]">Encerramento local · {L.cargo}</p>
         <h1 className="mt-1 text-3xl font-bold sm:text-5xl">{bom ? "🏆" : e.id === "imperador" ? "👑" : e.id === "responsabilizacao" ? "⚖️" : e.id === "balanco-parcial" ? "🚩" : "🔁"} {e.titulo}</h1>
         <ul className="mx-auto mt-3 max-w-2xl text-left text-[color:var(--g-ink2)]">{e.motivos.map((m, i) => <li key={i} className="mt-1">• {m}</li>)}</ul>
+        {podeAvancar && <div className="mt-4 flex justify-center">{proxima}</div>}
+        {!podeAvancar && s.nivel < NIVEL_MAX && e.id !== "responsabilizacao" && faltam.length > 0 && <p className="mx-auto mt-3 max-w-2xl rounded-2xl bg-[#fff6dd] p-3 text-left text-sm"><b>Para liberar a próxima fase</b> ({LEVELS[s.nivel + 1]!.cargo}): {faltam.map((c) => `${c.rotulo} (${c.detalhe})`).join("; ")}. Revise o Caderno e jogue de novo.</p>}
         <p className="mx-auto mt-3 max-w-2xl rounded-2xl bg-[#eef2fe] p-3 text-sm"><b>Atenção:</b> {s.nivel >= 7 ? "este é o desfecho da carreira. Tudo é simulação: eleição, cargos, valores e finais são regras do jogo, não previsão sobre pessoas ou instituições reais." : `este é o encerramento do nível ${s.nivel} de 7. Os finais nacionais — Imperador Supremo e Presidência — vêm no fim da carreira.`}</p>
       </header>
       <div role="tablist" className="flex flex-wrap justify-center gap-2">
@@ -133,7 +140,7 @@ export function Ending({ onExit }: { onExit: () => void }) {
       {aba === "relatorio" && <ReportView report={report} />}
       {aba === "cartao" && <ResultCard s={s} />}
       <footer className="flex flex-wrap justify-center gap-2 pb-6">
-        {((e.id === "reconhecimento" && e.promocao.elegivel) || (e.id === "responsabilizacao" && e.promocao.viaRede)) && s.nivel < NIVEL_MAX && <button className="g-btn green xl" onClick={() => { audio.sfx("level"); dispatch({ type: "promote" }); }}>{e.id === "reconhecimento" ? "🏛️ Assumir como" : "🕸️ Subir pelas conexões:"} {LEVELS[s.nivel + 1]!.cargo}</button>}
+        {proxima}
         <button className="g-btn orange" onClick={() => { close(); onExit(); }}>🏠 Menu principal</button>
         <Link href="/brasil-fiscal" className="g-btn ghost" target="_blank">📊 Brasil Fiscal ↗</Link>
         <span className="w-full text-center text-xs text-[color:var(--g-ink3)]">Jogue outra trajetória no mesmo cenário (<ClassChip c="estimativa" curto /> e dados congelados {s.scenario.hash}) para comparar decisões.</span>
