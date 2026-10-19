@@ -1,5 +1,10 @@
 "use client";
 import { Versao } from "./Versao";
+import { GameBackground } from "./brand/GameBackground";
+import { CanetaPoder } from "./brand/CanetaPoder";
+import { GameLogo } from "./brand/GameLogo";
+import { GameMenuButton } from "./brand/GameMenuButton";
+import { IcElenco, IcEngrenagem, IcInfo, IcPerfil, IcPlay, IcRetomar, IcTrocar } from "./brand/icons";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -50,23 +55,25 @@ function Title({ onNovo, onContinuar, onConfig }: { onNovo: () => void; onContin
   const ref = useRef<HTMLDivElement>(null);
   const move = (e: React.PointerEvent) => { if (settings.reduzirMovimento || !ref.current) return; const r = ref.current.getBoundingClientRect(); ref.current.style.setProperty("--px", String(((e.clientX - r.left) / r.width - 0.5) * 2)); ref.current.style.setProperty("--py", String(((e.clientY - r.top) / r.height - 0.5) * 2)); };
   return (
-    <div ref={ref} onPointerMove={move} className="relative flex min-h-dvh flex-col overflow-hidden">
-      <div className="absolute inset-0"><HeroArt avatar="av1" className="h-full w-full" /></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-transparent to-white/45" aria-hidden />
-      <div className="relative z-10 flex flex-1 flex-col items-center px-4 pb-8 pt-8 text-center">
-        <p className="g-chip es">🎭 Sátira · tudo é ficção</p>
-        <h1 className="mt-2 text-[clamp(3.2rem,12vw,7.5rem)] font-bold leading-none tracking-tight" style={{ textShadow: "0 4px 0 #fff, 0 10px 30px rgb(27 35 64 / .35)", color: "var(--g-blue)" }}>MEUS <span style={{ color: "var(--g-orange-t)" }}>10%</span> <Versao className="!text-base" /></h1>
-        <p className="mt-2 max-w-xl text-lg font-bold sm:text-xl" style={{ textShadow: "0 2px 0 #fff" }}>Você recebeu uma caneta e dinheiro público. O que vai fazer com eles?</p>
-        <div className="mt-auto flex w-full max-w-sm flex-col gap-3 pt-10">
-          <button className="g-btn orange xl" onClick={() => { audio.unlock(); audio.sfx("confirm"); onNovo(); }}>▶ Nova partida</button>
-          <button className="g-btn xl" onClick={() => { audio.unlock(); audio.sfx("click"); onContinuar(); }} disabled={saves.length === 0}>↻ Continuar {saves.length > 0 && <span className="g-chip">{saves.length}</span>}</button>
-          <button className="g-btn ghost xl" onClick={() => { audio.unlock(); onConfig(); }}>⚙️ Configurações</button>
-          <div className="mt-1 flex flex-wrap justify-center gap-2 text-sm font-bold">
-            <Link href={session.logado ? "/perfil" : "/entrar?next=/jogo"} className="g-btn sm ghost">{session.logado ? `👤 ${session.nome ?? "Meu perfil"}` : "👤 Entrar / criar perfil"}</Link>
-            {session.logado && <Link href="/entrar?next=/jogo" className="g-btn sm ghost">🔁 Trocar de conta</Link>}
-            <Link href="/" className="g-btn sm ghost">Sobre o jogo</Link><Link href="/elenco" className="g-btn sm ghost">Elenco</Link><InstallShortcut />
+    <div ref={ref} onPointerMove={move} className="mx-tela">
+      <GameBackground />
+      <CanetaPoder />
+      <div className="mx-tela-corpo">
+        <p className="mx-selo">🎭 Sátira — tudo é ficção</p>
+        <GameLogo />
+        <p className="mx-slogan">Você recebeu uma caneta e dinheiro público. O que vai fazer com eles?</p>
+        <nav className="mx-menu mx-tela-menu" aria-label="Menu principal">
+          <GameMenuButton variante="primario" icone={<IcPlay />} seta atraso={450} onClick={() => { audio.unlock(); audio.sfx("confirm"); onNovo(); }}>Nova partida</GameMenuButton>
+          <GameMenuButton variante="azul" icone={<IcRetomar />} seta atraso={540} disabled={saves.length === 0} onClick={() => { audio.unlock(); audio.sfx("click"); onContinuar(); }}>Continuar {saves.length > 0 && <span className="g-chip">{saves.length}</span>}</GameMenuButton>
+          <GameMenuButton variante="escuro" icone={<IcEngrenagem />} seta atraso={630} onClick={() => { audio.unlock(); onConfig(); }}>Configurações</GameMenuButton>
+          <div className="mx-grade">
+            <GameMenuButton compacto icone={<IcPerfil />} atraso={720} href={session.logado ? "/perfil" : "/entrar?next=/jogo"}>{session.logado ? "Meu perfil" : "Entrar / perfil"}</GameMenuButton>
+            <GameMenuButton compacto icone={<IcTrocar />} atraso={780} href="/entrar?next=/jogo">Trocar de conta</GameMenuButton>
+            <GameMenuButton compacto icone={<IcInfo />} atraso={840} href="/">Sobre o jogo</GameMenuButton>
+            <GameMenuButton compacto icone={<IcElenco />} atraso={900} href="/elenco">Elenco</GameMenuButton>
           </div>
-        </div>
+          <div className="mx-instalar"><InstallShortcut className="g-btn" label="📲 Atalho — instalar o jogo" /></div>
+        </nav>
       </div>
     </div>
   );

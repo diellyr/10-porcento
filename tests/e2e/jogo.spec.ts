@@ -125,7 +125,7 @@ test("campanha competente pela interface: reconhecimento, relatório coerente e 
     await page.getByRole("button", { name: /Começar a investigar/ }).click(); await conversar(page); await explorar(page, c.caso); await confrontar(page, c.caso); await decidir(page, c.caso, best[c.caso]!); await proximo(page);
   }
   await page.reload();
-  const tela = page.getByRole("button", { name: /↻ Continuar/ });
+  const tela = page.getByRole("button", { name: /^Continuar/ });
   await expect(tela).toBeEnabled({ timeout: 15000 });
   await tela.click();
   await page.getByRole("button", { name: "Continuar", exact: true }).first().click();
