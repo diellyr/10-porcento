@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.6.1**
+**Versão atual: 0.6.2**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,9 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.6.2 — 2026-10-20
+- **MEUS 10%**: fase 5 ganha folga de caixa inicial (17% do orçamento) e passa a ter teste que exige caixa positivo e sustentabilidade ≥ 55 ao fim de cada fase na trajetória íntegra.
 
 ### 0.6.1 — 2026-10-19
 - **MEUS 10%**: botão **"Jogar esta fase de novo"** na tela final de qualquer fase — recomeça a fase do início (as anteriores ficam) para tentar outro caminho, com bons ou maus resultados. Funciona também em partidas com conta (o servidor reproduz o mesmo recomeço).

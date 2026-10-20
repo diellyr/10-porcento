@@ -54,7 +54,7 @@ function ateNivel(n: number) {
   if (!real && n > 2) {
     const N = LEVELS[n]!; const sc = levelScenario(s.scenario, n);
     s = { ...s, nivel: n, scenario: sc, phase: "jogando", ending: null, caso: N.primeiro, casoAberto: true, location: N.inicial, visited: [N.inicial], pending: [], consequences: [],
-      pub: { ...s.pub, qualidade: N.inicio.qualidade, acesso: N.inicio.acesso, equipe: N.inicio.equipe, sustentabilidade: N.inicio.sustentabilidade, estoqueDias: N.inicio.estoqueDias, filaMin: N.inicio.filaMin } };
+      pub: { ...s.pub, qualidade: N.inicio.qualidade, acesso: N.inicio.acesso, equipe: N.inicio.equipe, sustentabilidade: N.inicio.sustentabilidade, estoqueDias: N.inicio.estoqueDias, filaMin: N.inicio.filaMin, caixa: Math.round((sc.orcamentoAnual * N.inicio.caixaPct) / 100) } };
   }
   return s;
 }
@@ -133,6 +133,9 @@ describe.each(niveis)("nível %i — trajetórias", (n) => {
     expect(s.phase).toBe("encerrada"); expect(s.nivel).toBe(n); expect(s.personal.desviado).toBe(0);
     expect(s.ending?.id).toBe(n === 7 ? "presidencia" : "reconhecimento");
     if (n === 7) expect(s.eleicao?.venceu).toBe(true);
+    // a gestão íntegra não pode quebrar o caixa público nem a sustentabilidade fiscal
+    expect(s.pub.caixa, "caixa ao fim do nível").toBeGreaterThan(0);
+    expect(s.pub.sustentabilidade, "sustentabilidade ao fim do nível").toBeGreaterThanOrEqual(55);
   });
   it("desvio no nível leva à responsabilização (ou ao Imperador, no topo)", () => {
     const s = playLevel(ateNivel(n), desvia, n);

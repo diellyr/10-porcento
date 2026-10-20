@@ -55,7 +55,7 @@ export const LEVELS: Record<number, LevelDef> = {
     nivel: 5, cargo: "Diretor(a) de Órgão Federal", cargoCurto: "Federal", primeiro: 31, ultimo: 36,
     locais: ["diretoria", "sala-programas", "comissao-congresso", "controladoria", "almoxarifado-nacional"], inicial: "diretoria", salario: 46_000,
     rotulos: { fila: { nome: "Atraso médio dos repasses", un: " dias", ajuda: "dias médios entre a liberação e a chegada do repasse" }, estoque: { nome: "Estoque nacional", un: " d" }, unidade: "Agência Federal" },
-    inicio: { qualidade: 55, acesso: 48, equipe: 54, sustentabilidade: 55, estoqueDias: 20, filaMin: 45, caixaPct: 14 },
+    inicio: { qualidade: 55, acesso: 48, equipe: 54, sustentabilidade: 55, estoqueDias: 20, filaMin: 45, caixaPct: 17 },
     proximo: "Ministro(a) de Estado", desafio: "Programas, prestação de contas e coordenação",
   },
   6: {
