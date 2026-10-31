@@ -12,3 +12,4 @@ playwright-report
 .open-next
 .wrangler
 .dev.vars
+/public/estudo-assets/

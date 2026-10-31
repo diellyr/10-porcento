@@ -12,7 +12,7 @@ import { buildCena } from "./cena";
 import type { Estilo } from "./personagem";
 
 /** Correção de cor + vinheta (cinematográfica: sombras frias, luzes quentes). */
-const Grade = {
+export const Grade = {
   uniforms: { tDiffuse: { value: null }, amount: { value: 1 }, vignette: { value: 0.35 }, warm: { value: 0.08 } },
   vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
   fragmentShader: `uniform sampler2D tDiffuse; uniform float amount, vignette, warm; varying vec2 vUv;

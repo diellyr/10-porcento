@@ -9,13 +9,14 @@ import { beam, grain, picture, plaster, rug, wood, weave } from "./tex";
  * Cena do ESTUDO VISUAL: o Gabinete da Administração da UPA, em corte (duas paredes), com o Deputado Cornélio em discurso,
  * Toninho com o cafezinho e Joana com a prancheta. Mesma cena e mesmos personagens para as três direções.
  */
-export interface Cena { scene: THREE.Scene; cornelio: Personagem; luzes: THREE.Object3D[]; poeira: THREE.Points | null }
+export interface Cena { scene: THREE.Scene; cornelio: Personagem; luzes: THREE.Object3D[]; poeira: THREE.Points | null; piso: THREE.Mesh; sofa: THREE.Group; pessoas: THREE.Object3D[]; mesaMadeira: THREE.MeshPhysicalMaterial }
+export interface OpcoesCena { cine?: boolean }
 
 const RW = 7.4, RD = 5.8, WH = 3.0, WT = 0.18;
 
-export function buildCena(e: Estilo): Cena {
+export function buildCena(e: Estilo, op: OpcoesCena = {}): Cena {
   const scene = new THREE.Scene();
-  const cart = e === "a", cine = e === "c";
+  const cart = e === "a", cine = e === "c" || !!op.cine;
   const rb = (w: number, h: number, d: number, r: number) => new RoundedBoxGeometry(w, h, d, cart ? 4 : 2, Math.min(r * (cart ? 2.2 : 1), Math.min(w, h, d) / 2 - 0.001));
   const put = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number, parent: THREE.Object3D = scene) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
   const std = (color: string, o: THREE.MeshPhysicalMaterialParameters = {}) => new THREE.MeshPhysicalMaterial({ color: cart ? new THREE.Color(color).offsetHSL(0, 0.08, 0.02) : color, roughness: 0.75, ...o });
@@ -149,7 +150,8 @@ export function buildCena(e: Estilo): Cena {
   toninho.root.position.set(-1.25, 0, 0.35); toninho.root.rotation.y = 0.55; scene.add(toninho.root);
   const joana = buildPersonagem(CHARACTERS.joana.look, e, "prancheta");
   joana.root.position.set(2.15, 0, -1.6); joana.root.rotation.y = -0.6; scene.add(joana.root);
-  for (const p of [cornelio, toninho, joana]) { const c = contato(cart ? 1.1 : 0.8, cart ? 0.8 : 0.55); c.position.x = p.root.position.x; c.position.z = p.root.position.z; scene.add(c); }
+  const pessoas: THREE.Object3D[] = [cornelio.root, toninho.root, joana.root];
+  for (const p of [cornelio, toninho, joana]) { const c = contato(cart ? 1.1 : 0.8, cart ? 0.8 : 0.55); c.position.x = p.root.position.x; c.position.z = p.root.position.z; scene.add(c); pessoas.push(c); }
 
   // luzes
   const luzes: THREE.Object3D[] = [];
@@ -175,5 +177,5 @@ export function buildCena(e: Estilo): Cena {
     const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(arr, 3));
     poeira = new THREE.Points(geo, new THREE.PointsMaterial({ color: "#ffe6c0", size: 0.012, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(poeira);
   }
-  return { scene, cornelio, luzes, poeira };
+  return { scene, cornelio, luzes, poeira, piso, sofa: sof, pessoas, mesaMadeira: madeira };
 }

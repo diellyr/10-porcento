@@ -10,13 +10,16 @@ function G() {
   const w = Number(sp.get("w") ?? 1600), h = Number(sp.get("h") ?? 900);
   useEffect(() => {
     let vivo = true; let fim: (() => void) | undefined;
-    void import("@/game/ui/three/estudo/render").then(({ montarEstudo }) => {
-      if (!vivo || !ref.current) return;
+    void (async () => {
+      if (!ref.current) return;
       const t0 = performance.now();
-      const st = montarEstudo(ref.current, estilo, vista as 1 | 2, w, h); fim = st.dispose;
+      const st = (estilo as string).startsWith("r")
+        ? await (await import("@/game/ui/three/estudo/realista")).montarRealista(ref.current, estilo as unknown as "r1", vista as 1 | 2, w, h)
+        : (await import("@/game/ui/three/estudo/render")).montarEstudo(ref.current, estilo, vista as 1 | 2, w, h);
+      if (!vivo) { st.dispose(); return; } fim = st.dispose;
       st.render(); st.render();
       document.body.dataset.ms = String(Math.round(performance.now() - t0)); document.body.dataset.pronto = "1";
-    }).catch((e) => { document.body.dataset.erro = String(e); });
+    })().catch((e) => { document.body.dataset.erro = String(e); });
     return () => { vivo = false; fim?.(); };
   }, [estilo, vista, w, h]);
   return <canvas ref={ref} width={w} height={h} style={{ width: w, height: h, display: "block" }} aria-label={`Estudo visual ${estilo.toUpperCase()}${vista}`} />;
