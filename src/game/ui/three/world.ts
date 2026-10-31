@@ -6,10 +6,11 @@ import { bakeGroup, ambulance, ball, blob, board, box, boxPile, cabinet, chair, 
 import { ANCHORS, ROOM_D, ROOM_W, ROOMS, WALL_H, WALL_T, roomsDoNivel, type RoomDef } from "./world-data";
 import type { Quality } from "./support";
 import { LOC_INFO } from "../../content/niveis";
+import { gabineteRealista, personagemRealista, pisoMadeira } from "./realismo";
 import type { Tema } from "../../content/niveis/tipos";
 
 /** Cenário 3D da UPA em corte (casa de bonecas): salas com paredes que baixam quando ficam entre a câmera e o interior. */
-export interface WorldDyn { filaNivel: number; estoqueNivel: number; melhoria: number; luxo: number; degradacao: number; filaMin: number; people: Array<{ room: LocationId; hotspotId: string; look: Look; label: string }> }
+export interface WorldDyn { filaNivel: number; estoqueNivel: number; melhoria: number; luxo: number; degradacao: number; filaMin: number; people: Array<{ room: LocationId; hotspotId: string; char?: import("../../engine/types").CharId; look: Look; label: string }> }
 interface Wall { g: THREE.Group; nx: number; nz: number; roomId: LocationId; low: boolean; k: number }
 export interface World {
   root: THREE.Group;
@@ -30,7 +31,8 @@ function floorTexture(c1: string, c2: string, tiles: number, rep: [number, numbe
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
 
-export function buildWorld(q: Quality, nivel = 1): World {
+/** `realismo`: direção R2 (validação: Gabinete da Administração e personagens com modelo de corpo inteiro). */
+export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
   const ROOM_LIST = roomsDoNivel(nivel);
   const root = new THREE.Group();
   const roomG: Record<string, THREE.Group> = {};
@@ -76,6 +78,7 @@ export function buildWorld(q: Quality, nivel = 1): World {
     const g = new THREE.Group(); g.position.set(r.cx, 0, r.cz); root.add(g); roomG[r.id] = g;
     const ft = new THREE.Mesh(new THREE.BoxGeometry(r.w, 0.2, r.d), new THREE.MeshStandardMaterial({ map: floorTexture(r.floor, r.floor2, 4, [r.outdoor ? 2 : 3, 2]), roughness: r.outdoor ? 0.95 : 0.6, flatShading: true }));
     ft.position.y = -0.1; ft.receiveShadow = true; g.add(ft);
+    if (realismo && r.id === "administracao") void pisoMadeira(ft);
     for (const side of ["N", "S", "W", "E"] as const) mkWall(r, side, g, !!r.outdoor);
     props(r.id, g);
   }
@@ -118,6 +121,7 @@ export function buildWorld(q: Quality, nivel = 1): World {
         cabinet(g, 4.2, -0.4, -Math.PI / 2, "#dfe6f0", 1.2, 1.2); box(g, 0.9, 0.9, 0.6, "#e5484d", 3.9, 0, 1.8); box(g, 0.4, 0.1, 0.1, "#fff", 3.9, 0.55, 2.12); plant(g, 4.3, -3.0, 0.9);
         break; }
       case "administracao": {
+        if (realismo) { gabineteRealista(g); break; }
         desk(g, 0.4, -0.6, 3.0, 1.3, "#8a5528"); chair(g, 0.4, -1.7, "#a34a2a", 0, true); monitor(g, -0.6, 0.82, -0.5, 0); papers(g, 1.6, 0.82, -0.4, 5); cyl(g, 0.1, 0.5, "#ffcf44", 1.9, 0.82, -0.8, { emissive: "#ffcf44" });
         shelf(g, -3.8, -3.0, 3.0, 0, 4, 0.9, ["#7a4b32", "#a34a2a", "#3a6d9e", "#d9b44a", "#2f6f4f"]); shelf(g, 3.0, -3.0, 2.6, 0, 4, 0.9, ["#7a4b32", "#a34a2a", "#3a6d9e"]);
         sofa(g, 3.4, 2.2, Math.PI, "#7a4b32"); box(g, 1.0, 0.4, 0.6, "#c98e5a", 3.4, 0, 1.2); chair(g, -1.2, 1.0, "#d9a335", Math.PI); chair(g, 2.0, 0.9, "#d9a335", Math.PI);
@@ -177,7 +181,7 @@ export function buildWorld(q: Quality, nivel = 1): World {
       case "recepcao": rug(-1.2, 0.3, 3.4, 2.4, "#4a72d9"); bin(-4.4, 2.0); clock(0.4, 2.4, -3.3); ext(4.3, -2.1); board(g, 3.2, 2.5, -3.33, 1.1, 0.8, 0, "#fff3dc"); break;
       case "farmacia": clock(-0.8, 2.4, -3.3); bin(-2.4, 2.6); ext(4.4, 2.6, -Math.PI / 2); rug(0.4, 2.0, 2.6, 1.6, "#7fc4a6"); break;
       case "enfermagem": clock(0.6, 2.4, -3.3); bin(3.8, -2.2, "#9aa5b5"); rug(1.0, 1.4, 2.8, 1.8, "#8fb4e6"); ext(-4.4, 2.4, Math.PI / 2); box(g, 0.3, 0.4, 0.12, "#f4f6fb", 0.2, 1.1, -3.25); break;
-      case "administracao": rug(0.4, 0.4, 4.4, 3.0, "#8a2f2f"); clock(-1.6, 2.5, -3.3); board(g, 4.0, 2.5, -3.33, 1.2, 0.8, 0, "#e8dcc4"); cyl(g, 0.06, 1.6, "#6b4a2a", 4.3, 0, 2.6); box(g, 0.5, 0.05, 0.05, "#6b4a2a", 4.3, 1.5, 2.6); bin(-1.8, -2.6, "#8a5528"); break;
+      case "administracao": if (realismo) break; rug(0.4, 0.4, 4.4, 3.0, "#8a2f2f"); clock(-1.6, 2.5, -3.3); board(g, 4.0, 2.5, -3.33, 1.2, 0.8, 0, "#e8dcc4"); cyl(g, 0.06, 1.6, "#6b4a2a", 4.3, 0, 2.6); box(g, 0.5, 0.05, 0.05, "#6b4a2a", 4.3, 1.5, 2.6); bin(-1.8, -2.6, "#8a5528"); break;
       case "cofre": rug(0.2, 1.4, 3.2, 2.0, "#4b6d5c"); clock(3.0, 2.5, -3.3); bin(-3.4, 2.8); ext(4.4, 2.8, -Math.PI / 2); box(g, 1.0, 0.02, 0.7, "#e8dcc4", 1.8, 1.16, 0.4); break;
       case "secretaria": case "planejamento": case "prefeitura": case "camara": case "ubs": default: clock(-2.8, 2.5, id === "camara" || id === "ubs" ? 3.3 : -3.3); bin(-4.4, -2.6); rug(0.4, 1.4, 3.2, 2.0, id === "prefeitura" ? "#8a2f2f" : "#4a72d9"); break;
       case "patio": box(g, 1.8, 0.15, 0.5, "#8a5528", 3.8, 0.45, -2.9); box(g, 1.8, 0.4, 0.1, "#8a5528", 3.8, 0.6, -3.1); for (let i = 0; i < 4; i++) { cyl(g, 0.1, 0.8, "#f2b134", -4.4 + i * 0.01, 0, -2.0 + i * 1.3, {}, true); } break;
@@ -189,7 +193,7 @@ export function buildWorld(q: Quality, nivel = 1): World {
   bakeGroup(root, root, new Set<THREE.Object3D>([dynG, ...walls.map((w) => w.g)]));
 
   /* ───────── parte dinâmica: reconstruída quando o estado muda ───────── */
-  const clearDyn = () => { for (const c of [...dynG.children]) { dynG.remove(c); c.traverse((o) => { const m = o as THREE.Mesh; if (m.geometry && (m.userData.own === true)) m.geometry.dispose(); const mm = m.material as THREE.Material | undefined; if (mm && (mm as THREE.MeshBasicMaterial).map) { (mm as THREE.MeshBasicMaterial).map!.dispose(); mm.dispose(); } }); } };
+  const clearDyn = () => { for (const c of [...dynG.children]) { dynG.remove(c); if (c.userData.cache) continue; c.traverse((o) => { const m = o as THREE.Mesh; if (m.geometry && (m.userData.own === true)) m.geometry.dispose(); const mm = m.material as THREE.Material | undefined; if (mm && (mm as THREE.MeshBasicMaterial).map) { (mm as THREE.MeshBasicMaterial).map!.dispose(); mm.dispose(); } }); } };
   const local = (room: LocationId, x: number, y: number, z: number) => new THREE.Vector3(ROOMS[room].cx + x, y, ROOMS[room].cz + z);
   const setDynamic = (d: WorldDyn) => {
     clearDyn();
@@ -250,7 +254,7 @@ export function buildWorld(q: Quality, nivel = 1): World {
     // personagens presentes (os que têm conversa neste caso)
     for (const pe of d.people) {
       const a = ANCHORS[pe.hotspotId]; if (!a) continue;
-      const p = person(pe.look); p.position.copy(local(pe.room, a[0], 0, a[2])); p.rotation.y = ROOMS[pe.room].door === "N" ? 0.35 : -0.35; p.userData.hotspot = pe.hotspotId; p.userData.base = p.rotation.y; dynG.add(p);
+      const p = (realismo && pe.char ? personagemRealista(pe.char) : null) ?? person(pe.look); p.position.copy(local(pe.room, a[0], 0, a[2])); p.rotation.y = ROOMS[pe.room].door === "N" ? 0.35 : -0.35; p.userData.hotspot = pe.hotspotId; p.userData.base = p.rotation.y; dynG.add(p);
     }
   };
 

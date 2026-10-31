@@ -12,6 +12,16 @@ import { addEnvironment, disposeTree, makeRenderer, startLoop } from "./common";
 import { disposeMats } from "./lowpoly";
 import type { Quality } from "./support";
 import { buildWorld, type World, type WorldDyn } from "./world";
+import { ambienteHDRI } from "./realismo";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { GTAOPass } from "three/examples/jsm/postprocessing/GTAOPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
+import { Grade } from "./estudo/render";
 import { ROOMS, roomsDoNivel } from "./world-data";
 
 export type Modo = "mapa" | "sala";
@@ -29,7 +39,7 @@ function peopleAll(s: GameState): WorldDyn["people"] {
   for (const room of Object.keys(LOCATIONS) as LocationId[]) for (const h of LOCATIONS[room].hotspots) {
     if (h.kind !== "pessoa") continue;
     const e = h.entradas.find((x) => x.casos.includes(s.caso)); const c = e ? CONV_BY_ID[e.ref] : null;
-    if (c) out.push({ room, hotspotId: h.id, look: CHARACTERS[c.who as CharId].look, label: CHARACTERS[c.who as CharId].nome });
+    if (c) out.push({ room, hotspotId: h.id, char: c.who as CharId, look: CHARACTERS[c.who as CharId].look, label: CHARACTERS[c.who as CharId].nome });
   }
   return out;
 }
@@ -55,22 +65,38 @@ export function World3D(p: Props) {
     const canvas = document.createElement("canvas"); canvas.style.cssText = "width:100%;height:100%;display:block;touch-action:none;cursor:grab"; canvas.setAttribute("aria-hidden", "true"); el.prepend(canvas);
     let renderer: THREE.WebGLRenderer;
     try { renderer = makeRenderer(canvas, p.q); } catch { p.onFail(); return; }
-    renderer.setClearColor(0xcfe6ff, 1);
-    const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xcfe6ff, 60, 120);
+    // direção R2 (realista cinematográfico): materiais/HDRI a partir da qualidade média; pós-processamento só na alta
+    const realismo = p.q !== "baixa", pos = p.q === "alta";
+    const ceu = realismo ? 0x2b2a3a : 0xcfe6ff;
+    renderer.setClearColor(ceu, 1);
+    if (realismo) { renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.98; }
+    const scene = new THREE.Scene(); scene.fog = new THREE.Fog(ceu, 60, 120);
     const cam = new THREE.PerspectiveCamera(32, 1, 0.5, 200);
-    const envOff = addEnvironment(renderer, scene, 0.25);
-    const hemi = new THREE.HemisphereLight(0xfff4e0, 0xa7b9d8, 0.95); scene.add(hemi);
-    const key = new THREE.DirectionalLight(0xfff0d8, 2.1); key.position.set(-14, 26, 16); key.castShadow = p.q !== "baixa";
+    let envOff = addEnvironment(renderer, scene, 0.25);
+    if (realismo) void ambienteHDRI(renderer, scene, 0.32).then((off) => { envOff(); envOff = off; }).catch(() => undefined);
+    const hemi = realismo ? new THREE.HemisphereLight(0xc9d4f0, 0x6a5040, 0.5) : new THREE.HemisphereLight(0xfff4e0, 0xa7b9d8, 0.95); scene.add(hemi);
+    const key = new THREE.DirectionalLight(realismo ? 0xffd2a0 : 0xfff0d8, realismo ? 2.6 : 2.1); key.position.set(-14, 26, 16); key.castShadow = p.q !== "baixa";
     const sh = key.shadow; sh.mapSize.set(p.q === "alta" ? 2048 : 1024, p.q === "alta" ? 2048 : 1024); sh.camera.near = 5; sh.camera.far = 80; sh.camera.left = -24; sh.camera.right = 24; sh.camera.top = 18; sh.camera.bottom = -18; sh.bias = -0.0006; sh.normalBias = 0.04; sh.radius = 3;
     scene.add(key); scene.add(key.target);
-    const world = buildWorld(p.q, nivel); scene.add(world.root);
+    const world = buildWorld(p.q, nivel, realismo); scene.add(world.root);
+    let comp: EffectComposer | null = null; let bokeh: BokehPass | null = null;
+    if (pos) {
+      comp = new EffectComposer(renderer, new THREE.WebGLRenderTarget(800, 450, { type: THREE.HalfFloatType }));
+      comp.addPass(new RenderPass(scene, cam));
+      const ao = new GTAOPass(scene, cam, 800, 450); ao.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1, thickness: 1, scale: 1 }); ao.blendIntensity = 0.9; comp.addPass(ao);
+      comp.addPass(new UnrealBloomPass(new THREE.Vector2(800, 450), 0.18, 0.5, 0.92));
+      bokeh = new BokehPass(scene, cam, { focus: 10, aperture: 0.0025, maxblur: 0.007 }); bokeh.enabled = false; comp.addPass(bokeh);
+      comp.addPass(new OutputPass());
+      const grade = new ShaderPass(Grade); grade.uniforms.amount!.value = 0.75; grade.uniforms.vignette!.value = 0.32; grade.uniforms.warm!.value = 0.07; comp.addPass(grade);
+      comp.addPass(new SMAAPass());
+    }
     world.setDynamic(dyn);
 
     // estado da câmera orbital
     const cur = { tx: 0, ty: 0, tz: 0, dist: 32, pol: 0.95, az: 0.62 };
     const g = goal.current;
     const place = () => { const sp = Math.sin(cur.pol); cam.position.set(cur.tx + cur.dist * sp * Math.sin(cur.az), cur.ty + cur.dist * Math.cos(cur.pol), cur.tz + cur.dist * sp * Math.cos(cur.az)); cam.lookAt(cur.tx, cur.ty, cur.tz); };
-    const resize = () => { const w = el.clientWidth || 800, h = el.clientHeight || 450; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+    const resize = () => { const w = el.clientWidth || 800, h = el.clientHeight || 450; renderer.setSize(w, h, false); comp?.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); };
     resize(); const ro = new ResizeObserver(resize); ro.observe(el);
 
     // entrada: arrastar gira; roda/pinça aproxima
@@ -102,19 +128,23 @@ export function World3D(p: Props) {
       const asp = cam.aspect; const fit = asp < 1.6 ? Math.pow(1.6 / Math.max(0.5, asp), 0.85) : 1;
       cur.dist += (g.dist * fit * g.user - cur.dist) * k; if (!ptrs.size) cur.pol += (g.pol - cur.pol) * k * 0.6;
       // clima: gestão degradada deixa a luz fria e baixa; melhoria deixa quente e viva
-      const mood = Math.max(0, Math.min(1, (live.current.s.pub.qualidade - 25) / 60)); tmp.copy(keyCold).lerp(keyWarm, mood); key.color.copy(tmp); key.intensity = 1.7 + mood * 0.6; hemi.intensity = 0.8 + mood * 0.25;
+      const mood = Math.max(0, Math.min(1, (live.current.s.pub.qualidade - 25) / 60)); tmp.copy(keyCold).lerp(keyWarm, mood); key.color.copy(tmp); if (realismo) { key.color.lerp(new THREE.Color(0xffc890), 0.6); key.intensity = 2.1 + mood * 0.8; hemi.intensity = 0.38 + mood * 0.2; } else { key.intensity = 1.7 + mood * 0.6; hemi.intensity = 0.8 + mood * 0.25; }
       // a câmera da conversa sobe a cena para o rosto ficar acima do cartão de diálogo
       const wantVy = c.foco ? el.clientHeight * 0.16 : 0; vy += (wantVy - vy) * k; if (Math.abs(vy) > 0.5 || wantVy) { cam.setViewOffset(el.clientWidth, el.clientHeight, 0, vy, el.clientWidth, el.clientHeight); } else cam.clearViewOffset();
       place(); world.updateWalls(cam.position, c.reduzir ? 1 : dt);
       if (!c.reduzir) world.animate(clock, c.foco, audio.level());
-      key.target.position.set(cur.tx, 0, cur.tz); key.position.set(cur.tx - 14, 26, cur.tz + 16);
-      renderer.render(scene, cam);
+      key.target.position.set(cur.tx, 0, cur.tz); key.position.set(cur.tx - 14, realismo ? 15 : 26, cur.tz + (realismo ? 10 : 16));
+      if (comp) {
+        // profundidade de campo só nas conversas (aproximação), com foco no rosto
+        if (bokeh) { bokeh.enabled = !!c.foco; if (bokeh.enabled) { const a = world.anchor(c.s.location, c.foco!); a.y = 1.9; (bokeh.uniforms as unknown as { focus: { value: number } }).focus.value = cam.position.distanceTo(a); } }
+        comp.render();
+      } else renderer.render(scene, cam);
       const w = el.clientWidth, h = el.clientHeight;
       for (const a of c.hs) { const wp = world.anchor(c.s.location, a.h.id); if (a.h.kind === "pessoa") wp.y = 2.3; project(marks.current[a.h.id], wp, c.modo === "sala", w, h); }
       for (const r of ROOM_LIST) project(badges.current[r.id], world.center(r.id).setY(3.4), c.modo === "mapa", w, h);
     }, (fps) => { el.dataset.fps = String(fps); el.dataset.calls = String(renderer.info.render.calls); });
     el.dataset.pronto = "1";
-    return () => { stop(); ro.disconnect(); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("wheel", wheel); canvas.removeEventListener("webglcontextlost", lost); api.current = null; world.dispose(); disposeTree(scene); disposeMats(); envOff(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
+    return () => { stop(); ro.disconnect(); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("wheel", wheel); canvas.removeEventListener("webglcontextlost", lost); api.current = null; world.dispose(); comp?.dispose(); disposeTree(scene); disposeMats(); envOff(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.q, nivel]);
 

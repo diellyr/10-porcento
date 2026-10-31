@@ -32,3 +32,10 @@ Este arquivo separa **o que está concluído**, **o que está preparado** e **o 
 ## Mapa 3D da UPA (low-poly)
 - **Feito:** casa de bonecas em corte com seis salas, paredes que baixam ao girar, fila/estoque/TV de espera dinâmicos, figurantes com vida (respiração, quem fala se mexe), luxo e degradação visíveis, câmera de conversa, iluminação por clima. Peças fixas e cada boneco são fundidos com cor por vértice (≈100–200 chamadas de desenho por quadro, antes ≈1100).
 - **Pendente:** medir fps em celular real (o navegador de teste usa renderização por CPU); modelos `.glb` artísticos e animação de andar para os bonecos; interiores dos níveis 2–7.
+
+## Direção visual R2 (realista cinematográfico) — validação
+
+Aprovada a direção R2. Fase atual: **uma cena (Gabinete da Administração) e um personagem completo (Deputado Cornélio)**.
+- Ativa na qualidade 3D **alta** (HDRI, materiais PBR, luz quente, GTAO, bloom suave, correção de cor, profundidade de campo nas conversas) e, em parte, na **média** (HDRI e materiais, sem pós-processamento). Baixa e 2D seguem como antes.
+- Recursos em `public/jogo/3d/`: `venice_sunset_1k.hdr` (Poly Haven, CC0), `hardwood2_*.jpg` (exemplos do three.js), `GlamVelvetSofa.glb` (© 2021 Wayfair LLC, **CC BY 4.0** — crédito exibido na página inicial).
+- Pendente para expandir: demais salas e níveis no mesmo padrão; os demais personagens com modelo de corpo inteiro; personagens esculpidos/riggados profissionalmente para realismo de rosto (opção R3); medição de fps em celulares reais.

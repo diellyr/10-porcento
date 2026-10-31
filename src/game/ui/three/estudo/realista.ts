@@ -21,8 +21,6 @@ import { Grade, type Estudo } from "./render";
  */
 export type Real = "r1" | "r2" | "r3";
 const A = "/estudo-assets/";
-// a CSP do site não permite fetch de blob: (connect-src); sem createImageBitmap o GLTFLoader usa <img>, permitido por img-src
-if (typeof window !== "undefined") (window as unknown as { createImageBitmap?: unknown }).createImageBitmap = undefined;
 const gltf = new GLTFLoader();
 const load = (f: string) => gltf.loadAsync(A + f);
 const tex = (f: string, srgb = false, rep = 4) => new THREE.TextureLoader().loadAsync(A + f).then((t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; });

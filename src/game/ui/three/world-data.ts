@@ -58,7 +58,7 @@ const ANCHORS_BASE: Record<string, [number, number, number]> = {
   "n2-nelson": [-3.2, 0, 1.0], "n2-cornelio": [3.2, 0, 1.0], "n2-celia": [-1.2, 0, 2.0], "n2-bento": [1.4, 0, 2.0], "n2-mesa-cam": [0, 1.3, 0.2], "n2-d-pref-c": [-1.2, 1.9, -3.2], "n2-d-sec-c": [1.2, 1.9, -3.2],
   // UBS
   "n2-edu": [1.8, 0, 0.4], "n2-balcao": [-0.6, 1.4, -1.4], "n2-d-sec-u": [-1.2, 1.9, -3.2], "n2-d-plan-u": [1.2, 1.9, -3.2],
-  obra: [2.4, 1.6, -0.6], placa: [-0.6, 1.6, 0.6], cornelio: [-1.4, 0, 1.0], "p-rec3": [0, 1.9, -3.2],
+  obra: [2.4, 1.6, -0.6], placa: [-0.6, 1.6, 0.6], cornelio: [-1.1, 0, 1.75], "p-rec3": [0, 1.9, -3.2],
 };
 
 export const ANCHORS: Record<string, [number, number, number]> = { ...ANCHORS_BASE, ...Object.assign({}, ...Object.values(LOC_INFO).map(({ spec, slot }) => buildAnchors(spec, slot))) };

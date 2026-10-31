@@ -11,7 +11,7 @@ export function buildCsp(env: HeaderEnv): string {
   try {
     if (env.supabaseUrl) { const u = new URL(env.supabaseUrl); supabaseOrigin = u.origin; supabaseWs = `wss://${u.host}`; }
   } catch { /* URL inválida: ignora */ }
-  const connect = ["'self'", supabaseOrigin, supabaseWs, ...(env.production ? [] : ["ws:", "http://localhost:*"])].filter(Boolean);
+  const connect = ["'self'", "blob:", supabaseOrigin, supabaseWs, ...(env.production ? [] : ["ws:", "http://localhost:*"])].filter(Boolean);
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
     "script-src": ["'self'", "'unsafe-inline'", ...(env.production ? [] : ["'unsafe-eval'"])],
