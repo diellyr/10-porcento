@@ -17,7 +17,7 @@ export const viewport: Viewport = { themeColor: "#fafaf9", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" data-scroll-behavior="smooth">
       <body className="min-h-dvh">{children}<PwaRegister /><UpdateNotice /></body>
     </html>
   );
