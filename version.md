@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.7.0**
+**Versão atual: 0.7.1**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,10 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.7.1 — 2026-11-01
+- **MEUS 10%**: os efeitos de luz do visual realista (feixes de sol com poeira, brilho, correção de cor e vinheta) passam a valer também na qualidade **Média**, que é a escolhida automaticamente em celulares e tablets. A Alta continua com oclusão ambiente e profundidade de campo a mais.
+- Se o aparelho não aguentar (menos de 24 quadros por segundo por 3 segundos seguidos, depois da carga), os efeitos de pós-processamento se desligam sozinhos e o jogo segue com o visual realista sem eles.
 
 ### 0.7.0 — 2026-11-01
 - **MEUS 10%, visual 3D realista (direção R2) em todo o jogo**, nas qualidades Alta e Média (a Baixa e o modo 2D ficam como estavam):

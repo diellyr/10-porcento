@@ -31,6 +31,8 @@ const ICON: Record<string, string> = { novo: "🔍", visto: "✓", porta: "➜",
 interface Props {
   s: GameState; hs: ActiveHotspot[]; q: Quality; modo: Modo; foco: string | null; pins: Record<LocationId, RoomPin>;
   onPick: (a: ActiveHotspot) => void; onGoRoom: (l: LocationId) => void; onModo: (m: Modo) => void; reduzir: boolean; onFail: () => void;
+  /** só para capturas/diagnóstico: não desliga os efeitos de luz mesmo com fps baixo */
+  fixarEfeitos?: boolean;
 }
 
 /** Quem está em cada sala neste caso (todas as salas, para aparecerem na visão geral). */
@@ -65,8 +67,9 @@ export function World3D(p: Props) {
     const canvas = document.createElement("canvas"); canvas.style.cssText = "width:100%;height:100%;display:block;touch-action:none;cursor:grab"; canvas.setAttribute("aria-hidden", "true"); el.prepend(canvas);
     let renderer: THREE.WebGLRenderer;
     try { renderer = makeRenderer(canvas, p.q); } catch { p.onFail(); return; }
-    // direção R2 (realista cinematográfico): materiais/HDRI a partir da qualidade média; pós-processamento só na alta
-    const realismo = p.q !== "baixa", pos = p.q === "alta";
+    // direção R2 (realista cinematográfico): materiais, HDRI, feixes de sol e efeitos de luz a partir da qualidade média;
+    // na alta entram também oclusão ambiente e profundidade de campo
+    const realismo = p.q !== "baixa", pos = realismo, alta = p.q === "alta";
     const ceu = realismo ? 0x2b2a3a : 0xcfe6ff;
     renderer.setClearColor(ceu, 1);
     if (realismo) { renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.98; }
@@ -79,13 +82,14 @@ export function World3D(p: Props) {
     const sh = key.shadow; sh.mapSize.set(p.q === "alta" ? 2048 : 1024, p.q === "alta" ? 2048 : 1024); sh.camera.near = 5; sh.camera.far = 80; sh.camera.left = -24; sh.camera.right = 24; sh.camera.top = 18; sh.camera.bottom = -18; sh.bias = -0.0006; sh.normalBias = 0.04; sh.radius = 3;
     scene.add(key); scene.add(key.target);
     const world = buildWorld(p.q, nivel, realismo); scene.add(world.root);
-    let comp: EffectComposer | null = null; let bokeh: BokehPass | null = null;
+    let comp: EffectComposer | null = null; let bokeh: BokehPass | null = null; let posOff = false, lentas = 0, medidas = 0;
     if (pos) {
-      comp = new EffectComposer(renderer, new THREE.WebGLRenderTarget(800, 450, { type: THREE.HalfFloatType }));
+      const half = renderer.extensions.has("EXT_color_buffer_half_float") || renderer.extensions.has("EXT_color_buffer_float");
+      comp = new EffectComposer(renderer, new THREE.WebGLRenderTarget(800, 450, { type: half ? THREE.HalfFloatType : THREE.UnsignedByteType }));
       comp.addPass(new RenderPass(scene, cam));
-      const ao = new GTAOPass(scene, cam, 800, 450); ao.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1, thickness: 1, scale: 1 }); ao.blendIntensity = 0.9; comp.addPass(ao);
-      comp.addPass(new UnrealBloomPass(new THREE.Vector2(800, 450), 0.18, 0.5, 0.92));
-      bokeh = new BokehPass(scene, cam, { focus: 10, aperture: 0.0025, maxblur: 0.007 }); bokeh.enabled = false; comp.addPass(bokeh);
+      if (alta) { const ao = new GTAOPass(scene, cam, 800, 450); ao.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1, thickness: 1, scale: 1 }); ao.blendIntensity = 0.9; comp.addPass(ao); }
+      comp.addPass(new UnrealBloomPass(new THREE.Vector2(800, 450), alta ? 0.18 : 0.22, 0.5, 0.92));
+      if (alta) { bokeh = new BokehPass(scene, cam, { focus: 10, aperture: 0.0025, maxblur: 0.007 }); bokeh.enabled = false; comp.addPass(bokeh); }
       comp.addPass(new OutputPass());
       const grade = new ShaderPass(Grade); grade.uniforms.amount!.value = 0.75; grade.uniforms.vignette!.value = 0.32; grade.uniforms.warm!.value = 0.07; comp.addPass(grade);
       comp.addPass(new SMAAPass());
@@ -137,12 +141,16 @@ export function World3D(p: Props) {
       if (comp) {
         // profundidade de campo só nas conversas (aproximação), com foco no rosto
         if (bokeh) { bokeh.enabled = !!c.foco; if (bokeh.enabled) { const a = world.anchor(c.s.location, c.foco!); a.y = 1.9; (bokeh.uniforms as unknown as { focus: { value: number } }).focus.value = cam.position.distanceTo(a); } }
-        comp.render();
+        if (posOff) renderer.render(scene, cam); else comp.render();
       } else renderer.render(scene, cam);
       const w = el.clientWidth, h = el.clientHeight;
       for (const a of c.hs) { const wp = world.anchor(c.s.location, a.h.id); if (a.h.kind === "pessoa") wp.y = 2.3; project(marks.current[a.h.id], wp, c.modo === "sala", w, h); }
       for (const r of ROOM_LIST) project(badges.current[r.id], world.center(r.id).setY(3.4), c.modo === "mapa", w, h);
-    }, (fps) => { el.dataset.fps = String(fps); el.dataset.calls = String(renderer.info.render.calls); });
+    }, (fps) => {
+      el.dataset.fps = String(fps); el.dataset.calls = String(renderer.info.render.calls);
+      // na média, se o aparelho não aguentar os efeitos de luz (< 24 fps por 3 medições seguidas, ignorando os primeiros segundos de carga), eles são desligados
+      if (comp && !alta && !posOff && !p.fixarEfeitos && ++medidas > 5) { lentas = fps < 24 ? lentas + 1 : 0; if (lentas >= 3) { posOff = true; el.dataset.pos = "off"; } }
+    });
     el.dataset.pronto = "1";
     return () => { stop(); ro.disconnect(); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("wheel", wheel); canvas.removeEventListener("webglcontextlost", lost); api.current = null; world.dispose(); comp?.dispose(); disposeTree(scene); disposeMats(); envOff(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

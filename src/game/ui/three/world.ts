@@ -84,7 +84,7 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
       const madeira = ["administracao", "cofre", "secretaria", "prefeitura", "camara"].includes(r.id) || tema === "gabinete" || tema === "reuniao" || tema === "plenario";
       if (madeira) void pisoMadeira(ft, [r.w / 3.2, r.d / 3.2]);
       else { const m = ft.material as THREE.MeshStandardMaterial; ft.material = new THREE.MeshPhysicalMaterial({ map: m.map, roughness: r.outdoor || tema === "obra" ? 0.92 : 0.38, clearcoat: r.outdoor || tema === "obra" ? 0 : 0.45, clearcoatRoughness: 0.35 }); m.dispose(); }
-      if (q === "alta" && !r.outdoor) g.add(raiosDeSol(r.w, r.d, r.door));
+      if (realismo && !r.outdoor) g.add(raiosDeSol(r.w, r.d, r.door));
     }
     for (const side of ["N", "S", "W", "E"] as const) mkWall(r, side, g, !!r.outdoor);
     props(r.id, g);
