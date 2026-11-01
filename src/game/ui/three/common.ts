@@ -9,7 +9,7 @@ export function makeRenderer(canvas: HTMLCanvasElement, q: Quality) {
   r.toneMapping = THREE.ACESFilmicToneMapping;
   r.toneMappingExposure = 1.05;
   r.shadowMap.enabled = q !== "baixa";
-  r.shadowMap.type = THREE.PCFSoftShadowMap;
+  r.shadowMap.type = THREE.PCFShadowMap;
   r.setClearColor(0x000000, 0);
   return r;
 }

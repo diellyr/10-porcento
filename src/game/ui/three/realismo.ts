@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { CHARACTERS } from "../../content/characters";
 import type { CharId } from "../../engine/types";
+import type { Look } from "../../content/types";
+import { bakeGroup } from "./lowpoly";
 import { buildPersonagem, contato } from "./estudo/personagem";
 import { grain, picture, rug, weave } from "./estudo/tex";
 
@@ -29,7 +31,7 @@ const madeiraTex = (() => {
 
 /** Iluminação por imagem (HDRI real). Devolve a função de descarte. */
 export async function ambienteHDRI(renderer: THREE.WebGLRenderer, scene: THREE.Scene, intensidade: number): Promise<() => void> {
-  const hdr = await (hdrPromise ??= new RGBELoader().loadAsync(A + "venice_sunset_1k.hdr"));
+  const hdr = await (hdrPromise ??= new HDRLoader().loadAsync(A + "venice_sunset_1k.hdr"));
   hdr.mapping = THREE.EquirectangularReflectionMapping;
   const pm = new THREE.PMREMGenerator(renderer); const rt = pm.fromEquirectangular(hdr);
   scene.environment = rt.texture; scene.environmentIntensity = intensidade; scene.environmentRotation.set(0, 1.2, 0);
@@ -131,15 +133,55 @@ export function gabineteRealista(g: THREE.Group): { sofa: THREE.Group } {
   return { sofa };
 }
 
-/** Personagens com modelo de corpo inteiro nesta fase de validação (os demais seguem low-poly). */
-export const COM_MODELO: Partial<Record<CharId, "discurso" | "parado" | "cafezinho" | "prancheta">> = { cornelio: "discurso" };
+/** Pose de cada personagem nomeado no mundo (os demais ficam de pé, parados). */
+const POSE: Partial<Record<CharId, "discurso" | "parado" | "cafezinho" | "prancheta">> = { cornelio: "discurso", toninho: "cafezinho", joana: "prancheta", ana: "prancheta", roberto: "prancheta", nelson: "discurso", ramiro: "discurso", goncalo: "discurso", vivian: "prancheta", cecilia: "prancheta" };
 const cache = new Map<string, THREE.Group>();
-export function personagemRealista(id: CharId): THREE.Group | null {
-  const pose = COM_MODELO[id]; if (!pose) return null;
-  let g = cache.get(id);
+
+/** Personagem nomeado com modelo de corpo inteiro. Na qualidade média as peças são unidas (menos chamadas de desenho). */
+export function personagemRealista(id: CharId, unir = false): THREE.Group {
+  const k = `${id}|${unir}`; let g = cache.get(k);
   if (!g) {
-    const p = buildPersonagem(CHARACTERS[id].look, "b", pose); g = new THREE.Group(); p.root.scale.set(1.3, 1.2, 1.3); g.add(p.root);
-    const c = contato(0.9, 0.6); g.add(c); keep(g); g.userData.cache = true; cache.set(id, g);
+    const p = buildPersonagem(CHARACTERS[id].look, "b", POSE[id] ?? "parado"); g = new THREE.Group(); p.root.scale.set(1.3, 1.2, 1.3); g.add(p.root);
+    if (unir) bakeGroup(p.root, p.root);
+    g.add(contato(0.9, 0.6)); keep(g); g.userData.cache = true; cache.set(k, g);
   }
   return g;
+}
+
+/** Figurante (equipe, pacientes, cidadãos): versão leve do mesmo modelo, unida em poucas malhas e reaproveitada por cor/pose. */
+const figCache = new Map<string, THREE.Group>();
+export function figuranteRealista(look: Look, o: { sit?: boolean; scale?: number } = {}): THREE.Group {
+  const k = JSON.stringify([look.pele, look.roupa, look.roupa2, look.roupaTipo, look.cabelo, look.cabeloEstilo, !!o.sit]);
+  let base = figCache.get(k);
+  if (!base) {
+    const p = buildPersonagem(look, "b", o.sit ? "sentado" : "parado", { leve: true }); base = new THREE.Group(); p.root.scale.set(1.3, 1.2, 1.3); base.add(p.root);
+    bakeGroup(p.root, p.root); keep(base); figCache.set(k, base);
+  }
+  const g = base.clone(); g.scale.multiplyScalar(o.scale ?? 1); g.userData.cache = true; return g;
+}
+
+/** Feixes de sol entrando pela janela da parede oeste e poeira em suspensão (qualidade alta). */
+export function raiosDeSol(w: number, d: number, door: "N" | "S"): THREE.Group {
+  const g = new THREE.Group(); void d; void door;
+  const dir = new THREE.Vector3(0.62, -0.62, -0.32).normalize(), Y = new THREE.Vector3(0, 1, 0);
+  const mat = new THREE.MeshBasicMaterial({ map: feixe(), transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, color: "#ffd6a0" });
+  for (let i = 0; i < 4; i++) {
+    const L = 4.6, m = new THREE.Mesh(new THREE.PlaneGeometry(0.5, L), mat);
+    const o = new THREE.Vector3(-w / 2 + 0.15, 1.75 + (i % 2) * 0.25, (i - 1.5) * 0.32);
+    m.position.copy(o).addScaledVector(dir, L / 2); m.quaternion.setFromUnitVectors(Y, dir.clone().negate()); m.rotateY(i * 0.7);
+    m.renderOrder = 3; g.add(m);
+  }
+  const n = 90, arr = new Float32Array(n * 3); let s = Math.round(w * 97); const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < n; i++) { const k = rnd() * 4; arr[i * 3] = -w / 2 + 0.3 + dir.x * k + (rnd() - 0.5) * 0.6; arr[i * 3 + 1] = 1.8 + dir.y * k + (rnd() - 0.5) * 0.5; arr[i * 3 + 2] = dir.z * k + (rnd() - 0.5) * 1.2; }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(arr, 3));
+  g.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: "#ffe6c0", size: 0.025, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending })));
+  return keep(g) as THREE.Group;
+}
+let feixeTex: THREE.Texture | null = null;
+function feixe() {
+  if (feixeTex) return feixeTex;
+  const c = document.createElement("canvas"); c.width = 64; c.height = 256; const x = c.getContext("2d")!;
+  const v = x.createLinearGradient(0, 0, 0, 256); v.addColorStop(0, "rgba(255,240,210,1)"); v.addColorStop(1, "rgba(255,240,210,0)"); x.fillStyle = v; x.fillRect(0, 0, 64, 256);
+  const h = x.createLinearGradient(0, 0, 64, 0); h.addColorStop(0, "rgba(0,0,0,1)"); h.addColorStop(0.5, "rgba(0,0,0,0)"); h.addColorStop(1, "rgba(0,0,0,1)"); x.globalCompositeOperation = "destination-out"; x.fillStyle = h; x.fillRect(0, 0, 64, 256);
+  feixeTex = new THREE.CanvasTexture(c); feixeTex.colorSpace = THREE.SRGBColorSpace; return feixeTex;
 }

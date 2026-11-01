@@ -5,6 +5,8 @@ import type { Look } from "../../content/types";
 import type { Emotion } from "../../engine/types";
 import { addEnvironment, disposeTree, makeRenderer, startLoop } from "./common";
 import { buildBust, type Bust } from "./head";
+import { buildPersonagem, type Personagem } from "./estudo/personagem";
+import { ambienteHDRI } from "./realismo";
 import type { Quality } from "./support";
 
 export interface FaceSceneProps { look: Look; emocao: Emotion; falando: boolean; qualidade: Quality; reduzir: boolean; nivel: () => number; onFail: () => void; nome: string }
@@ -20,14 +22,24 @@ export default function FaceScene(p: FaceSceneProps) {
     try { renderer = makeRenderer(canvas, p.qualidade); } catch { p.onFail(); return; }
     const scene = new THREE.Scene();
     const cam = new THREE.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(0, -0.2, 8.2); cam.lookAt(0, -0.5, 0);
-    const envOff = addEnvironment(renderer, scene, 0.28);
+    let envOff = addEnvironment(renderer, scene, 0.28);
+    // direção R2: personagem de corpo inteiro enquadrado do peito para cima (baixa qualidade mantém o busto anterior)
+    const realismo = p.qualidade !== "baixa";
+    if (realismo) { renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0; void ambienteHDRI(renderer, scene, 0.4).then((off) => { envOff(); envOff = off; }).catch(() => undefined); }
     scene.add(new THREE.HemisphereLight(0xfff6e8, 0x9fb0d8, 0.7));
     const key = new THREE.DirectionalLight(0xfff0dc, 2.6); key.position.set(-3.5, 3.5, 5); key.castShadow = p.qualidade !== "baixa"; key.shadow.mapSize.set(p.qualidade === "alta" ? 2048 : 1024, p.qualidade === "alta" ? 2048 : 1024); key.shadow.radius = 4; key.shadow.camera.near = 1; key.shadow.camera.far = 14; key.shadow.camera.left = -3; key.shadow.camera.right = 3; key.shadow.camera.top = 3; key.shadow.camera.bottom = -3; key.shadow.bias = -0.0005; key.shadow.normalBias = 0.03; scene.add(key);
     const fill = new THREE.DirectionalLight(0xbcd0ff, 0.9); fill.position.set(4, 0.5, 4); scene.add(fill);
     const rim = new THREE.DirectionalLight(0xffe6c0, 1.6); rim.position.set(2, 3, -4); scene.add(rim);
-    let bust: Bust = buildBust(p.look, p.qualidade); scene.add(bust.root);
+    let bust: Bust | null = null; let pers: Personagem | null = null;
+    if (realismo) {
+      pers = buildPersonagem(p.look, "b", "parado"); scene.add(pers.root); scene.updateMatrixWorld(true);
+      const hp = new THREE.Vector3(); pers.cabeca.getWorldPosition(hp);
+      cam.position.set(hp.x + 0.12, hp.y - 0.02, hp.z + 0.95); cam.lookAt(hp.x, hp.y - 0.08, hp.z); cam.near = 0.05; cam.updateProjectionMatrix();
+      key.position.set(hp.x - 1.4, hp.y + 1.2, hp.z + 2); key.target.position.copy(hp); scene.add(key.target);
+      fill.position.set(hp.x + 1.6, hp.y, hp.z + 1.6); rim.position.set(hp.x + 0.8, hp.y + 1, hp.z - 1.6);
+    } else { bust = buildBust(p.look, p.qualidade); scene.add(bust.root); }
     const look0 = JSON.stringify(p.look);
-    const resize = () => { const w = el.clientWidth || 300, h = el.clientHeight || 300; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < 0.8 ? 30 : 24; cam.updateProjectionMatrix(); };
+    const resize = () => { const w = el.clientWidth || 300, h = el.clientHeight || 300; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = realismo ? (w / h < 0.8 ? 34 : 26) : w / h < 0.8 ? 30 : 24; cam.updateProjectionMatrix(); };
     resize(); const ro = new ResizeObserver(resize); ro.observe(el);
     const ptr = { x: 0, y: 0 }; const move = (e: PointerEvent) => { const r = el.getBoundingClientRect(); ptr.x = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2)); ptr.y = Math.max(-1, Math.min(1, -((e.clientY - r.top) / r.height - 0.5) * 2)); };
     window.addEventListener("pointermove", move);
@@ -35,11 +47,12 @@ export default function FaceScene(p: FaceSceneProps) {
     const stop = startLoop(p.qualidade, (dt, t) => {
       const c = live.current;
       if (JSON.stringify(c.look) !== look0) return; // identidade mudou: o componente é recriado pela chave do chamador
-      bust.update({ emocao: c.emocao, falando: c.falando, nivel: c.falando ? c.nivel() : 0, olhar: ptr, reduzir: c.reduzir }, dt, t);
+      if (bust) bust.update({ emocao: c.emocao, falando: c.falando, nivel: c.falando ? c.nivel() : 0, olhar: ptr, reduzir: c.reduzir }, dt, t);
+      else pers?.animar({ falando: c.falando, nivel: c.falando ? c.nivel() : 0, emocao: c.emocao, olhar: c.reduzir ? { x: 0, y: 0 } : ptr }, dt, t);
       renderer.render(scene, cam);
     }, (fps) => { if (fpsEl.current) fpsEl.current.textContent = String(fps); el.dataset.fps = String(fps); });
     el.dataset.pronto = "1";
-    return () => { stop(); ro.disconnect(); window.removeEventListener("pointermove", move); canvas.removeEventListener("webglcontextlost", lost); bust.dispose(); disposeTree(scene); envOff(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
+    return () => { stop(); ro.disconnect(); window.removeEventListener("pointermove", move); canvas.removeEventListener("webglcontextlost", lost); bust?.dispose(); disposeTree(scene); envOff(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.look.pele, p.look.cabeloEstilo, p.look.roupa, p.qualidade]);
   return (

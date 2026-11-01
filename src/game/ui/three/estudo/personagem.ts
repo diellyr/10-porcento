@@ -12,7 +12,10 @@ import { grain, hair as hairTex, iris, weave } from "./tex";
  * proporções, exagero da caricatura e materiais.
  */
 export type Estilo = "a" | "b" | "c";
-export type Pose = "discurso" | "cafezinho" | "prancheta" | "parado";
+export type Pose = "discurso" | "cafezinho" | "prancheta" | "parado" | "sentado";
+import type { Emotion } from "../../../engine/types";
+/** Quantidade de detalhe: figurantes usam a versão leve (menos polígonos, mãos sem dedos separados). */
+let LEVE = false;
 
 interface Prop {
   R: number;          // raio vertical da cabeça (m)
@@ -144,7 +147,8 @@ function cabeca(look: Look, e: Estilo, P: Prop, expr: { sobrancelha: number; sor
   const g = new THREE.Group();
   const cart = e === "a";
   const sk = mSkin(e, look.pele);
-  const geo = new THREE.SphereGeometry(1, 120, 90);
+  const geo = LEVE ? new THREE.SphereGeometry(1, 48, 36) : new THREE.SphereGeometry(1, 120, 90);
+  const anim = { lids: [] as THREE.Mesh[], brows: [] as THREE.Object3D[], lip: null as THREE.Object3D | null, boca: null as THREE.Mesh | null };
   const pos = geo.attributes.position!; const unit = new Float32Array(pos.array as Float32Array); (geo as unknown as { _unit: Float32Array })._unit = unit;
   const v = new THREE.Vector3(), o = new THREE.Vector3();
   for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); deformar(e, v, o); pos.setXYZ(i, o.x, o.y, o.z); }
@@ -183,31 +187,32 @@ function cabeca(look: Look, e: Estilo, P: Prop, expr: { sobrancelha: number; sor
     add(eg, new THREE.SphereGeometry(eyeR, 40, 28), sclera);
     const ic = irisCap(eyeR, eyeR * (cart ? 0.6 : 0.5), irisM); ic.rotation.y = -s * 0.08; ic.rotation.x = Math.PI / 2 + 0.06; eg.add(ic);
     if (cart) { const hl = add(eg, new THREE.SphereGeometry(eyeR * 0.13, 12, 8), new THREE.MeshBasicMaterial({ color: "#ffffff" }), eyeR * 0.25, eyeR * 0.28, eyeR * 0.97); hl.castShadow = false; }
-    const up = add(eg, new THREE.SphereGeometry(eyeR * 1.06, 40, 16, 0, Math.PI * 2, 0, Math.PI * 0.36), lid); up.rotation.x = 0.12 + expr.palpebra; up.rotation.z = -s * 0.06;
+    const up = add(eg, new THREE.SphereGeometry(eyeR * 1.06, 40, 16, 0, Math.PI * 2, 0, Math.PI * 0.36), lid); up.rotation.x = 0.12 + expr.palpebra; up.rotation.z = -s * 0.06; up.userData.base = up.rotation.x; anim.lids.push(up);
     const lo = add(eg, new THREE.SphereGeometry(eyeR * 1.04, 40, 10, 0, Math.PI * 2, Math.PI * 0.76, Math.PI * 0.24), lid); lo.rotation.x = -0.1;
     // linha de cílios (contorno superior)
-    const cil = add(eg, new THREE.TorusGeometry(eyeR * 1.02, eyeR * 0.05, 8, 40, Math.PI * 0.9), new THREE.MeshStandardMaterial({ color: "#1b1310", roughness: 0.6 }), 0, 0, 0);
-    cil.rotation.set(Math.PI / 2 - 1.0 - expr.palpebra, 0, Math.PI * 0.05); cil.position.set(0, eyeR * 0.02, eyeR * 0.02);
+    if (!LEVE) { const cil = add(eg, new THREE.TorusGeometry(eyeR * 1.02, eyeR * 0.05, 8, 40, Math.PI * 0.9), new THREE.MeshStandardMaterial({ color: "#1b1310", roughness: 0.6 }), 0, 0, 0);
+    cil.rotation.set(Math.PI / 2 - 1.0 - expr.palpebra, 0, Math.PI * 0.05); cil.position.set(0, eyeR * 0.02, eyeR * 0.02); }
   }
   // sobrancelhas: apoiadas na arcada; a direita arqueada (ironia)
   const hm = mHair(e, look.cabelo);
   for (const s of [-1, 1]) {
     const lift = s > 0 ? expr.sobrancelha : 0, by = (cart ? 0.29 : 0.25) + lift;
     const pts = [-0.12, -0.27, -0.44].map((xx, i) => { const q = sup(e, s * -xx, by + (i === 1 ? 0.035 + lift * 0.3 : 0)); return q.p.clone().addScaledVector(q.n, 0.02); });
-    strand(g, pts, cart ? 0.026 : 0.016, cart ? 0.045 : 0.027, hm, 12, 0.55);
+    const br = strand(g, pts, cart ? 0.026 : 0.016, cart ? 0.045 : 0.027, hm, LEVE ? 5 : 12, 0.55); br.userData.y0 = br.position.y; anim.brows.push(br);
   }
   // boca: linha + lábio inferior, sorriso de canto
   const sm = expr.sorriso, my = cart ? -0.56 : -0.58;
   const bocaPts = (dy: number, off: number) => [-0.24, -0.11, 0, 0.11, 0.25].map((xx) => { const cy = my + dy + (xx < 0 ? 0.02 * sm : 0.07 * sm) * (Math.abs(xx) / 0.25) ** 2; const q = sup(e, xx, cy); return q.p.clone().addScaledVector(q.n, off); });
   tube(g, bocaPts(0, 0.008), cart ? 0.014 : 0.009, new THREE.MeshStandardMaterial({ color: darken(look.pele, 0.62), roughness: 0.8 }));
   const lip = new THREE.MeshPhysicalMaterial({ color: lipColor(look.pele), roughness: 0.38, clearcoat: 0.35, sheen: 0.3 });
-  strand(g, bocaPts(-0.05, 0.012).slice(1, 4), cart ? 0.02 : 0.013, cart ? 0.034 : 0.022, lip, 10, 0.6);
+  anim.lip = strand(g, bocaPts(-0.05, 0.012).slice(1, 4), cart ? 0.02 : 0.013, cart ? 0.034 : 0.022, lip, LEVE ? 5 : 10, 0.6); anim.lip.userData.y0 = anim.lip.position.y;
+  { const q = sup(e, 0, my - 0.025); const bo = add(g, new THREE.SphereGeometry(1, 20, 12), new THREE.MeshStandardMaterial({ color: "#2a1210", roughness: 0.9 }), q.p.x, q.p.y, q.p.z - 0.01); bo.scale.set(0.16, 0.001, 0.05); bo.castShadow = false; anim.boca = bo; }
   if (!cart) strand(g, bocaPts(0.022, 0.008).slice(1, 4), 0.008, 0.012, lip, 10, 0.5);
   // bigode farto (sátira) acompanhando o rosto
   if (look.barba === "bigode") {
     const k = cart ? 1.35 : 1;
     const pts = [-0.36, -0.2, 0, 0.2, 0.37].map((xx) => { const q = sup(e, xx, -0.44 + (Math.abs(xx) > 0.3 ? 0.06 : 0)); return q.p.clone().addScaledVector(q.n, 0.045 * k); });
-    strand(g, pts, 0.03 * k, 0.062 * k, mHair(e, look.cabelo), 22, 0.7);
+    strand(g, pts, 0.03 * k, 0.062 * k, mHair(e, look.cabelo), LEVE ? 9 : 22, 0.7);
   }
   // cabelo: casca que acompanha o crânio, com linha do cabelo e volume por estilo
   const hh = mHair(e, look.cabelo, look.cabeloEstilo === "penteado");
@@ -228,7 +233,7 @@ function cabeca(look: Look, e: Estilo, P: Prop, expr: { sobrancelha: number; sor
   if (look.cabeloEstilo === "coque") { const q = deformar(e, V(0, 0.55, -0.8)); add(g, new THREE.SphereGeometry(0.27, 32, 24), hh, q.x, q.y + 0.05, q.z - 0.1); }
   if (look.cabeloEstilo === "penteado") { const q = deformar(e, V(-0.1, 0.78, 0.55).normalize()); const onda = add(g, new THREE.SphereGeometry(1, 40, 24), hh, q.x, q.y + 0.02, q.z - 0.06); onda.scale.set(0.5, 0.14, 0.32); onda.rotation.set(-0.45, 0.1, 0.12); }
   g.scale.setScalar(P.R);
-  return g;
+  return { g, anim };
 }
 
 /* ───────────── mãos ───────────── */
@@ -238,7 +243,7 @@ function mao(e: Estilo, P: Prop, skin: THREE.Material, curl: number[], polegar =
   palma.scale.set(1, 1, P.dedos === 4 ? 1.25 : 1);
   const n = P.dedos, larg = 0.075 * k, rr = (P.dedos === 4 ? 0.013 : 0.0085) * k;
   const lens = n === 4 ? [0.042, 0.048, 0.046, 0.038] : [0.04, 0.046, 0.044, 0.036];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < (LEVE ? 0 : 4); i++) {
     const x = -larg / 2 + larg * (i + 0.5) / 4;
     let parent: THREE.Object3D = g; let y = -0.088 * k;
     for (let seg = 0; seg < 2; seg++) {
@@ -266,9 +271,15 @@ function faixa(u0: number, u1: number, w: (u: number) => number, R: (u: number) 
 }
 
 /* ───────────── corpo ───────────── */
-export interface Personagem { root: THREE.Group; cabeca: THREE.Group; altura: number }
+export interface EstadoFala { falando: boolean; nivel: number; emocao?: Emotion; olhar?: { x: number; y: number } }
+export interface Personagem { root: THREE.Group; cabeca: THREE.Group; altura: number; animar: (st: EstadoFala, dt: number, t: number) => void }
 
-export function buildPersonagem(look: Look, e: Estilo, pose: Pose): Personagem {
+export function buildPersonagem(look: Look, e: Estilo, pose: Pose, opcoes: { leve?: boolean } = {}): Personagem {
+  LEVE = !!opcoes.leve;
+  try { return construir(look, e, pose); } finally { LEVE = false; }
+}
+
+function construir(look: Look, e: Estilo, pose: Pose): Personagem {
   const P = PROP[e]; const root = new THREE.Group();
   const cart = e === "a";
   const skin = mSkin(e, look.pele);
@@ -277,17 +288,24 @@ export function buildPersonagem(look: Look, e: Estilo, pose: Pose): Personagem {
   const clothTop = mCloth(e, jaleco ? look.roupa2 : look.roupa, terno ? "la" : jaleco ? "jaleco" : "algodao");
   const calca = mCloth(e, terno ? look.roupa : jaleco ? look.roupa : "#3a4268", terno ? "la" : "algodao");
   const camisa = mCloth(e, terno ? "#f4f6fb" : look.roupa2, "algodao");
-  const hip = P.perna, sh = hip + P.tronco, Lw = P.largura;
+  const sentado = pose === "sentado";
+  const hip = sentado ? 0.5 : P.perna, sh = hip + P.tronco, Lw = P.largura;
   const r = P.membro;
 
   // pernas
   for (const s of [-1, 1]) {
     const x = s * 0.1 * Lw * (cart ? 1.15 : 1);
     const coxa = P.perna * 0.5, canela = P.perna * 0.45;
-    add(root, new THREE.CapsuleGeometry(r * 1.45 * (cart ? 1.1 : 1), coxa, 8, 20), calca, x, hip - coxa / 2, 0);
-    add(root, new THREE.CapsuleGeometry(r * 1.2 * (cart ? 1.1 : 1), canela, 8, 20), calca, x, hip - coxa - canela / 2 + 0.01, 0.005);
+    if (sentado) {
+      // sentado: coxa horizontal para a frente, canela vertical até o chão
+      const cx = add(root, new THREE.CapsuleGeometry(r * 1.45, 0.4, 8, 20), calca, x, hip, 0.2); cx.rotation.x = Math.PI / 2;
+      add(root, new THREE.CapsuleGeometry(r * 1.2, hip - 0.12, 8, 20), calca, x, hip / 2 + 0.02, 0.42);
+    } else {
+      add(root, new THREE.CapsuleGeometry(r * 1.45 * (cart ? 1.1 : 1), coxa, 8, 20), calca, x, hip - coxa / 2, 0);
+      add(root, new THREE.CapsuleGeometry(r * 1.2 * (cart ? 1.1 : 1), canela, 8, 20), calca, x, hip - coxa - canela / 2 + 0.01, 0.005);
+    }
     // sapato de couro: bico arredondado + sola
-    const sap = new THREE.Group(); sap.position.set(x, 0, 0.04); root.add(sap);
+    const sap = new THREE.Group(); sap.position.set(x, 0, sentado ? 0.46 : 0.04); root.add(sap);
     const bico = add(sap, new THREE.SphereGeometry(1, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2), mLeather(e), 0, 0.02, 0.02); bico.scale.set(0.058 * (cart ? 1.5 : 1), 0.07 * (cart ? 1.3 : 1), 0.135 * (cart ? 1.3 : 1));
     add(sap, new RoundedBoxGeometry(0.12 * (cart ? 1.5 : 1), 0.022, 0.3 * (cart ? 1.3 : 1), 2, 0.008), new THREE.MeshStandardMaterial({ color: "#1a1210", roughness: 0.7 }), 0, 0.011, 0.02);
   }
@@ -342,7 +360,7 @@ export function buildPersonagem(look: Look, e: Estilo, pose: Pose): Personagem {
   add(root, new THREE.CylinderGeometry(0.052 * (cart ? 1.4 : 1), 0.06 * (cart ? 1.4 : 1), neckH + 0.04, 24), skin, 0, sh + neckH / 2 - 0.01, 0);
   const col = add(root, new THREE.CylinderGeometry(0.066 * (cart ? 1.4 : 1), 0.072 * (cart ? 1.4 : 1), 0.045, 28, 1, true), camisa, 0, sh + 0.025, 0.004); (col.material as THREE.Material).side = THREE.DoubleSide;
   const expr = look.barba === "bigode" ? { sobrancelha: 0.06 * (0.5 + P.caricatura), sorriso: 0.9, palpebra: 0.08 } : { sobrancelha: 0.01, sorriso: 0.6, palpebra: 0 };
-  const head = cabeca(look, e, P, expr);
+  const { g: head, anim } = cabeca(look, e, P, expr);
   head.position.set(0, sh + neckH + P.R * 0.92, 0.01); root.add(head);
 
   // braços: ombro → cotovelo → punho → mão (poses)
@@ -351,6 +369,7 @@ export function buildPersonagem(look: Look, e: Estilo, pose: Pose): Personagem {
     cafezinho: [{ ab: 0.1, fl: 0.1, tw: 0, cot: 0.2, curl: [0.5, 0.6, 0.6, 0.7] }, { ab: 0.15, fl: 0.5, tw: -0.2, cot: 1.45, curl: [0.9, 1, 1.1, 1.1] }],
     prancheta: [{ ab: 0.15, fl: 0.5, tw: 0.4, cot: 1.5, curl: [0.4, 0.4, 0.5, 0.5] }, { ab: 0.15, fl: 0.5, tw: -0.4, cot: 1.5, curl: [0.4, 0.4, 0.5, 0.5] }],
     parado: [{ ab: 0.1, fl: 0.05, tw: 0, cot: 0.2, curl: [0.5, 0.6, 0.6, 0.7] }, { ab: 0.1, fl: 0.05, tw: 0, cot: 0.2, curl: [0.5, 0.6, 0.6, 0.7] }],
+    sentado: [{ ab: 0.12, fl: 0.35, tw: 0, cot: 0.9, curl: [0.5, 0.6, 0.6, 0.7] }, { ab: 0.12, fl: 0.35, tw: 0, cot: 0.9, curl: [0.5, 0.6, 0.6, 0.7] }],
   };
   const braco = mCloth(e, jaleco ? look.roupa2 : look.roupa, terno ? "la" : "algodao");
   const maos: THREE.Group[] = [];
@@ -380,7 +399,23 @@ export function buildPersonagem(look: Look, e: Estilo, pose: Pose): Personagem {
     add(pr, new RoundedBoxGeometry(0.08, 0.03, 0.02, 2, 0.006), new THREE.MeshStandardMaterial({ color: "#c8ccd4", metalness: 0.8, roughness: 0.3 }), 0, 0.15 * (cart ? 1.3 : 1), 0.01);
   }
   const altura = sh + neckH + P.R * 2;
-  return { root, cabeca: head, altura };
+  // animação: piscar, abrir a boca com o nível da voz, sobrancelhas pela emoção e cabeça seguindo o olhar
+  let pisca = 2 + Math.random() * 3, fecha = 0, ab = 0;
+  const hr0 = head.rotation.clone();
+  const animar = (st: EstadoFala, dt: number, t: number) => {
+    pisca -= dt; if (pisca <= 0) { fecha = 0.14; pisca = 2.5 + Math.random() * 3.5; }
+    fecha = Math.max(0, fecha - dt); const k = fecha > 0 ? Math.sin((fecha / 0.14) * Math.PI) : 0;
+    for (const l of anim.lids) l.rotation.x = (l.userData.base as number) + k * 1.05;
+    const alvo = st.falando ? Math.min(1, st.nivel * 1.6) : 0; ab += (alvo - ab) * Math.min(1, dt * 18);
+    if (anim.boca) anim.boca.scale.y = 0.001 + ab * 0.07;
+    if (anim.lip) anim.lip.position.y = (anim.lip.userData.y0 as number) - ab * 0.06;
+    const ebr = st.emocao === "surpreso" ? 0.06 : st.emocao === "irritado" ? -0.04 : st.emocao === "preocupado" || st.emocao === "triste" ? 0.025 : st.emocao === "feliz" ? 0.015 : 0;
+    for (const b of anim.brows) b.position.y += ((b.userData.y0 as number) + ebr - b.position.y) * Math.min(1, dt * 6);
+    const ox = st.olhar?.x ?? 0, oy = st.olhar?.y ?? 0;
+    head.rotation.y += (hr0.y + ox * 0.25 + Math.sin(t * 0.5) * 0.03 - head.rotation.y) * Math.min(1, dt * 4);
+    head.rotation.x += (hr0.x - oy * 0.12 + (st.falando ? Math.sin(t * 7) * 0.012 * ab : 0) - head.rotation.x) * Math.min(1, dt * 4);
+  };
+  return { root, cabeca: head, altura, animar };
 }
 
 /** Sombra de contato (oclusão sob os pés): disco com gradiente, reforça o apoio no chão. */

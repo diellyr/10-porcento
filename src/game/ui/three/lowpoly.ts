@@ -1,15 +1,19 @@
 import * as THREE from "three";
 import type { Look } from "../../content/types";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { darken, lighten } from "../art/color";
 
 /** Peças low-poly (faces chapadas, cores vivas). Tudo em unidades ≈ metros; origem de cada peça no chão. */
 const mats = new Map<string, THREE.MeshStandardMaterial>();
+/** Direção R2: peças com cantos arredondados, sombreamento suave e mais segmentos. Ligada pelo construtor do mundo. */
+let REAL = false;
+export const setRealismoLowpoly = (on: boolean) => { REAL = on; };
 export function mat(color: string, o: { rough?: number; metal?: number; emissive?: string; transparent?: boolean; opacity?: number; flat?: boolean } = {}): THREE.MeshStandardMaterial {
-  const key = `${color}|${o.rough ?? ""}|${o.metal ?? ""}|${o.emissive ?? ""}|${o.opacity ?? ""}|${o.flat ?? ""}`;
+  const key = `${color}|${o.rough ?? ""}|${o.metal ?? ""}|${o.emissive ?? ""}|${o.opacity ?? ""}|${o.flat ?? ""}|${REAL}`;
   let m = mats.get(key);
   if (!m) {
-    m = new THREE.MeshStandardMaterial({ color, roughness: o.rough ?? 0.82, metalness: o.metal ?? 0, flatShading: o.flat ?? true, transparent: o.transparent, opacity: o.opacity ?? 1, emissive: o.emissive ? new THREE.Color(o.emissive) : undefined, emissiveIntensity: o.emissive ? 0.9 : 0 });
+    m = new THREE.MeshStandardMaterial({ color, roughness: o.rough ?? (REAL ? 0.7 : 0.82), metalness: o.metal ?? 0, flatShading: REAL ? false : o.flat ?? true, transparent: !!o.transparent, opacity: o.opacity ?? 1, ...(o.emissive ? { emissive: new THREE.Color(o.emissive), emissiveIntensity: 0.9 } : {}) });
     mats.set(key, m);
   }
   return m;
@@ -20,9 +24,9 @@ export const disposeMats = () => { for (const m of mats.values()) m.dispose(); m
 /** Material com cor por vértice: milhares de peças de cores diferentes viram poucas chamadas de desenho. */
 function vcMaterial(src: THREE.MeshStandardMaterial): { key: string; mat: THREE.MeshStandardMaterial; colored: boolean } {
   const emissive = src.emissiveIntensity > 0 && src.emissive.getHex() !== 0;
-  const key = `${src.roughness}|${src.metalness}|${src.flatShading}|${src.transparent ? src.opacity : 1}|${emissive ? src.color.getHexString() + src.emissive.getHexString() : ""}`;
+  const key = `${src.roughness}|${src.metalness}|${src.flatShading}|${src.transparent ? src.opacity : 1}|${emissive ? src.color.getHexString() + src.emissive.getHexString() : ""}|${src.side}`;
   let m = vcMats.get(key);
-  if (!m) { m = new THREE.MeshStandardMaterial({ color: emissive ? src.color : "#ffffff", vertexColors: !emissive, roughness: src.roughness, metalness: src.metalness, flatShading: src.flatShading, transparent: src.transparent, opacity: src.opacity, emissive: emissive ? src.emissive : undefined, emissiveIntensity: emissive ? src.emissiveIntensity : 0 }); vcMats.set(key, m); }
+  if (!m) { m = new THREE.MeshStandardMaterial({ color: emissive ? src.color : "#ffffff", vertexColors: !emissive, roughness: src.roughness, metalness: src.metalness, flatShading: src.flatShading, transparent: src.transparent, opacity: src.opacity, side: src.side, ...(emissive ? { emissive: src.emissive, emissiveIntensity: src.emissiveIntensity } : {}) }); vcMats.set(key, m); }
   return { key, mat: m, colored: !emissive };
 }
 
@@ -36,7 +40,10 @@ export function bakeGroup(group: THREE.Object3D, rel: THREE.Object3D, skip: Set<
     const m = o as THREE.Mesh;
     if (m.isMesh && m.material instanceof THREE.MeshStandardMaterial && !m.material.map && !m.userData.keep) {
       const g = (m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone()) as THREE.BufferGeometry;
-      for (const n of Object.keys(g.attributes)) if (n !== "position" && n !== "normal" && n !== "uv") g.deleteAttribute(n);
+      // só posição + normal: materiais assados não usam textura, e atributos diferentes impedem a junção
+      for (const n of Object.keys(g.attributes)) if (n !== "position" && n !== "normal") g.deleteAttribute(n);
+      if (!g.attributes.normal) g.computeVertexNormals();
+      g.morphAttributes = {};
       g.applyMatrix4(mm.multiplyMatrices(inv, m.matrixWorld));
       const v = vcMaterial(m.material);
       if (v.colored) { const n = g.attributes.position!.count, c = new Float32Array(n * 3), col = m.material.color; for (let i = 0; i < n; i++) { c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b; } g.setAttribute("color", new THREE.BufferAttribute(c, 3)); }
@@ -59,22 +66,25 @@ const cylHiG = new THREE.CylinderGeometry(1, 1, 1, 18);
 const coneG = new THREE.ConeGeometry(1, 1, 8);
 const icoG = new THREE.IcosahedronGeometry(1, 1);
 const sphG = new THREE.SphereGeometry(1, 14, 10);
+const rboxG = new RoundedBoxGeometry(1, 1, 1, 2, 0.045);
+const cylRG = new THREE.CylinderGeometry(1, 1, 1, 28);
+const sphRG = new THREE.SphereGeometry(1, 24, 16);
 
 type P = THREE.Object3D;
 function put<T extends THREE.Mesh>(m: T, parent: P, x: number, y: number, z: number, shadow = true): T { m.position.set(x, y, z); m.castShadow = shadow; m.receiveShadow = true; parent.add(m); return m; }
 
 /** Caixa com base em y (y = altura da base). */
 export function box(parent: P, w: number, h: number, d: number, color: string, x: number, y: number, z: number, o: Parameters<typeof mat>[1] = {}) {
-  const m = new THREE.Mesh(boxG, mat(color, o)); m.scale.set(w, h, d); return put(m, parent, x, y + h / 2, z);
+  const m = new THREE.Mesh(REAL && Math.max(w, h, d) <= 2.6 && Math.min(w, h, d) >= 0.03 ? rboxG : boxG, mat(color, o)); m.scale.set(w, h, d); return put(m, parent, x, y + h / 2, z);
 }
 export function cyl(parent: P, r: number, h: number, color: string, x: number, y: number, z: number, o: Parameters<typeof mat>[1] = {}, hi = false) {
-  const m = new THREE.Mesh(hi ? cylHiG : cylG, mat(color, o)); m.scale.set(r, h, r); return put(m, parent, x, y + h / 2, z);
+  const m = new THREE.Mesh(REAL ? cylRG : hi ? cylHiG : cylG, mat(color, o)); m.scale.set(r, h, r); return put(m, parent, x, y + h / 2, z);
 }
 export function cone(parent: P, r: number, h: number, color: string, x: number, y: number, z: number) {
   const m = new THREE.Mesh(coneG, mat(color)); m.scale.set(r, h, r); return put(m, parent, x, y + h / 2, z);
 }
 export function blob(parent: P, r: number, color: string, x: number, y: number, z: number, sy = 1) {
-  const m = new THREE.Mesh(icoG, mat(color)); m.scale.set(r, r * sy, r); return put(m, parent, x, y, z);
+  const m = new THREE.Mesh(REAL ? sphRG : icoG, mat(color)); m.scale.set(r, r * sy, r); return put(m, parent, x, y, z);
 }
 export function ball(parent: P, r: number, color: string, x: number, y: number, z: number, o: Parameters<typeof mat>[1] = {}) {
   const m = new THREE.Mesh(sphG, mat(color, { flat: false, ...o })); m.scale.set(r, r, r); return put(m, parent, x, y, z);

@@ -2,11 +2,11 @@ import * as THREE from "three";
 import type { Look } from "../../content/types";
 import type { LocationId } from "../../engine/types";
 import { darken, lighten } from "../art/color";
-import { bakeGroup, ambulance, ball, blob, board, box, boxPile, cabinet, chair, cone3, cyl, desk, extraLook, mat, monitor, papers, person, plant, safe, shelf, sign, sofa, tree, bed } from "./lowpoly";
+import { setRealismoLowpoly, bakeGroup, ambulance, ball, blob, board, box, boxPile, cabinet, chair, cone3, cyl, desk, extraLook, mat, monitor, papers, person, plant, safe, shelf, sign, sofa, tree, bed } from "./lowpoly";
 import { ANCHORS, ROOM_D, ROOM_W, ROOMS, WALL_H, WALL_T, roomsDoNivel, type RoomDef } from "./world-data";
 import type { Quality } from "./support";
 import { LOC_INFO } from "../../content/niveis";
-import { gabineteRealista, personagemRealista, pisoMadeira } from "./realismo";
+import { figuranteRealista, gabineteRealista, personagemRealista, pisoMadeira, raiosDeSol } from "./realismo";
 import type { Tema } from "../../content/niveis/tipos";
 
 /** Cenário 3D da UPA em corte (casa de bonecas): salas com paredes que baixam quando ficam entre a câmera e o interior. */
@@ -34,6 +34,7 @@ function floorTexture(c1: string, c2: string, tiles: number, rep: [number, numbe
 /** `realismo`: direção R2 (validação: Gabinete da Administração e personagens com modelo de corpo inteiro). */
 export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
   const ROOM_LIST = roomsDoNivel(nivel);
+  setRealismoLowpoly(realismo);
   const root = new THREE.Group();
   const roomG: Record<string, THREE.Group> = {};
   const dynG = new THREE.Group(); root.add(dynG);
@@ -78,7 +79,13 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
     const g = new THREE.Group(); g.position.set(r.cx, 0, r.cz); root.add(g); roomG[r.id] = g;
     const ft = new THREE.Mesh(new THREE.BoxGeometry(r.w, 0.2, r.d), new THREE.MeshStandardMaterial({ map: floorTexture(r.floor, r.floor2, 4, [r.outdoor ? 2 : 3, 2]), roughness: r.outdoor ? 0.95 : 0.6, flatShading: true }));
     ft.position.y = -0.1; ft.receiveShadow = true; g.add(ft);
-    if (realismo && r.id === "administracao") void pisoMadeira(ft);
+    if (realismo) {
+      const tema = LOC_INFO[r.id]?.spec.tema;
+      const madeira = ["administracao", "cofre", "secretaria", "prefeitura", "camara"].includes(r.id) || tema === "gabinete" || tema === "reuniao" || tema === "plenario";
+      if (madeira) void pisoMadeira(ft, [r.w / 3.2, r.d / 3.2]);
+      else { const m = ft.material as THREE.MeshStandardMaterial; ft.material = new THREE.MeshPhysicalMaterial({ map: m.map, roughness: r.outdoor || tema === "obra" ? 0.92 : 0.38, clearcoat: r.outdoor || tema === "obra" ? 0 : 0.45, clearcoatRoughness: 0.35 }); m.dispose(); }
+      if (q === "alta" && !r.outdoor) g.add(raiosDeSol(r.w, r.d, r.door));
+    }
     for (const side of ["N", "S", "W", "E"] as const) mkWall(r, side, g, !!r.outdoor);
     props(r.id, g);
   }
@@ -198,7 +205,8 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
   const setDynamic = (d: WorldDyn) => {
     clearDyn();
     // equipe e figurantes das salas (dão vida; não têm fala)
-    const at = (room: LocationId, x: number, z: number, look: Look, o: { sit?: boolean; yaw?: number; scale?: number } = {}) => { const p = person(look, { sit: o.sit, scale: o.scale }); p.position.copy(local(room, x, o.sit ? 0.08 : 0, z)); p.rotation.y = o.yaw ?? 0; p.userData.extra = true; dynG.add(p); return p; };
+    const pessoa = (look: Look, o: { sit?: boolean; scale?: number } = {}) => (realismo ? figuranteRealista(look, o) : person(look, o));
+    const at = (room: LocationId, x: number, z: number, look: Look, o: { sit?: boolean; yaw?: number; scale?: number } = {}) => { const p = pessoa(look, { sit: o.sit, scale: o.scale }); p.position.copy(local(room, x, o.sit ? 0.08 : 0, z)); p.rotation.y = o.yaw ?? 0; p.userData.extra = true; dynG.add(p); return p; };
     const nurse = (c: string, skin: string) => ({ ...extraLook(c, skin), roupaTipo: "jaleco" as const, roupa2: "#e9fbf8" });
     if (nivel === 1) {
     // TV de espera na recepção
@@ -211,20 +219,20 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
     // fila: pessoas sentadas na recepção
     const n = Math.min(6, 1 + d.filaNivel);
     const cols = [["#c9577a", "#a9724f"], ["#4f8f6f", "#d9ab87"], ["#d9a335", "#7a4a30"], ["#6d6fc4", "#c68d64"], ["#cc5a4a", "#8d5b3d"], ["#4a8fb8", "#e0b48f"]];
-    for (let i = 0; i < n; i++) { const p = person(extraLook(cols[i]![0]!, cols[i]![1]!), { sit: true, scale: 0.95 }); p.position.copy(local("recepcao", -4.0 + i * 1.25, 0.08, 2.3)); p.rotation.y = Math.PI; dynG.add(p); }
-    const kid = person(extraLook("#e2701c", "#c88a62"), { scale: 0.62 }); kid.position.copy(local("recepcao", -4.3, 0, 0.9)); kid.rotation.y = Math.PI; dynG.add(kid);
+    for (let i = 0; i < n; i++) { const p = pessoa(extraLook(cols[i]![0]!, cols[i]![1]!), { sit: true, scale: 0.95 }); p.position.copy(local("recepcao", -4.0 + i * 1.25, 0.08, 2.3)); p.rotation.y = Math.PI; dynG.add(p); }
+    const kid = pessoa(extraLook("#e2701c", "#c88a62"), { scale: 0.62 }); kid.position.copy(local("recepcao", -4.3, 0, 0.9)); kid.rotation.y = Math.PI; dynG.add(kid);
     // estoque da farmácia: prateleiras extras conforme o nível; melhoria: plantas viçosas
     const fa = new THREE.Group(); fa.position.set(ROOMS.farmacia.cx, 0, ROOMS.farmacia.cz); dynG.add(fa);
     if (d.estoqueNivel <= 1) { box(fa, 0.9, 0.04, 0.9, "#e5484d", -3.3, 2.3, -2.55); sign(fa, "FALTA", 1.0, 0.36, -3.3, 2.65, -2.9, 0, "#e5484d"); } else boxPile(fa, 3.6, 1.8, Math.min(6, d.estoqueNivel + 2), "#d9a35b");
     if (d.melhoria > 0) { plant(dynG, ROOMS.recepcao.cx + 0.4, ROOMS.recepcao.cz - 2.9, 0.9, true); plant(dynG, ROOMS.enfermagem.cx - 4.3, ROOMS.enfermagem.cz + 3.0, 0.9, true); }
     at("enfermagem", -2.4, 1.6, nurse("#2bb3a3", "#c4895e"), { yaw: -1.4 }); at("enfermagem", 2.2, -1.5, nurse("#5b8fd0", "#8d5b3d"), { sit: true, yaw: 0 });
-    { const pt = person(extraLook("#f7fbff", "#d9ab87", "#8a8a8a"), { sit: true }); pt.rotation.set(-Math.PI / 2 + 0.25, 0, 0); pt.position.copy(local("enfermagem", -3.6, 0.52, -1.35)); pt.rotation.order = "YXZ"; pt.rotation.y = 0; pt.rotation.x = -1.35; pt.userData.extra = true; dynG.add(pt); }
+    { const pt = pessoa(extraLook("#f7fbff", "#d9ab87", "#8a8a8a"), { sit: true }); pt.rotation.set(-Math.PI / 2 + 0.25, 0, 0); pt.position.copy(local("enfermagem", -3.6, 0.52, -1.35)); pt.rotation.order = "YXZ"; pt.rotation.y = 0; pt.rotation.x = -1.35; pt.userData.extra = true; dynG.add(pt); }
     at("farmacia", -1.4, -1.6, nurse("#6fcfae", "#b57a52"), { yaw: Math.PI }); at("farmacia", 0.6, 1.9, nurse("#4fb596", "#d9ab87"), { sit: true, yaw: Math.PI });
     at("cofre", 0.2, 1.7, extraLook("#6b7a99", "#c68d64"), { sit: true, yaw: Math.PI }); at("cofre", -2.4, -2.2, extraLook("#2e8a7a", "#8d5b3d"), { yaw: 0.6 });
     at("administracao", -1.2, 1.0, extraLook("#a34a2a", "#e0b48f", "#c9b27a"), { sit: true, yaw: Math.PI });
     at("patio", -4.2, 1.4, { ...extraLook("#ffffff", "#c88a62"), roupa2: "#e5484d" }, { yaw: 1.2 }); at("patio", 3.6, 1.6, { ...extraLook("#ffcf44", "#a9724f"), cabeloEstilo: "careca" }, { yaw: -2.3 });
     at("recepcao", -4.2, -1.9, extraLook("#e5e7eb", "#c68d64"), { yaw: 0.4 });
-    for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"], [11.5, "#6d6fc4", "#c68d64"]] as Array<[number, string, string]>) { const w = person(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
+    for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"], [11.5, "#6d6fc4", "#c68d64"]] as Array<[number, string, string]>) { const w = pessoa(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
     // luxo: o gabinete ganha ostentação (sátira); degradação: lixo e luzes frias
     if (d.luxo > 0) {
       const ad = new THREE.Group(); ad.position.set(ROOMS.administracao.cx, 0, ROOMS.administracao.cz); dynG.add(ad);
@@ -240,7 +248,7 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
       at("prefeitura", 3.2, 1.8, staff("#8a5528", "#d9ab87"), { sit: true, yaw: Math.PI });
       at("camara", -3.4, 2.2, staff("#6a4fa8", "#c68d64"), { sit: true, yaw: Math.PI }); at("camara", 0.2, 1.2, staff("#8d72bf", "#7a4a30"), { sit: true, yaw: Math.PI }); at("camara", 2.8, -2.6, staff("#6a4fa8", "#e0b48f"), { yaw: 0 });
       at("ubs", -3.2, 2.2, { ...extraLook("#e5484d", "#c88a62"), roupa2: "#fff" }, { sit: true, yaw: Math.PI }); at("ubs", -2.0, 2.2, extraLook("#6d6fc4", "#a9724f"), { sit: true, yaw: Math.PI }); at("ubs", 3.0, 0.4, { ...extraLook("#4fb596", "#d9ab87"), roupaTipo: "jaleco", roupa2: "#e9fbf8" }, { yaw: -1.5 });
-      for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"]] as Array<[number, string, string]>) { const w = person(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
+      for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"]] as Array<[number, string, string]>) { const w = pessoa(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
       if (d.melhoria > 0) { plant(dynG, ROOMS.ubs.cx + 0.4, ROOMS.ubs.cz - 2.9, 0.9, true); plant(dynG, ROOMS.secretaria.cx + 4.3, ROOMS.secretaria.cz - 3.0, 0.9, true); }
     } else {
       const cols: Array<[string, string]> = [["#3a6d9e", "#e0b48f"], ["#8a5528", "#c68d64"], ["#6a4fa8", "#a9724f"], ["#17a493", "#d9ab87"], ["#c4622d", "#8d5b3d"]];
@@ -249,12 +257,12 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
         at(r.id, -3.4, r.door === "S" ? 1.8 : -1.8, { ...extraLook(c, sk), roupaTipo: "blazer" as const }, { sit: i % 2 === 0, yaw: r.door === "S" ? Math.PI : 0 });
         at(r.id, 3.4, r.door === "S" ? -1.4 : 1.4, extraLook(cols[(i + 2) % cols.length]![0], cols[(i + 1) % cols.length]![1]), { yaw: r.door === "S" ? 0.6 : -2.5 });
       });
-      for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"]] as Array<[number, string, string]>) { const w = person(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
+      for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"]] as Array<[number, string, string]>) { const w = pessoa(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
     }
     // personagens presentes (os que têm conversa neste caso)
     for (const pe of d.people) {
       const a = ANCHORS[pe.hotspotId]; if (!a) continue;
-      const p = (realismo && pe.char ? personagemRealista(pe.char) : null) ?? person(pe.look); p.position.copy(local(pe.room, a[0], 0, a[2])); p.rotation.y = ROOMS[pe.room].door === "N" ? 0.35 : -0.35; p.userData.hotspot = pe.hotspotId; p.userData.base = p.rotation.y; dynG.add(p);
+      const p = realismo && pe.char ? personagemRealista(pe.char, q !== "alta") : person(pe.look); p.position.copy(local(pe.room, a[0], 0, a[2])); p.rotation.y = ROOMS[pe.room].door === "N" ? 0.35 : -0.35; p.userData.hotspot = pe.hotspotId; p.userData.base = p.rotation.y; dynG.add(p);
     }
   };
 

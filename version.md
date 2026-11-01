@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.6.2**
+**Versão atual: 0.7.0**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,16 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.7.0 — 2026-11-01
+- **MEUS 10%, visual 3D realista (direção R2) em todo o jogo**, nas qualidades Alta e Média (a Baixa e o modo 2D ficam como estavam):
+  - personagens nomeados de corpo inteiro com rosto esculpido, olhos, cabelo e roupas com tecido (terno, blazer, jaleco), com pose própria;
+  - figurantes no mesmo estilo, inclusive sentados (recepção, mesas, plenário), em versão leve e reaproveitada;
+  - pisos de madeira com textura PBR em gabinetes, secretaria, prefeitura, câmara e plenários; móveis com cantos arredondados e sombreamento suave;
+  - luz de fim de tarde com HDRI, feixes de sol e poeira pela janela (Alta) e pós-processamento: oclusão ambiente, bloom, profundidade de campo nas conversas, correção de cor e antisserrilhado (Alta);
+  - conversas com busto realista que pisca, mexe a boca ao falar e muda as sobrancelhas conforme a emoção.
+- Correção: peças de personagens e móveis podiam sumir ao juntar malhas com atributos diferentes; avisos de material e de carregador HDR removidos.
+- Regras, progressão, indicadores e integrações sem alteração.
 
 ### 0.6.2 — 2026-10-20
 - **MEUS 10%**: fase 5 ganha folga de caixa inicial (17% do orçamento) e passa a ter teste que exige caixa positivo e sustentabilidade ≥ 55 ao fim de cada fase na trajetória íntegra.

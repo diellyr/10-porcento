@@ -180,7 +180,8 @@ test("cancelar a confirmação não registra decisão", async ({ page }) => {
 
 test("mapa 3D da UPA: visão geral com as 6 salas, entrar numa sala e marcadores interativos", async ({ page }) => {
   test.setTimeout(180_000);
-  await page.goto("/mundo3d?modo=mapa");
+  // "media" = mesmo visual R2 (personagens e móveis realistas) sem o pós-processamento, pesado demais no renderizador por software do CI
+  await page.goto("/mundo3d?modo=mapa&q=media&reduzir=1");
   await page.locator("[data-pronto]").waitFor({ timeout: 90_000 });
   const salas = page.getByRole("button", { name: /^Ir para / });
   await expect(salas).toHaveCount(6);

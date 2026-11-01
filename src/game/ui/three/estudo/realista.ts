@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -30,7 +30,7 @@ export async function montarRealista(canvas: HTMLCanvasElement, r: Real, vista: 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1); renderer.setSize(w, h, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = cine ? THREE.ACESFilmicToneMapping : THREE.AgXToneMapping;
-  renderer.toneMappingExposure = cine ? 0.9 : 1.15; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMappingExposure = cine ? 0.9 : 1.15; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   RectAreaLightUniformsLib.init();
 
   const cena = buildCena("b", { cine });
@@ -38,7 +38,7 @@ export async function montarRealista(canvas: HTMLCanvasElement, r: Real, vista: 
   if (cine) (cena.luzes[0] as THREE.DirectionalLight).intensity = 3.0;
   scene.background = new THREE.Color(cine ? "#120e14" : "#d9dde3");
   // iluminação por imagem (HDRI real)
-  const hdr = await new RGBELoader().loadAsync(A + "venice_sunset_1k.hdr"); hdr.mapping = THREE.EquirectangularReflectionMapping;
+  const hdr = await new HDRLoader().loadAsync(A + "venice_sunset_1k.hdr"); hdr.mapping = THREE.EquirectangularReflectionMapping;
   const pm = new THREE.PMREMGenerator(renderer); const env = pm.fromEquirectangular(hdr); hdr.dispose();
   scene.environment = env.texture; scene.environmentIntensity = cine ? 0.1 : 0.42; scene.environmentRotation.set(0, 1.2, 0);
   // piso de madeira PBR real

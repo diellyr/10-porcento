@@ -33,7 +33,7 @@ export function montarEstudo(canvas: HTMLCanvasElement, e: Estilo, vista: 1 | 2,
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = e === "b" ? THREE.AgXToneMapping : THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = e === "a" ? 1.05 : e === "b" ? 1.12 : 0.95;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
 
   const { scene, cornelio, poeira } = buildCena(e);
   scene.background = new THREE.Color(e === "a" ? "#bfe3ff" : e === "b" ? "#d9dde3" : "#141018");
