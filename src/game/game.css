@@ -108,6 +108,10 @@
 
 .mx-tela { position: relative; isolation: isolate; display: flex; min-height: 100dvh; flex-direction: column; align-items: center; overflow: hidden; }
 .mx-tela-corpo { position: relative; z-index: 2; display: flex; flex: 1; width: 100%; flex-direction: column; align-items: center; gap: .6rem; padding: 1.25rem 1rem 2rem; text-align: center; }
+.mx-topo { display: flex; width: 100%; max-width: 1100px; justify-content: flex-end; }
+.mx-compartilhar { display: inline-flex; align-items: center; min-height: 40px; padding: .4rem .9rem; border-radius: 999px; font: 700 .9rem/1 var(--g-display); color: #fff; background: var(--m-vidro); border: 2px solid var(--m-borda); box-shadow: 0 6px 18px rgb(0 0 0 / .35); cursor: pointer; animation: mx-sobe .6s .05s both; }
+.mx-compartilhar:hover { filter: brightness(1.15); }
+.mx-compartilhar:focus-visible { outline: 3px solid #ffd870; outline-offset: 2px; }
 .mx-tela-menu { margin-top: auto; padding-top: 1.2rem; }
 .mx-rodape { max-width: 34rem; margin: .8rem auto 0; font: 600 .78rem/1.35 var(--g-font); color: rgb(255 255 255 / .85); text-shadow: 0 1px 6px rgb(0 0 0 / .8); }
 .mx-instalar .g-btn { width: 100%; justify-content: flex-start; background: var(--m-vidro) !important; color: #fff !important; border: 2px solid var(--m-borda); box-shadow: 0 8px 22px rgb(0 0 0 / .35) !important; border-radius: var(--m-raio); min-height: 52px; font-size: 1rem; }
@@ -121,7 +125,7 @@
   .mx-tela-corpo { padding-top: .8rem; }
 }
 @media (max-height: 640px) and (max-width: 640px) { .mx-caneta { display: none; } .mx-btn { min-height: 50px; } .mx-btn.primario { min-height: 56px; } }
-@media (prefers-reduced-motion: reduce) { .mx-logo, .mx-btn, .mx-selo, .mx-slogan, .mx-caneta, .mx-caneta-brilho, .mx-bg-luz { animation: none !important; } .mx-bg-lado { transition: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .mx-logo, .mx-btn, .mx-selo, .mx-compartilhar, .mx-slogan, .mx-caneta, .mx-caneta-brilho, .mx-bg-luz { animation: none !important; } .mx-bg-lado { transition: none; transform: none; } }
 .game a.mx-btn, .game a.mx-btn:visited { color: #fff; }
 .mx-slogan { max-width: 44rem; }
 .mx-caneta { top: 27%; height: min(52vh, 500px); }

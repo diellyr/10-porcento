@@ -1,5 +1,6 @@
 "use client";
 import { Versao } from "./Versao";
+import { ShareLink } from "@/components/ShareLink";
 import { GameBackground } from "./brand/GameBackground";
 import { CanetaPoder } from "./brand/CanetaPoder";
 import { GameLogo } from "./brand/GameLogo";
@@ -59,6 +60,7 @@ function Title({ onNovo, onContinuar, onConfig }: { onNovo: () => void; onContin
       <GameBackground />
       <CanetaPoder />
       <div className="mx-tela-corpo">
+        <div className="mx-topo"><ShareLink className="mx-compartilhar" /></div>
         <p className="mx-selo">🎭 Sátira — tudo é ficção</p>
         <GameLogo />
         <p className="mx-slogan">Você recebeu uma caneta e dinheiro público. O que vai fazer com eles?</p>
