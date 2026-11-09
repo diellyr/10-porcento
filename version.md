@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.7.2**
+**Versão atual: 0.7.3**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,9 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.7.3 — 2026-11-09
+- Telas de login (jogo em `/entrar` e área administrativa em `/login`) ganham, no topo, o botão **Compartilhar link**: abre o compartilhamento do celular ou copia o link (“Link copiado!”). O link vai sem tokens de login ou de recuperação de senha; só o destino (`next`) é mantido.
 
 ### 0.7.2 — 2026-11-01
 - **Infraestrutura**: atualização do Next.js 15.5 → **16.4** e do adaptador OpenNext para Cloudflare. O build da Cloudflare passou a recusar o Next.js 15 por estar fora do período de suporte (2 anos) e a publicação da 0.7.1 falhou por isso; com o 16 o build volta a passar, sem desligar a verificação de versão.

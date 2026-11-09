@@ -1,5 +1,6 @@
 "use client";
 import { CONTAS_SUGERIDAS, useConta } from "@/lib/use-conta";
+import { ShareLink } from "@/components/ShareLink";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -64,7 +65,7 @@ function EntrarForm() {
         <div className="g-card overflow-hidden p-4 text-center"><div className="mx-auto h-72 w-64"><Portrait look={avatarLook(avatar)} emocao="feliz" className="h-full w-full" /></div><p className="g-display mt-2 text-3xl font-bold">MEUS <span style={{ color: "var(--g-orange-t)" }}>10%</span></p><p className="text-[color:var(--g-ink2)]">Seu perfil guarda suas campanhas, seu Caderno de Gestão e suas conquistas — em qualquer aparelho.</p></div>
       </aside>
       <main className="g-card p-5 sm:p-7">
-        <Link href="/jogo" className="g-btn ghost sm">← Voltar ao jogo</Link>
+        <div className="flex flex-wrap items-center justify-between gap-2"><Link href="/jogo" className="g-btn ghost sm">← Voltar ao jogo</Link><ShareLink className="g-btn sm" /></div>
         <h1 className="mt-3 text-3xl font-bold">{modo === "criar" ? "Criar meu perfil" : modo === "esqueci" ? "Recuperar senha" : modo === "nova-senha" ? "Nova senha" : "Entrar"}</h1>
         <p className="mt-1 text-sm text-[color:var(--g-ink2)]">Entrar é <b>opcional</b>: você joga sem cadastro. O perfil serve para recuperar a campanha em outros aparelhos.</p>
         {!ok && <p role="alert" className="mt-3 rounded-2xl bg-[#fff3d6] p-3 text-sm font-bold">O Supabase ainda não foi conectado neste ambiente, então o login está indisponível. Você continua podendo jogar como convidado, salvando neste aparelho.</p>}

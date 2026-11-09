@@ -1,6 +1,7 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { ShareLink } from "@/components/ShareLink";
 import { Wordmark } from "@/components/ui/brand";
 import { Button, Card, Notice } from "@/components/ui/primitives";
 import { safeNext } from "@/lib/safe-next";
@@ -31,6 +32,7 @@ function Form() {
   return (
     <main className="grid min-h-dvh place-items-center bg-bg px-4">
       <div className="w-full max-w-sm">
+        <div className="mb-3 flex justify-end"><ShareLink className="inline-flex h-9 items-center rounded-lg border border-line bg-surface px-3 text-sm font-medium text-ink-2 hover:bg-surface-2" titulo="Brasil Fiscal" /></div>
         <div className="mb-6 flex justify-center"><Wordmark /></div>
         <Card className="p-6">
           <h1 className="text-xl font-semibold">Entrar</h1>
