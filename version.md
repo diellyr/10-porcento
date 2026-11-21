@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.9.0**
+**Versão atual: 0.10.0**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,14 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.10.0 — 2026-11-21
+- **MEUS 10%, remasterização 3D — fase 6 (animações e recompensas visuais)**:
+  - **chuva de moedas “10%”** (modelo do Blender, com instancing) quando uma decisão aumenta o patrimônio fictício; mais moedas para valores maiores;
+  - **painel**: patrimônio e Poder pulsam em dourado quando sobem; o Índice de Trambicagem virou um **medidor** de 0 a 10% (o teto) que pulsa em vermelho quando cresce;
+  - **transição de nível**: ao ser promovido (por mérito ou pelas conexões), uma passagem com o número do nível e o novo cargo;
+  - **final Imperador**: cinemática da **coroação aparente** — seu avatar no trono recebe a coroa, até a sirene da auditoria interromper a cerimônia.
+  - Tudo respeita “reduzir movimento” e a qualidade 3D (com 3D desligado, só os efeitos de interface).
 
 ### 0.9.0 — 2026-11-21
 - **MEUS 10%, remasterização 3D — fases 3 a 5**:

@@ -67,7 +67,7 @@ Documento vivo da remasterização. Cada fase registra o que mudou, os assets pr
 | 3 Identidade visual | paleta e materiais padrão no pipeline (ouro, grafite, veludo, papel-moeda, gemas) | ✅ |
 | 4 Objetos | maleta, maço (instancing), moeda, troféu, coroa e trono | ✅ |
 | 5 Cenários e progressão | gabinete do jogador em todos os níveis ganha ostentação pelas faixas de patrimônio | ✅ |
-| 6 Animações | explosão de moedas no desvio, efeito de Poder/Trambicagem, transição de nível, cinemática do Imperador | — |
+| 6 Animações | chuva de moedas, pulsos de Poder/Patrimônio/Trambicagem, transição de nível, coroação do Imperador | ✅ |
 | 7 Interface | HUD com medidores de Poder/Trambicagem/Patrimônio no padrão novo | — |
 | 8 Otimização | medir tamanho, carga e quadros; compressão e LOD | — |
 | 9 Testes | unitários, e2e, capturas antes/depois | contínuo |
@@ -85,3 +85,8 @@ Documento vivo da remasterização. Cada fase registra o que mudou, os assets pr
 - **Assets**: maleta.glb 140 KB (animação da tampa), maco.glb 6 KB, moeda.glb 28 KB, trofeu.glb 178 KB, coroa.glb 132 KB, trono.glb 144 KB.
 - **Regra preservada**: a cena só lê `luxoNivel` (calculado pelo motor a partir do patrimônio); nada de bônus por riqueza ilícita.
 - **Testes**: prévias Cycles de cada objeto (corrigidos a maleta maciça e a taça do troféu), capturas reais nos níveis 1 e 4 com patrimônio simulado, unitários e e2e do jogo.
+
+### Fase 6 (0.10.0)
+- **Arquivos**: `src/game/ui/three/ChuvaDeMoedas.tsx` (instancing + física simples), `src/game/ui/three/Coroacao.tsx` (avatar sentado + trono + coroa + sirene), `src/game/ui/TransicaoNivel.tsx`, `src/game/ui/Decision.tsx` (gatilho da chuva no `ConsequenceModal` quando o patrimônio sobe), `src/game/ui/Hud.tsx` (pulsos e medidor de Trambicagem), `src/game/ui/Play.tsx` (transição ao mudar `nivel`), `src/game/ui/Ending.tsx` (coroação no final Imperador), `src/game/game.css`; galerias `/cena3d/{moedas,coroacao,transicao}` (só desenvolvimento).
+- **Regra preservada**: os efeitos só leem o estado (variação de patrimônio, `trambicagem`, `powerScore`, `nivel`, final do motor).
+- **Testes**: e2e da promoção agora confere a transição; campanha com desvio passa pela chuva; capturas reais da chuva, da coroação e da transição (celular e computador).

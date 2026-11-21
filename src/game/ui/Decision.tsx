@@ -14,6 +14,7 @@ import { qualidadeFinal } from "./three/support";
 import { PenFallback } from "./PenFallback";
 
 const PenScene = dynamic(() => import("./three/PenScene"), { ssr: false });
+const ChuvaDeMoedas = dynamic(() => import("./three/ChuvaDeMoedas"), { ssr: false });
 
 const known = (s: GameState, k?: string) => !k || !!s.clues[k] || !!s.findings[k];
 
@@ -156,7 +157,14 @@ export function ConsequenceModal({ titulo, consequences, antes, depois, onClose,
   const caixa = antes ? depois.pub.caixa - antes.pub.caixa : 0;
   const pat = antes ? depois.personal.patrimonio - antes.personal.patrimonio : 0;
   useEffect(() => { audio.sfx(consequences.some((c) => c.tom === "ruim") ? "alert" : "success"); }, [consequences]);
+  // patrimônio fictício cresceu nesta decisão: chuva de moedas (só ilustra; sem movimento reduzido e com 3D ligado)
+  const { settings } = useGame();
+  const [chuva, setChuva] = useState(false);
+  const qChuva = useMemo(() => (typeof window === "undefined" ? "2d" : qualidadeFinal(settings.qualidade3d)), [settings.qualidade3d]);
+  useEffect(() => { if (pat > 0 && !settings.reduzirMovimento && qChuva !== "2d") { setChuva(true); audio.sfx("coin"); } }, [pat, settings.reduzirMovimento, qChuva]);
   return (
+    <>
+    {chuva && qChuva !== "2d" && <ChuvaDeMoedas qualidade={qChuva} intensidade={pat < 50_000 ? 1 : pat < 200_000 ? 2 : 3} onFim={() => setChuva(false)} />}
     <Modal title={titulo} wide dismissible={false} footer={<button className="g-btn orange xl" onClick={onClose} autoFocus>{rotulo} ▶</button>}>
       <ul className="grid gap-3">
         {consequences.map((c) => (
@@ -174,5 +182,6 @@ export function ConsequenceModal({ titulo, consequences, antes, depois, onClose,
             {pat !== 0 && <span className="g-chip si">🎭 Conta pessoal fictícia {pat > 0 ? "+" : "−"}{brlShort(Math.abs(pat))}</span>}</p></div>
       )}
     </Modal>
+    </>
   );
 }

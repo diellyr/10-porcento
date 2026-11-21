@@ -14,6 +14,9 @@ const VISTAS = {
   "secretaria": "/mundo3d?modo=sala&l=secretaria&q=alta&nivel=2&caso=11",
   "mapa-n6": "/mundo3d?modo=mapa&q=alta&nivel=6&caso=37",
   "toninho-conversa": "/mundo3d?modo=sala&l=administracao&q=alta&caso=1&foco=toninho",
+  "coroacao": "/cena3d/coroacao?q=alta",
+  "coroacao-media": "/cena3d/coroacao?q=media",
+  "moedas": "/cena3d/moedas?q=alta&i=3&t=1.1",
   "busto-joana": "/cena3d?c=joana&e=feliz&f=1&q=alta",
   "busto-cornelio": "/cena3d?c=cornelio&e=feliz&q=alta",
 };

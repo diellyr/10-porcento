@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { qualidadeFinal } from "./three/support";
 import { useEffect, useMemo, useState } from "react";
 import { audio } from "../audio/AudioManager";
 import type { ConvNode, ConversationDef } from "../content/types";
@@ -15,6 +17,7 @@ import { ClassChip, FictionBadge, Meter } from "./atoms";
 import { ReportView } from "./ReportView";
 import { ResultCard } from "./ResultCard";
 import { useGame } from "./store";
+import { avatarLook } from "../content/characters";
 
 const n = (who: ConvNode["who"], emo: ConvNode["emo"], text: string, next?: string): ConvNode => ({ who, emo, text, next });
 
@@ -84,6 +87,17 @@ function endingConv(s: GameState): ConversationDef | null {
   return null;
 }
 
+const Coroacao = dynamic(() => import("./three/Coroacao"), { ssr: false });
+
+/** Cinemática do final Imperador (3D); com 3D desligado, nada é mostrado além do texto. */
+function CoroacaoFinal({ avatar }: { avatar: string }) {
+  const { settings } = useGame();
+  const [q, setQ] = useState<ReturnType<typeof qualidadeFinal> | null>(null);
+  useEffect(() => { setQ(qualidadeFinal(settings.qualidade3d)); }, [settings.qualidade3d]);
+  if (!q || q === "2d") return null;
+  return <Coroacao look={avatarLook(avatar)} qualidade={q} reduzir={settings.reduzirMovimento} />;
+}
+
 export function Ending({ onExit }: { onExit: () => void }) {
   const { state: st, close, dispatch } = useGame();
   const s = st!;
@@ -109,6 +123,7 @@ export function Ending({ onExit }: { onExit: () => void }) {
   return (
     <div className="mx-auto max-w-5xl space-y-3 p-2 sm:p-4">
       <header className="g-card g-pop p-4 text-center sm:p-6" style={{ borderColor: bom ? "var(--g-green)" : e.id === "responsabilizacao" ? "var(--g-red)" : "var(--g-yellow)" }}>
+        {e.id === "imperador" && <div className="mb-3"><CoroacaoFinal avatar={s.player.avatar} /></div>}
         <p className="text-sm font-extrabold uppercase tracking-widest text-[color:var(--g-ink3)]">Encerramento local · {L.cargo}</p>
         <h1 className="mt-1 text-3xl font-bold sm:text-5xl">{bom ? "🏆" : e.id === "imperador" ? "👑" : e.id === "responsabilizacao" ? "⚖️" : e.id === "balanco-parcial" ? "🚩" : "🔁"} {e.titulo}</h1>
         {s.phase === "encerrada" && <div className="mt-4 flex flex-wrap justify-center gap-2">{podeAvancar && proxima}<button className="g-btn yellow" onClick={() => { if (window.confirm(`Jogar de novo a fase "${L.cargo}"? Ela recomeça do início e este resultado é descartado neste save (as fases anteriores ficam como estão).`)) { audio.sfx("click"); dispatch({ type: "replay" }); } }}>🔁 Jogar esta fase de novo</button></div>}

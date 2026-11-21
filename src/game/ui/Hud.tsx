@@ -8,6 +8,9 @@ import { txt, makeCtx } from "../engine/rules";
 import type { GameState } from "../engine/types";
 import { Meter } from "./atoms";
 
+/** classe de pulso por ~1,4 s quando o valor sobe (efeito visual; não altera nada) */
+function usePulso(v: number, classe: string) { const p = useRef(v); const [c, setC] = useState(""); useEffect(() => { if (v > p.current + 1e-9) { setC(""); requestAnimationFrame(() => setC(classe)); const t = setTimeout(() => setC(""), 1400); p.current = v; return () => clearTimeout(t); } p.current = v; }, [v, classe]); return c; }
+
 function useDelta(v: number) { const p = useRef(v); const [d, setD] = useState(0); useEffect(() => { if (p.current !== v) { setD(v - p.current); p.current = v; const t = setTimeout(() => setD(0), 4000); return () => clearTimeout(t); } }, [v]); return d; }
 
 /** HUD integrado à aventura: missão atual, dois mundos (você × população) e recursos. */
@@ -18,6 +21,7 @@ export function Hud({ s, onOpenDados, onOpenConta }: { s: GameState; onOpenDados
   const poder = powerScore(s.attrs);
   const tr = trambicagem(s);
   const [aberto, setAberto] = useState(false);
+  const pPat = usePulso(s.personal.patrimonio, "pulso-ouro"), pPoder = usePulso(poder, "pulso-ouro"), pTr = usePulso(tr, "pulso-risco");
   return (
     <div className="grid gap-2 lg:grid-cols-[1.2fr_1fr_1.4fr]" aria-label="Painel da partida">
       <section className="g-card flex items-center gap-3 px-3 py-2.5" aria-label="Missão atual">
@@ -35,11 +39,16 @@ export function Hud({ s, onOpenDados, onOpenConta }: { s: GameState; onOpenDados
       <section className={`g-card px-3 py-2.5 ${aberto ? "" : "hidden lg:block"}`} aria-label="Você">
         <div className="mb-1.5 flex items-center justify-between gap-2"><h2 className="text-sm font-bold">🧑‍💼 Você · {levelOf(s).cargo}</h2><button type="button" onClick={onOpenConta} className="g-chip si cursor-pointer" aria-label="Abrir minha conta fictícia">🎭 conta fictícia</button></div>
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
-          <div><p className="text-[0.7rem] font-bold text-[color:var(--g-ink3)]">Patrimônio</p><p className="font-extrabold tabular-nums" style={{ fontFamily: "var(--g-display)" }}>{brlShort(s.personal.patrimonio)}</p></div>
-          <div><p className="text-[0.7rem] font-bold text-[color:var(--g-ink3)]">Pontuação de Poder</p><p className="font-extrabold tabular-nums" style={{ fontFamily: "var(--g-display)" }}>{poder.toFixed(0)}</p></div>
+          <div><p className="text-[0.7rem] font-bold text-[color:var(--g-ink3)]">Patrimônio</p><p className={`font-extrabold tabular-nums ${pPat}`} style={{ fontFamily: "var(--g-display)" }}>{brlShort(s.personal.patrimonio)}</p></div>
+          <div><p className="text-[0.7rem] font-bold text-[color:var(--g-ink3)]">Pontuação de Poder</p><p className={`font-extrabold tabular-nums ${pPoder}`} style={{ fontFamily: "var(--g-display)" }}>{poder.toFixed(0)}</p></div>
           <Meter icon="🤝" label="Influência" value={s.personal.influencia} compact />
           <Meter icon="🔎" label="Evidências" value={Math.min(100, s.personal.evidencias * 8)} good="down" compact />
-          {tr > 0 && <p className="col-span-2 text-[0.75rem] font-bold text-[color:var(--g-red-d)]">Índice de Trambicagem: {tr.toFixed(2).replace(".", ",")}% (teto 10%)</p>}
+          {tr > 0 && (
+            <div className={`col-span-2 rounded-xl px-2 py-1 ${pTr}`} role="meter" aria-valuemin={0} aria-valuemax={10} aria-valuenow={tr} aria-label="Índice de Trambicagem">
+              <p className="flex justify-between text-[0.75rem] font-bold text-[color:var(--g-red-d)]"><span>🚨 Índice de Trambicagem</span><span className="tabular-nums">{tr.toFixed(2).replace(".", ",")}% <span className="font-semibold opacity-75">(teto 10%)</span></span></p>
+              <div className="mx-trambic" aria-hidden><span style={{ width: `${Math.min(100, tr * 10)}%` }} /></div>
+            </div>
+          )}
         </div>
       </section>
       <section className={`g-card px-3 py-2.5 ${aberto ? "" : "hidden lg:block"}`} aria-label="População e serviços">

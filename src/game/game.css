@@ -134,3 +134,32 @@
 .mx-nav .mx-btn, .mx-nav .mx-instalar { width: auto; }
 .mx-nav .mx-instalar .g-btn { width: auto; }
 .mx-caneta.home { top: 40%; height: min(40vh, 400px); }
+
+/* Remasterização — efeitos do painel: pulso dourado (patrimônio/poder) e vermelho (trambicagem) */
+.mx-trambic { position: relative; height: 8px; margin-top: 3px; border-radius: 999px; background: #f5dede; overflow: hidden; box-shadow: inset 0 1px 2px rgb(0 0 0 / .15); }
+.mx-trambic > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, #e2701c, #c8323c 60%, #7a1020); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.pulso-ouro { animation: pulso-ouro 1.4s ease-out; border-radius: 8px; }
+.pulso-risco { animation: pulso-risco 1.4s ease-out; }
+@keyframes pulso-ouro { 0% { color: #b8860b; text-shadow: 0 0 0 rgb(232 184 74 / 0); transform: scale(1); } 25% { color: #b8860b; text-shadow: 0 0 14px rgb(232 184 74 / .9); transform: scale(1.12); } 100% { text-shadow: 0 0 0 rgb(232 184 74 / 0); transform: scale(1); } }
+@keyframes pulso-risco { 0% { box-shadow: 0 0 0 0 rgb(200 50 60 / .7); background: #fdeaea; } 70% { box-shadow: 0 0 0 10px rgb(200 50 60 / 0); background: #fdeaea; } 100% { box-shadow: 0 0 0 0 rgb(200 50 60 / 0); } }
+@media (prefers-reduced-motion: reduce) { .pulso-ouro, .pulso-risco { animation: none; } .mx-trambic > span { transition: none; } }
+.reduce-motion .pulso-ouro, .reduce-motion .pulso-risco { animation: none; } .reduce-motion .mx-trambic > span { transition: none; }
+
+/* Remasterização — transição de nível */
+.mx-transicao { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; overflow: hidden; cursor: pointer; background: radial-gradient(120% 80% at 50% 40%, #2c2f36 0%, #121318 70%); color: #fff; animation: mx-tr-entra .5s ease-out both, mx-tr-sai .6s 3s ease-in both; }
+.mx-transicao-luz { position: absolute; inset: -20% -60%; background: linear-gradient(100deg, transparent 40%, rgb(255 214 120 / .0) 44%, rgb(255 214 120 / .55) 50%, rgb(255 214 120 / 0) 56%, transparent 60%); animation: mx-tr-luz 1.6s .25s cubic-bezier(.3,.7,.3,1) both; }
+.mx-transicao-corpo { position: relative; padding: 1.5rem; text-align: center; max-width: 720px; }
+.mx-transicao-sobre { display: inline-block; padding: .3rem .9rem; border-radius: 999px; font: 700 .95rem/1.2 var(--g-display); color: #2b1a4a; background: linear-gradient(180deg, #d9c8ff, #a98ef0); animation: mx-sobe .5s .3s both; }
+.mx-transicao-nivel { margin-top: .6rem; font: 900 clamp(6rem, 34vw, 11rem)/.9 var(--g-display); letter-spacing: -.02em; background: linear-gradient(180deg, #fff6d6 10%, #f2c55a 45%, #b8862a 80%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 6px 18px rgb(232 184 74 / .45)); animation: mx-tr-num .9s .35s cubic-bezier(.2,1.4,.4,1) both; }
+.mx-transicao-nivel span { display: block; font-size: .22em; letter-spacing: .4em; -webkit-text-fill-color: #e8d7a6; }
+.mx-transicao-cargo { margin-top: .4rem; font: 800 clamp(1.4rem, 4.5vw, 2.4rem)/1.15 var(--g-display); animation: mx-sobe .6s .7s both; }
+.mx-transicao-desafio { margin-top: .5rem; color: #d8d3e6; font-size: 1rem; animation: mx-sobe .6s .9s both; }
+.mx-transicao-pular { margin-top: 1.4rem; min-height: 44px; padding: .5rem 1.2rem; border-radius: 999px; font: 700 1rem var(--g-display); color: #1a1c21; background: linear-gradient(180deg, #ffe28a, #e8b84a); border: 2px solid #fff3c4; box-shadow: 0 8px 24px rgb(232 184 74 / .35); animation: mx-sobe .5s 1.1s both; }
+.mx-transicao-pular:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+@keyframes mx-tr-entra { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mx-tr-sai { to { opacity: 0; visibility: hidden; } }
+@keyframes mx-tr-luz { from { transform: translateX(-60%); } to { transform: translateX(60%); } }
+@keyframes mx-tr-num { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+.mx-transicao.estatica, .mx-transicao.estatica * { animation: none !important; }
+.mx-transicao.estatica .mx-transicao-luz { display: none; }
+@media (prefers-reduced-motion: reduce) { .mx-transicao, .mx-transicao * { animation: none !important; } .mx-transicao-luz { display: none; } }

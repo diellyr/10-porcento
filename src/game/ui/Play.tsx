@@ -18,6 +18,7 @@ import { World3D, type Modo, type RoomPin } from "./three/World3D";
 import { Hud } from "./Hud";
 import { useGame } from "./store";
 import { Ending } from "./Ending";
+import { TransicaoNivel } from "./TransicaoNivel";
 
 type Overlay =
   | { t: "caso" } | { t: "conv"; id: string } | { t: "neg"; id: string } | { t: "decisao" }
@@ -38,6 +39,11 @@ export function Play({ onExit }: { onExit: () => void }) {
   const ctx = useMemo(() => makeCtx(s.scenario, s, s.player.nome), [s]);
   const say = useCallback((msg: string, tone: "ink" | "ok" | "bad" = "ink") => { setToast({ msg, tone }); setTimeout(() => setToast(null), 3200); }, []);
   const world = worldView(s);
+  // promoção: o nível mudou durante a sessão → transição cinematográfica (não aparece ao carregar um save)
+  const nivelVisto = useRef(s.nivel);
+  const [transicao, setTransicao] = useState<number | null>(null);
+  useEffect(() => { if (s.nivel > nivelVisto.current) setTransicao(s.nivel); nivelVisto.current = s.nivel; }, [s.nivel]);
+  const fimTransicao = useCallback(() => setTransicao(null), []);
 
   // abertura do caso: cartão de episódio uma única vez por caso
   useEffect(() => {
@@ -106,6 +112,7 @@ export function Play({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[1320px] flex-col gap-2 p-2 sm:p-3" data-estado-jogo={s.version}>
+      {transicao !== null && <TransicaoNivel nivel={transicao} viaRede={!!s.historico[s.historico.length - 1]?.ending.promocao?.viaRede && !s.historico[s.historico.length - 1]?.ending.promocao?.elegivel} reduzir={settings.reduzirMovimento} onFim={fimTransicao} />}
       <Hud s={s} onOpenDados={() => setOv({ t: "panel", p: "dados" })} onOpenConta={() => setOv({ t: "panel", p: "conta" })} />
       <section className="g-card overflow-hidden" aria-label={`Local: ${LOCATIONS[s.location].nome}`}>
         <header className="flex flex-wrap items-center gap-2 border-b-2 border-[color:var(--g-line)] bg-[#fff6e3] px-3 py-2">
