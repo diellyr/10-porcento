@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.10.0**
+**Versão atual: 0.11.0**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,13 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.11.0 — 2026-11-21
+- **MEUS 10%, remasterização 3D — fases 7 a 9**:
+  - **Vitrine do patrimônio** em “Contas: pessoal × pública”: pedestal giratório com a pilha de dinheiro que cresce com o patrimônio fictício e os objetos de cada faixa de ostentação (Modesta, Confortável, Exagerada, Imperial); evidências registradas acendem uma sirene vermelha.
+  - **Desempenho do mundo 3D** (medido por quadro): cerca de **−55% a −66% de chamadas de desenho** e **−52% a −68% de triângulos** nas salas, com câmera de sombra ajustada à sala, mapa de sombras recalculado a cada 4 quadros e cabeças com resolução média no mundo (o busto da conversa continua detalhado).
+  - Modelos do Blender **34% menores** (1,26 MB → 0,83 MB, sem UV inútil e com menos faces no cofre); carregam só quando aparecem.
+  - Correção: pilha de dinheiro com mais de 21 maços travava a página (laço sem fim); maletas “abertas” apareciam fechadas.
 
 ### 0.10.0 — 2026-11-21
 - **MEUS 10%, remasterização 3D — fase 6 (animações e recompensas visuais)**:

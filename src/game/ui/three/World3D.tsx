@@ -82,7 +82,8 @@ export function World3D(p: Props) {
     const sh = key.shadow; sh.mapSize.set(p.q === "alta" ? 2048 : 1024, p.q === "alta" ? 2048 : 1024); sh.camera.near = 5; sh.camera.far = 80; sh.camera.left = -24; sh.camera.right = 24; sh.camera.top = 18; sh.camera.bottom = -18; sh.bias = -0.0006; sh.normalBias = 0.04; sh.radius = 3;
     scene.add(key); scene.add(key.target);
     const world = buildWorld(p.q, nivel, realismo); scene.add(world.root);
-    let comp: EffectComposer | null = null; let bokeh: BokehPass | null = null; let posOff = false, lentas = 0, medidas = 0;
+    let comp: EffectComposer | null = null; let bokeh: BokehPass | null = null; let posOff = false, lentas = 0, medidas = 0, quadroCalls = 0, quadroTris = 0, nQuadro = 0;
+    renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
     if (pos) {
       const half = renderer.extensions.has("EXT_color_buffer_half_float") || renderer.extensions.has("EXT_color_buffer_float");
       comp = new EffectComposer(renderer, new THREE.WebGLRenderTarget(800, 450, { type: half ? THREE.HalfFloatType : THREE.UnsignedByteType }));
@@ -139,16 +140,24 @@ export function World3D(p: Props) {
       if (!c.reduzir) world.animate(clock, c.foco, audio.level());
       world.setSala(c.modo === "sala" ? c.s.location : null, c.reduzir); world.tick(dt);
       key.target.position.set(cur.tx, 0, cur.tz); key.position.set(cur.tx - 14, realismo ? 15 : 26, cur.tz + (realismo ? 10 : 16));
+      // sombras: câmera de sombra justa na sala atual (descarta as outras salas e dá mais nitidez) e mapa de sombras
+      // recalculado a cada 4 quadros — quase tudo é estático; só figurantes andando e personagens balançando
+      const ext = c.modo === "sala" ? 8.5 : 24;
+      if (sh.camera.right !== ext) { sh.camera.left = -ext; sh.camera.right = ext; sh.camera.top = ext * 0.75; sh.camera.bottom = -ext * 0.75; sh.camera.updateProjectionMatrix(); renderer.shadowMap.needsUpdate = true; }
+      if (++nQuadro % 4 === 0) renderer.shadowMap.needsUpdate = true;
+      // contagem do quadro inteiro (todas as passadas): chamadas de desenho e triângulos, para diagnóstico
+      renderer.info.autoReset = false; renderer.info.reset();
       if (comp) {
         // profundidade de campo só nas conversas (aproximação), com foco no rosto
         if (bokeh) { bokeh.enabled = !!c.foco; if (bokeh.enabled) { const a = world.anchor(c.s.location, c.foco!); a.y = 1.9; (bokeh.uniforms as unknown as { focus: { value: number } }).focus.value = cam.position.distanceTo(a); } }
         if (posOff) renderer.render(scene, cam); else comp.render();
       } else renderer.render(scene, cam);
+      quadroCalls = renderer.info.render.calls; quadroTris = renderer.info.render.triangles;
       const w = el.clientWidth, h = el.clientHeight;
       for (const a of c.hs) { const wp = world.anchor(c.s.location, a.h.id); if (a.h.kind === "pessoa") wp.y = 2.3; project(marks.current[a.h.id], wp, c.modo === "sala", w, h); }
       for (const r of ROOM_LIST) project(badges.current[r.id], world.center(r.id).setY(3.4), c.modo === "mapa", w, h);
     }, (fps) => {
-      el.dataset.fps = String(fps); el.dataset.calls = String(renderer.info.render.calls);
+      el.dataset.fps = String(fps); el.dataset.calls = String(quadroCalls); el.dataset.tris = String(quadroTris);
       // na média, se o aparelho não aguentar os efeitos de luz (< 24 fps por 3 medições seguidas, ignorando os primeiros segundos de carga), eles são desligados
       if (comp && !alta && !posOff && !p.fixarEfeitos && ++medidas > 5) { lentas = fps < 24 ? lentas + 1 : 0; if (lentas >= 3) { posOff = true; el.dataset.pos = "off"; } }
     });

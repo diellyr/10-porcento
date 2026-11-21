@@ -50,7 +50,7 @@ def construir():
     def macos(x, y, z, n):
         for k in range(n):
             zz = z + 0.036 * k + 0.018
-            t.append(caixa((0.2, 0.09, 0.034), (x, y, zz), nota, 0.004, segs=1))
+            t.append(caixa((0.2, 0.09, 0.034), (x, y, zz), nota))  # sem chanfro: pequeno na tela, 4× menos faces
             t.append(caixa((0.035, 0.092, 0.036), (x, y, zz), cinta))
 
     def moedas(x, y, z, n):

@@ -136,7 +136,9 @@ def exportar(nome: str) -> Path:
     arq = SAIDA / f"{nome}.glb"
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.export_scene.gltf(filepath=str(arq), export_format="GLB", export_yup=True, export_apply=True,
-                              export_animations=True, export_animation_mode="ACTIVE_ACTIONS", export_cameras=False, export_lights=False)
+                              export_animations=True, export_animation_mode="ACTIVE_ACTIONS", export_cameras=False,
+                              export_texcoords=False,  # sem texturas: UV é peso morto
+                              export_lights=False)
     return arq
 
 

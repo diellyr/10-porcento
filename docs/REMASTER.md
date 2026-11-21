@@ -68,9 +68,9 @@ Documento vivo da remasterização. Cada fase registra o que mudou, os assets pr
 | 4 Objetos | maleta, maço (instancing), moeda, troféu, coroa e trono | ✅ |
 | 5 Cenários e progressão | gabinete do jogador em todos os níveis ganha ostentação pelas faixas de patrimônio | ✅ |
 | 6 Animações | chuva de moedas, pulsos de Poder/Patrimônio/Trambicagem, transição de nível, coroação do Imperador | ✅ |
-| 7 Interface | HUD com medidores de Poder/Trambicagem/Patrimônio no padrão novo | — |
-| 8 Otimização | medir tamanho, carga e quadros; compressão e LOD | — |
-| 9 Testes | unitários, e2e, capturas antes/depois | contínuo |
+| 7 Interface | medidor de Trambicagem, pulsos no painel, transição de nível, vitrine 3D do patrimônio | ✅ |
+| 8 Otimização | medição por quadro, sombras e LOD de cabeças, assets 34% menores | ✅ |
+| 9 Testes | typecheck, 369 unitários, 38 e2e, build Cloudflare, capturas | ✅ |
 
 ## Registro por fase
 
@@ -90,3 +90,27 @@ Documento vivo da remasterização. Cada fase registra o que mudou, os assets pr
 - **Arquivos**: `src/game/ui/three/ChuvaDeMoedas.tsx` (instancing + física simples), `src/game/ui/three/Coroacao.tsx` (avatar sentado + trono + coroa + sirene), `src/game/ui/TransicaoNivel.tsx`, `src/game/ui/Decision.tsx` (gatilho da chuva no `ConsequenceModal` quando o patrimônio sobe), `src/game/ui/Hud.tsx` (pulsos e medidor de Trambicagem), `src/game/ui/Play.tsx` (transição ao mudar `nivel`), `src/game/ui/Ending.tsx` (coroação no final Imperador), `src/game/game.css`; galerias `/cena3d/{moedas,coroacao,transicao}` (só desenvolvimento).
 - **Regra preservada**: os efeitos só leem o estado (variação de patrimônio, `trambicagem`, `powerScore`, `nivel`, final do motor).
 - **Testes**: e2e da promoção agora confere a transição; campanha com desvio passa pela chuva; capturas reais da chuva, da coroação e da transição (celular e computador).
+
+### Fases 7 a 9 (0.11.0)
+- **Arquivos**: `src/game/ui/three/VitrinePatrimonio.tsx` + `panels.tsx` (painel de contas); `World3D.tsx` (sombras ajustadas e contador por quadro `data-calls`/`data-tris`); `estudo/personagem.ts` (`medio`) e `realismo.ts`; `blender.ts` (`posicoesDaPilha`, maleta aberta); `tools/capturas/medir.mjs`; `tools/blender/{comum,cofre}.py` (export sem UV, cofre mais leve).
+
+**Medição por quadro** (`node tools/capturas/medir.mjs`, mediana de 10 amostras, 1280×720). Chamadas de desenho e triângulos independem do aparelho; **quadros por segundo não foram medidos**: neste ambiente só há renderização por software (0–3 qps em qualquer versão), o que não representa celular nem computador real.
+
+| Vista | Chamadas antes → depois | Triângulos antes → depois |
+|---|---|---|
+| Mapa, Alta | 4.729 → 2.403 | 6,46 mi → 3,11 mi |
+| Cofre, Alta | 3.542 → 1.216 | 4,81 mi → 1,54 mi |
+| Gabinete sem luxo, Alta | 3.300 → 1.490 | 4,16 mi → 1,57 mi |
+| Gabinete luxo 3, Alta | 3.412 → 1.546 | 4,24 mi → 1,61 mi |
+| Gabinete luxo 3, Média | 1.396 → 618 | 2,15 mi → 0,81 mi |
+| Gabinete luxo 3, Baixa | 65 | 25 mil |
+
+Custo dos objetos do Blender no gabinete (faixa 3 contra sem luxo): +56 chamadas, +40 mil triângulos.
+
+**Tamanho dos modelos** (GLB, carregados sob demanda): cofre 358 KB, troféu 138 KB, trono 108 KB, maleta 106 KB, coroa 96 KB, moeda 21 KB, maço 5 KB — total 0,83 MB (antes 1,26 MB).
+
+### Pendências
+- Medir quadros por segundo em aparelhos reais (celular intermediário e notebook) e ajustar a qualidade automática se necessário.
+- Compressão Draco/meshopt: o `bpy` do PyPI vem sem Draco; dá para fazer com `gltf-transform` quando a ferramenta for liberada no ambiente.
+- Rankings e loja/inventário não existem no jogo; não foram criados.
+- Blender MCP: quando estiver conectado, os scripts de `tools/blender/` rodam igual dentro do Blender com janela.

@@ -16,6 +16,8 @@ export type Pose = "discurso" | "cafezinho" | "prancheta" | "parado" | "sentado"
 import type { Emotion } from "../../../engine/types";
 /** Quantidade de detalhe: figurantes usam a versão leve (menos polígonos, mãos sem dedos separados). */
 let LEVE = false;
+/** detalhe médio (personagens vistos de longe no mundo): cabeça com menos polígonos, mantendo o resto do modelo completo */
+let MEDIO = false;
 
 interface Prop {
   R: number;          // raio vertical da cabeça (m)
@@ -147,7 +149,7 @@ function cabeca(look: Look, e: Estilo, P: Prop, expr: { sobrancelha: number; sor
   const g = new THREE.Group();
   const cart = e === "a";
   const sk = mSkin(e, look.pele);
-  const geo = LEVE ? new THREE.SphereGeometry(1, 48, 36) : new THREE.SphereGeometry(1, 120, 90);
+  const geo = LEVE ? new THREE.SphereGeometry(1, 48, 36) : MEDIO ? new THREE.SphereGeometry(1, 72, 54) : new THREE.SphereGeometry(1, 120, 90);
   const anim = { lids: [] as THREE.Mesh[], brows: [] as THREE.Object3D[], lip: null as THREE.Object3D | null, boca: null as THREE.Mesh | null };
   const pos = geo.attributes.position!; const unit = new Float32Array(pos.array as Float32Array); (geo as unknown as { _unit: Float32Array })._unit = unit;
   const v = new THREE.Vector3(), o = new THREE.Vector3();
@@ -274,9 +276,9 @@ function faixa(u0: number, u1: number, w: (u: number) => number, R: (u: number) 
 export interface EstadoFala { falando: boolean; nivel: number; emocao?: Emotion; olhar?: { x: number; y: number } }
 export interface Personagem { root: THREE.Group; cabeca: THREE.Group; altura: number; animar: (st: EstadoFala, dt: number, t: number) => void }
 
-export function buildPersonagem(look: Look, e: Estilo, pose: Pose, opcoes: { leve?: boolean } = {}): Personagem {
-  LEVE = !!opcoes.leve;
-  try { return construir(look, e, pose); } finally { LEVE = false; }
+export function buildPersonagem(look: Look, e: Estilo, pose: Pose, opcoes: { leve?: boolean; medio?: boolean } = {}): Personagem {
+  LEVE = !!opcoes.leve; MEDIO = !!opcoes.medio;
+  try { return construir(look, e, pose); } finally { LEVE = false; MEDIO = false; }
 }
 
 function construir(look: Look, e: Estilo, pose: Pose): Personagem {

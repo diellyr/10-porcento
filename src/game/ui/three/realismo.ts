@@ -141,7 +141,7 @@ const cache = new Map<string, THREE.Group>();
 export function personagemRealista(id: CharId, unir = false): THREE.Group {
   const k = `${id}|${unir}`; let g = cache.get(k);
   if (!g) {
-    const p = buildPersonagem(CHARACTERS[id].look, "b", POSE[id] ?? "parado"); g = new THREE.Group(); p.root.scale.set(1.3, 1.2, 1.3); g.add(p.root);
+    const p = buildPersonagem(CHARACTERS[id].look, "b", POSE[id] ?? "parado", { medio: true }); g = new THREE.Group(); p.root.scale.set(1.3, 1.2, 1.3); g.add(p.root);
     if (unir) bakeGroup(p.root, p.root);
     g.add(contato(0.9, 0.6)); keep(g); g.userData.cache = true; cache.set(k, g);
   }

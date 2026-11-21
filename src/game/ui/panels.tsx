@@ -18,6 +18,10 @@ import { activeHotspots } from "./GameScene";
 import { ClassChip, FictionBadge, Meter, Modal } from "./atoms";
 import { useGame } from "./store";
 import { qualidadeFinal } from "./three/support";
+import dynamic from "next/dynamic";
+import { worldView } from "../engine/scoring";
+
+const VitrinePatrimonio = dynamic(() => import("./three/VitrinePatrimonio"), { ssr: false });
 
 const CONF = { confirmada: ["Confirmada", "of"], incompleta: ["Incompleta", "es"], opiniao: ["Opinião de personagem", "si"] } as const;
 
@@ -153,8 +157,9 @@ export function NotebookPanel({ onClose }: { onClose: () => void }) {
 }
 
 export function LedgerPanel({ onClose }: { onClose: () => void }) {
-  const { state: st } = useGame();
+  const { state: st, settings } = useGame();
   const s = st!;
+  const q3d = useMemo(() => (typeof window === "undefined" ? "2d" : qualidadeFinal(settings.qualidade3d)), [settings.qualidade3d]);
   const pessoal = s.ledger.filter((l) => l.escopo === "pessoal").slice().reverse();
   const publico = s.ledger.filter((l) => l.escopo === "publico").slice().reverse();
   const Row = ({ l }: { l: (typeof s.ledger)[number] }) => (
@@ -169,6 +174,7 @@ export function LedgerPanel({ onClose }: { onClose: () => void }) {
           <h3 className="text-lg font-bold">🧑‍💼 Minha conta fictícia</h3>
           <p className="text-3xl font-extrabold tabular-nums" style={{ fontFamily: "var(--g-display)" }}>{brl(s.personal.patrimonio)}</p>
           <p className="text-xs text-[color:var(--g-ink3)]">Remuneração legítima: {brl(s.personal.remuneracao)} · Ilícito fictício: {brl(s.personal.desviado)} · Restituído: {brl(s.personal.restituido)}</p>
+          {q3d !== "2d" && <VitrinePatrimonio patrimonio={s.personal.patrimonio} luxo={worldView(s).luxoNivel} evidencias={s.personal.evidencias} qualidade={q3d} reduzir={settings.reduzirMovimento} />}
           <ul className="mt-2 max-h-72 overflow-y-auto">{pessoal.length ? pessoal.map((l) => <Row key={l.id} l={l} />) : <li className="py-2 text-sm text-[color:var(--g-ink3)]">Sem movimentações ainda.</li>}</ul>
         </section>
         <section className="g-card p-3" aria-label="Conta pública da UPA">

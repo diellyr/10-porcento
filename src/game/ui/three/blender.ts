@@ -76,9 +76,25 @@ export function assetEstatico(nome: string, escala = 1, quadroFinal = false): TH
   const grupo = new THREE.Group(); grupo.name = `blender-${nome}`;
   void carregarAsset(nome).then(({ cena, clipes }) => {
     const c = cena.clone(true); c.scale.setScalar(escala); marcar(c); grupo.add(c);
-    if (quadroFinal && clipes[0]) { const mx = new THREE.AnimationMixer(c); mx.clipAction(clipes[0]).play(); mx.setTime(clipes[0].duration); }
+    if (quadroFinal && clipes[0]) { const mx = new THREE.AnimationMixer(c); const a = mx.clipAction(clipes[0]); a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; a.play(); mx.setTime(clipes[0].duration - 1e-3); }
   }).catch(() => undefined);
   return grupo;
+}
+
+/**
+ * Posições (x, y, z, em metros antes da escala) de `n` maços numa pilha em degraus: cada camada tem pelo menos
+ * um maço, então qualquer `n` termina (sem laço infinito) e a pilha cresce em altura quando passa de 21.
+ */
+export function posicoesDaPilha(n: number): Array<[number, number, number]> {
+  const out: Array<[number, number, number]> = [];
+  for (let camada = 0; out.length < n; camada++) {
+    const porCamada = Math.max(1, 6 - camada);
+    for (let k = 0; k < porCamada && out.length < n; k++) {
+      const lado = (k % 2) * 0.1, fila = Math.floor(k / 2) * 0.16 + Math.min(camada, 5) * 0.08;
+      out.push([fila - 0.2, 0.017 + camada * 0.034, lado - 0.05]);
+    }
+  }
+  return out;
 }
 
 /**
@@ -92,14 +108,10 @@ export function pilhaDeDinheiro(n: number, semente = 1, escala = 1.6): THREE.Gro
     let s = semente * 9301 + 49297; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), e = new THREE.Vector3(escala, escala, escala);
     const mats: THREE.Matrix4[] = [];
-    const porCamada = 6; let i = 0;
-    for (let camada = 0; i < n; camada++) {
-      for (let k = 0; k < porCamada - camada && i < n; k++, i++) {
-        const lado = (k % 2) * 0.1, fila = Math.floor(k / 2) * 0.16 + camada * 0.08;
-        p.set((fila - 0.2) * escala, (0.017 + camada * 0.034) * escala, (lado - 0.05 + (rnd() - 0.5) * 0.02) * escala);
-        q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (rnd() - 0.5) * 0.25);
-        mats.push(m.compose(p, q, e).clone());
-      }
+    for (const [x, y, z] of posicoesDaPilha(n)) {
+      p.set(x * escala, y * escala, (z + (rnd() - 0.5) * 0.02) * escala);
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (rnd() - 0.5) * 0.25);
+      mats.push(m.compose(p, q, e).clone());
     }
     for (const src of malhas) {
       src.updateMatrixWorld(true);
