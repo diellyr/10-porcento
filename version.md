@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.7.4**
+**Versão atual: 0.8.0**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,13 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.8.0 — 2026-11-21
+- **MEUS 10%, remasterização 3D — fases 1 e 2** (detalhes em `docs/REMASTER.md`):
+  - auditoria do motor gráfico, das mecânicas e do estado visual; direção de arte "sátira de gabinete" e plano por fases;
+  - pipeline Blender (Blender 5.3 como módulo Python): scripts versionados em `tools/blender/`, exportação GLB e prévias renderizadas;
+  - primeiro asset: **Cofre do Guardião** — aço grafite com frisos dourados, volante e porta animados, interior com maços de dinheiro, barras de ouro, moedas e sacos; na sala Tesouraria e Cofre ele se abre quando você entra e acende um brilho dourado (qualidades Alta e Média).
+- Segurança: Next.js 16.4.6 (corrige 7 alertas moderados do 16.4.3, entre eles exposição de cookie HttpOnly em rotas Edge).
 
 ### 0.7.4 — 2026-11-09
 - **MEUS 10%**: o menu inicial do jogo (`/jogo`, tela de “Nova partida”) também ganha o botão **Compartilhar link** no canto superior direito, no estilo de vidro do menu.

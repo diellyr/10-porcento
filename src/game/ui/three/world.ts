@@ -6,6 +6,7 @@ import { setRealismoLowpoly, bakeGroup, ambulance, ball, blob, board, box, boxPi
 import { ANCHORS, ROOM_D, ROOM_W, ROOMS, WALL_H, WALL_T, roomsDoNivel, type RoomDef } from "./world-data";
 import type { Quality } from "./support";
 import { LOC_INFO } from "../../content/niveis";
+import { cofreBlender, type AssetAnimado } from "./blender";
 import { figuranteRealista, gabineteRealista, personagemRealista, pisoMadeira, raiosDeSol } from "./realismo";
 import type { Tema } from "../../content/niveis/tipos";
 
@@ -21,6 +22,10 @@ export interface World {
   /** vida: respiração e balanço de todos; quem está falando (hotspot) se mexe conforme o nível da voz */
   animate: (t: number, speaking: string | null, level: number) => void;
   drawCalls: () => number;
+  /** sala em que a câmera está (null = mapa geral): dispara as animações de cada sala, como a porta do cofre */
+  setSala: (sala: LocationId | null, reduzir: boolean) => void;
+  /** avança animações de assets (sempre, mesmo com movimento reduzido: aí elas só saltam para o estado final) */
+  tick: (dt: number) => void;
   dispose: () => void;
 }
 
@@ -33,6 +38,7 @@ function floorTexture(c1: string, c2: string, tiles: number, rep: [number, numbe
 
 /** `realismo`: direção R2 (validação: Gabinete da Administração e personagens com modelo de corpo inteiro). */
 export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
+  let cofre: AssetAnimado | null = null; let reduzirMov = false;
   const ROOM_LIST = roomsDoNivel(nivel);
   setRealismoLowpoly(realismo);
   const root = new THREE.Group();
@@ -135,7 +141,8 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
         sign(g, "Gabinete", 1.8, 0.5, 0, 2.7, -3.33, 0, "#8a5528"); cyl(g, 0.03, 2.2, "#c8c8c8", -4.3, 0, 2.5); box(g, 0.9, 0.55, 0.02, "#2fa66a", -3.85, 1.55, 2.5); plant(g, -4.3, 3.0, 1.1);
         break; }
       case "cofre": {
-        safe(g, 3.2, -2.9); box(g, 3.6, 1.05, 0.9, "#6f8f7e", 0.2, 0, 0.5); box(g, 3.7, 0.1, 1.0, "#9bb8a8", 0.2, 1.05, 0.5); box(g, 0.5, 0.06, 0.38, "#7a2e2e", -1.2, 1.15, 0.5); papers(g, 1.4, 1.15, 0.4);
+        if (realismo) { cofre = cofreBlender(1.15, () => reduzirMov); cofre.grupo.position.set(3.0, 0, -2.55); cofre.grupo.rotation.y = -0.18; g.add(cofre.grupo); } else safe(g, 3.2, -2.9);
+        box(g, 3.6, 1.05, 0.9, "#6f8f7e", 0.2, 0, 0.5); box(g, 3.7, 0.1, 1.0, "#9bb8a8", 0.2, 1.05, 0.5); box(g, 0.5, 0.06, 0.38, "#7a2e2e", -1.2, 1.15, 0.5); papers(g, 1.4, 1.15, 0.4);
         cabinet(g, -4.3, -1.2, Math.PI / 2, "#8c97a6", 1.2, 1.7); cabinet(g, -4.3, 0.4, Math.PI / 2, "#8c97a6", 1.2, 1.7); cabinet(g, -4.3, 2.0, Math.PI / 2, "#8c97a6", 1.2, 1.7);
         sign(g, "Tesouraria", 2.2, 0.5, -1.4, 2.5, -3.33, 0, "#4b6d5c"); chair(g, 0.2, 1.7, "#4b6d5c", Math.PI, true); plant(g, 4.3, 3.0, 0.9);
         break; }
@@ -289,11 +296,13 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
     }
   };
   const drawCalls = () => walls.length + 1;
+  const setSala = (sala: LocationId | null, reduzir: boolean) => { reduzirMov = reduzir; cofre?.tocar(sala === "cofre"); };
+  const tick = (dt: number) => { cofre?.atualizar(dt); };
 
   const dispose = () => {
     root.traverse((o) => { const m = o as THREE.Mesh; const mm = m.material as THREE.Material | undefined; if (mm && (mm as THREE.MeshBasicMaterial).map) (mm as THREE.MeshBasicMaterial).map!.dispose(); });
     // geometrias compartilhadas ficam no módulo; materiais em cache são liberados por disposeMats (chamado pelo componente)
   };
   void blob; void darken; void lighten; void ROOM_W; void ROOM_D; void q;
-  return { root, center: (id) => new THREE.Vector3(ROOMS[id].cx, 0, ROOMS[id].cz), anchor: (room, hs) => { const a = ANCHORS[hs] ?? [0, 1, 0]; return local(room, a[0], a[1], a[2]); }, setDynamic, updateWalls, animate, drawCalls, dispose };
+  return { root, center: (id) => new THREE.Vector3(ROOMS[id].cx, 0, ROOMS[id].cz), anchor: (room, hs) => { const a = ANCHORS[hs] ?? [0, 1, 0]; return local(room, a[0], a[1], a[2]); }, setDynamic, updateWalls, animate, drawCalls, setSala, tick, dispose };
 }

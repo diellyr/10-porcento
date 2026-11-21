@@ -13,3 +13,8 @@ playwright-report
 .wrangler
 .dev.vars
 /public/estudo-assets/
+
+# pipeline Blender
+.venv-blender/
+tools/blender/previas/
+tools/blender/__pycache__/

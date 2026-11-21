@@ -137,6 +137,7 @@ export function World3D(p: Props) {
       const wantVy = c.foco ? el.clientHeight * 0.16 : 0; vy += (wantVy - vy) * k; if (Math.abs(vy) > 0.5 || wantVy) { cam.setViewOffset(el.clientWidth, el.clientHeight, 0, vy, el.clientWidth, el.clientHeight); } else cam.clearViewOffset();
       place(); world.updateWalls(cam.position, c.reduzir ? 1 : dt);
       if (!c.reduzir) world.animate(clock, c.foco, audio.level());
+      world.setSala(c.modo === "sala" ? c.s.location : null, c.reduzir); world.tick(dt);
       key.target.position.set(cur.tx, 0, cur.tz); key.position.set(cur.tx - 14, realismo ? 15 : 26, cur.tz + (realismo ? 10 : 16));
       if (comp) {
         // profundidade de campo só nas conversas (aproximação), com foco no rosto
