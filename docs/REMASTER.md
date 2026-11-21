@@ -64,9 +64,9 @@ Documento vivo da remasterização. Cada fase registra o que mudou, os assets pr
 |---|---|---|
 | 1 Auditoria | este documento | ✅ |
 | 2 Pipeline Blender + 1º asset | Cofre do Guardião (porta e volante animados), integrado na sala do Cofre | ✅ |
-| 3 Identidade visual | paleta/tokens e materiais padrão no pipeline; aplicação na interface | em andamento |
-| 4 Objetos e personagens | maleta, pilhas de dinheiro, moedas, troféu, coroa e trono; figurinos por nível | próximo |
-| 5 Cenários por nível | ostentação crescente por nível (gabinetes, palácio, sala do trono) | — |
+| 3 Identidade visual | paleta e materiais padrão no pipeline (ouro, grafite, veludo, papel-moeda, gemas) | ✅ |
+| 4 Objetos | maleta, maço (instancing), moeda, troféu, coroa e trono | ✅ |
+| 5 Cenários e progressão | gabinete do jogador em todos os níveis ganha ostentação pelas faixas de patrimônio | ✅ |
 | 6 Animações | explosão de moedas no desvio, efeito de Poder/Trambicagem, transição de nível, cinemática do Imperador | — |
 | 7 Interface | HUD com medidores de Poder/Trambicagem/Patrimônio no padrão novo | — |
 | 8 Otimização | medir tamanho, carga e quadros; compressão e LOD | — |
@@ -79,3 +79,9 @@ Documento vivo da remasterização. Cada fase registra o que mudou, os assets pr
 - **Asset**: `cofre.glb` — ~15 mil triângulos, 8 materiais PBR, animação de abertura (volante gira 2 voltas, porta abre 110° com rebote, 3 s). Luz dourada interna acende conforme a porta abre.
 - **Comportamento**: ao entrar na sala Tesouraria e Cofre, o cofre se abre; ao sair, fecha. Com "reduzir movimento", salta direto para o estado final.
 - **Testes**: prévias Cycles (fechado/aberto), capturas reais do jogo (Alta e Média), typecheck, testes unitários e e2e.
+
+### Fases 3 a 5 (0.9.0)
+- **Arquivos**: `tools/blender/tesouros.py` (6 assets), `tools/blender/{comum,construir}.py`, `src/game/ui/three/blender.ts` (`assetEstatico`, `pilhaDeDinheiro` com `InstancedMesh`), `src/game/ui/three/world.ts` (`gabineteDoNivel`, ostentação por faixa), galeria `/mundo3d?patrimonio=` (só desenvolvimento).
+- **Assets**: maleta.glb 140 KB (animação da tampa), maco.glb 6 KB, moeda.glb 28 KB, trofeu.glb 178 KB, coroa.glb 132 KB, trono.glb 144 KB.
+- **Regra preservada**: a cena só lê `luxoNivel` (calculado pelo motor a partir do patrimônio); nada de bônus por riqueza ilícita.
+- **Testes**: prévias Cycles de cada objeto (corrigidos a maleta maciça e a taça do troféu), capturas reais nos níveis 1 e 4 com patrimônio simulado, unitários e e2e do jogo.

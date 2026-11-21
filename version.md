@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.8.0**
+**Versão atual: 0.9.0**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,11 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.9.0 — 2026-11-21
+- **MEUS 10%, remasterização 3D — fases 3 a 5**:
+  - novos objetos modelados no Blender: **maleta** (abre, cheia de maços), **maço de dinheiro** (para pilhas com instancing), **moeda 10%**, **troféu "Gestor do Ano"**, **coroa** com rubis e ametistas e **trono** de veludo com medalhão "10%";
+  - o gabinete do jogador, **em todos os níveis**, acumula ostentação conforme o patrimônio fictício: troféu e maleta (faixa 1), pilhas de dinheiro e mais maletas (faixa 2), trono dourado e mais dinheiro (faixa 3) — as mesmas faixas que o motor já calculava. Qualidades Alta e Média; Baixa e 2D seguem como estavam.
 
 ### 0.8.0 — 2026-11-21
 - **MEUS 10%, remasterização 3D — fases 1 e 2** (detalhes em `docs/REMASTER.md`):

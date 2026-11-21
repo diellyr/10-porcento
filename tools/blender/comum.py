@@ -21,19 +21,20 @@ SAIDA = RAIZ / "public" / "jogo" / "3d" / "blender"
 PREVIA = Path(os.environ.get("PREVIA_DIR", RAIZ / "tools" / "blender" / "previas"))
 
 
+_mats: dict[str, bpy.types.Material] = {}
+
+
 def limpar() -> None:
+    _mats.clear()
     bpy.ops.wm.read_factory_settings(use_empty=True)
     for col in (bpy.data.meshes, bpy.data.materials, bpy.data.actions, bpy.data.lights, bpy.data.cameras):
         for b in list(col):
             col.remove(b)
 
 
-_mats: dict[str, bpy.types.Material] = {}
-
-
 def material(nome: str, cor: str, metal: float = 0.0, rug: float = 0.5, emissao: float = 0.0, clearcoat: float = 0.0) -> bpy.types.Material:
     """Material PBR (Principled BSDF) que o exportador glTF converte 1:1 para o three.js."""
-    if nome in _mats and _mats[nome].name in bpy.data.materials:
+    if nome in _mats:
         return _mats[nome]
     m = bpy.data.materials.new(nome)
     m.use_nodes = True

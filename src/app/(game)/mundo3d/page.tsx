@@ -15,8 +15,9 @@ function G() {
   const caso = Number(sp.get("caso") ?? (nivel === 2 ? 11 : 1));
   const s = useMemo(() => {
     const r = apply(null, "g-start", { type: "start", playerName: "Teste", avatar: "av1", scenario: fictionalScenario("2026-01-01T00:00:00.000Z"), seed: 7, gameId: "galeria-mundo3d" });
-    return { ...r.state, nivel, location: loc, caso } as typeof r.state;
-  }, [loc, caso, nivel]);
+    const pat = sp.get("patrimonio"); // galeria: simula o patrimônio fictício para ver a ostentação
+    return { ...r.state, nivel, location: loc, caso, ...(pat ? { personal: { ...r.state.personal, patrimonio: Number(pat) } } : {}) } as typeof r.state;
+  }, [loc, caso, nivel, sp]);
   const hs = activeHotspots(s);
   const pins = Object.fromEntries((["recepcao", "farmacia", "enfermagem", "administracao", "cofre", "patio", "secretaria", "planejamento", "prefeitura", "camara", "ubs"] as LocationId[]).map((k, i) => [k, { novo: i % 3, objetivo: k === "farmacia" }])) as Record<LocationId, { novo: number; objetivo: boolean }>;
   return <div className="mx-auto max-w-[1200px] p-3"><World3D s={s} hs={hs} q={(sp.get("q") as "alta" | "media" | "baixa") || "alta"} modo={modo} foco={sp.get("foco")} pins={pins} onPick={() => undefined} onGoRoom={(l) => { setLoc(l); setModo("sala"); }} onModo={setModo} reduzir={sp.get("reduzir") === "1"} fixarEfeitos={sp.get("efeitos") === "fixos"} onFail={() => undefined} /></div>;

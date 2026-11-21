@@ -70,3 +70,43 @@ export function cofreBlender(escala = 1, reduzir = () => false): AssetAnimado {
     progresso: () => (acao ? acao.time / acao.getClip().duration : 0),
   };
 }
+
+/** Asset estático (sem mixer). `quadroFinal`: posa no último quadro da animação (ex.: maleta já aberta). */
+export function assetEstatico(nome: string, escala = 1, quadroFinal = false): THREE.Group {
+  const grupo = new THREE.Group(); grupo.name = `blender-${nome}`;
+  void carregarAsset(nome).then(({ cena, clipes }) => {
+    const c = cena.clone(true); c.scale.setScalar(escala); marcar(c); grupo.add(c);
+    if (quadroFinal && clipes[0]) { const mx = new THREE.AnimationMixer(c); mx.clipAction(clipes[0]).play(); mx.setTime(clipes[0].duration); }
+  }).catch(() => undefined);
+  return grupo;
+}
+
+/**
+ * Pilha de maços de dinheiro com instancing (uma chamada de desenho por material, qualquer quantidade).
+ * O formato é determinístico (mesma pilha para o mesmo `n` e `semente`).
+ */
+export function pilhaDeDinheiro(n: number, semente = 1, escala = 1.6): THREE.Group {
+  const grupo = new THREE.Group(); grupo.name = "pilha-dinheiro";
+  void carregarAsset("maco").then(({ cena }) => {
+    const malhas: THREE.Mesh[] = []; cena.traverse((o) => { if ((o as THREE.Mesh).isMesh) malhas.push(o as THREE.Mesh); });
+    let s = semente * 9301 + 49297; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), e = new THREE.Vector3(escala, escala, escala);
+    const mats: THREE.Matrix4[] = [];
+    const porCamada = 6; let i = 0;
+    for (let camada = 0; i < n; camada++) {
+      for (let k = 0; k < porCamada - camada && i < n; k++, i++) {
+        const lado = (k % 2) * 0.1, fila = Math.floor(k / 2) * 0.16 + camada * 0.08;
+        p.set((fila - 0.2) * escala, (0.017 + camada * 0.034) * escala, (lado - 0.05 + (rnd() - 0.5) * 0.02) * escala);
+        q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (rnd() - 0.5) * 0.25);
+        mats.push(m.compose(p, q, e).clone());
+      }
+    }
+    for (const src of malhas) {
+      src.updateMatrixWorld(true);
+      const inst = new THREE.InstancedMesh(src.geometry, src.material, mats.length);
+      mats.forEach((mm, j) => inst.setMatrixAt(j, mm.clone().multiply(src.matrixWorld)));
+      inst.castShadow = true; inst.receiveShadow = true; inst.userData.keep = true; grupo.add(inst);
+    }
+  }).catch(() => undefined);
+  return grupo;
+}

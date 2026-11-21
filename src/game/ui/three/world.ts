@@ -5,8 +5,8 @@ import { darken, lighten } from "../art/color";
 import { setRealismoLowpoly, bakeGroup, ambulance, ball, blob, board, box, boxPile, cabinet, chair, cone3, cyl, desk, extraLook, mat, monitor, papers, person, plant, safe, shelf, sign, sofa, tree, bed } from "./lowpoly";
 import { ANCHORS, ROOM_D, ROOM_W, ROOMS, WALL_H, WALL_T, roomsDoNivel, type RoomDef } from "./world-data";
 import type { Quality } from "./support";
-import { LOC_INFO } from "../../content/niveis";
-import { cofreBlender, type AssetAnimado } from "./blender";
+import { LOC_INFO, NIVEIS } from "../../content/niveis";
+import { assetEstatico, cofreBlender, pilhaDeDinheiro, type AssetAnimado } from "./blender";
 import { figuranteRealista, gabineteRealista, personagemRealista, pisoMadeira, raiosDeSol } from "./realismo";
 import type { Tema } from "../../content/niveis/tipos";
 
@@ -34,6 +34,13 @@ function floorTexture(c1: string, c2: string, tiles: number, rep: [number, numbe
   for (let y = 0; y < tiles; y++) for (let x = 0; x < tiles; x++) { g.fillStyle = (x + y) % 2 ? c1 : c2; g.fillRect(x * 64, y * 64, 64, 64); }
   g.strokeStyle = "rgba(0,0,0,.07)"; g.lineWidth = 2; for (let i = 0; i <= tiles; i++) { g.beginPath(); g.moveTo(i * 64, 0); g.lineTo(i * 64, n); g.moveTo(0, i * 64); g.lineTo(n, i * 64); g.stroke(); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+
+/** Sala de trabalho do jogador em cada nível (onde fica a mesa de decisão). */
+export function gabineteDoNivel(nivel: number): LocationId | null {
+  if (nivel <= 1) return "administracao";
+  if (nivel === 2) return "secretaria";
+  return (NIVEIS[nivel]?.locais.find((l) => l.mesa)?.id as LocationId | undefined) ?? null;
 }
 
 /** `realismo`: direção R2 (validação: Gabinete da Administração e personagens com modelo de corpo inteiro). */
@@ -241,7 +248,7 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
     at("recepcao", -4.2, -1.9, extraLook("#e5e7eb", "#c68d64"), { yaw: 0.4 });
     for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"], [11.5, "#6d6fc4", "#c68d64"]] as Array<[number, string, string]>) { const w = pessoa(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
     // luxo: o gabinete ganha ostentação (sátira); degradação: lixo e luzes frias
-    if (d.luxo > 0) {
+    if (!realismo && d.luxo > 0) {
       const ad = new THREE.Group(); ad.position.set(ROOMS.administracao.cx, 0, ROOMS.administracao.cz); dynG.add(ad);
       box(ad, 1.5, 1.0, 0.08, "#d9b44a", -2.4, 1.4, -3.3, { metal: 0.7, rough: 0.35 }); box(ad, 1.3, 0.8, 0.04, "#7fb6ea", -2.4, 1.5, -3.26);
       cyl(ad, 0.25, 0.1, "#d9b44a", 3.6, 0, -1.2, { metal: 0.8 }, true); cyl(ad, 0.18, 0.5, "#d9b44a", 3.6, 0.1, -1.2, { metal: 0.8 }, true); ball(ad, 0.28, "#d9b44a", 3.6, 0.9, -1.2, { metal: 0.8 });
@@ -267,6 +274,20 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
       for (const [x, c, sk] of [[-9.5, "#4a8fb8", "#e0b48f"], [3.0, "#cc5a4a", "#7a4a30"]] as Array<[number, string, string]>) { const w = pessoa(extraLook(c, sk)); w.position.set(x, 0, 0.1); w.rotation.y = x < 5 ? 1.57 : -1.57; w.userData.extra = true; w.userData.walk = { x0: x, amp: 1.6 }; dynG.add(w); }
     }
     // personagens presentes (os que têm conversa neste caso)
+    // ostentação (sátira): o gabinete do jogador acumula objetos do Blender conforme o patrimônio fictício cresce
+    if (realismo && d.luxo > 0) {
+      const sala = gabineteDoNivel(nivel);
+      if (sala && ROOMS[sala]) {
+        const g = new THREE.Group(); g.position.set(ROOMS[sala].cx, 0, ROOMS[sala].cz); g.userData.extra = false; dynG.add(g);
+        const por = (o: THREE.Object3D, x: number, y: number, z: number, rot = 0) => { o.position.set(x, y, z); o.rotation.y = rot; g.add(o); return o; };
+        // pedestal com o troféu "Gestor do Ano" e a maleta aberta, cheia
+        box(g, 0.55, 0.9, 0.55, "#2c2f36", -4.0, 0, 2.3, { metal: 0.5, rough: 0.4 });
+        por(assetEstatico("trofeu", 1.5), -4.0, 0.9, 2.3, 0.4);
+        por(assetEstatico("maleta", 1.6, true), 1.2, 0.0, 2.5, -0.35);
+        if (d.luxo > 1) { por(pilhaDeDinheiro(16, 1, 2.4), nivel <= 2 ? 3.6 : 4.3, 0, nivel <= 2 ? -1.4 : 0.4, nivel <= 2 ? 0.3 : 1.4); por(pilhaDeDinheiro(10, 2, 2.4), -0.6, 0, 2.7, -0.4); por(assetEstatico("maleta", 1.6, true), 2.6, 0, 2.7, 0.3); }
+        if (d.luxo > 2) { por(assetEstatico("trono", 1.3), -1.5, 0, -2.55, 0); por(pilhaDeDinheiro(21, 3, 2.4), -3.0, 0, -0.6, 1.2); }
+      }
+    }
     for (const pe of d.people) {
       const a = ANCHORS[pe.hotspotId]; if (!a) continue;
       const p = realismo && pe.char ? personagemRealista(pe.char, q !== "alta") : person(pe.look); p.position.copy(local(pe.room, a[0], 0, a[2])); p.rotation.y = ROOMS[pe.room].door === "N" ? 0.35 : -0.35; p.userData.hotspot = pe.hotspotId; p.userData.base = p.rotation.y; dynG.add(p);
