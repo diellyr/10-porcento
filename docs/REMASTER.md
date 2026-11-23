@@ -161,3 +161,17 @@ Custo dos objetos do Blender no gabinete (faixa 3 contra sem luxo): +56 chamadas
 | Cabelo | Parcialmente | **Parcialmente aprovado**: topete com volume e linha limpa; mechas pouco definidas, brilho plástico no navegador |
 | Expressividade no motor | Parcialmente | **Aprovado**: 7 emoções distintas no three.js |
 | Pendências fora do rosto | — | recorte serrilhado do terno no pescoço (aparece no close); arquivo cresceu para 5,7 MB (malha do rosto 2,9 MB) — otimização na etapa F |
+
+### Rodada 3 do piloto — terno · 2026-11-23 · **aguardando aprovação**
+- **Feito** (`tools/blender/gestor.py`): mangas e calças com seção de tecido (somem bíceps e panturrilha do manequim; calça cai reta com vinco na frente); ombreiras (ombro quadrado); dobras no cotovelo, na dobra do braço e na barra da calça; borda do pescoço arredondada e gola do paletó; lapelas largas com espessura; camisa em V contínuo; nó de gravata; abas dos bolsos; bolso do peito com lenço e a **caneta de ouro** do jogo; punhos brancos; barra do paletó com abertura curva na frente, rente ao corpo.
+- **Problema encontrado e resolvido**: com voxel de 9 mm o remesh perdia pernas e tronco (testado isolando cada mudança); voltou a 12 mm, com menos simplificação para caberem as dobras.
+
+| Item do terno | Rodada 1 | Agora |
+|---|---|---|
+| Silhueta | Parcialmente (macacão) | **Aprovado**: lê como terno de político (ombros, mangas e calças retas) |
+| Lapelas, camisa, gravata, bolsos | Parcialmente | **Aprovado**: peças com volume; lenço e caneta de ouro reforçam a sátira |
+| Dobras e costuras | Reprovado | **Parcialmente aprovado**: dobras discretas (cotovelo, barra) — pouco visíveis à distância do jogo; sem costuras |
+| Barra do paletó | Parcialmente | **Parcialmente aprovado**: rígida (presa à pelve); atrás marca a cintura como um cinto largo |
+| Acabamento do pescoço | Reprovado | **Parcialmente aprovado**: frente resolvida; na nuca ainda há recorte |
+| Barriga caricata | Parcialmente | **Parcialmente aprovado**: menos marcada que na rodada 1 |
+| Arquivo | 3,35 MB | 6,0 MB (corpo mais denso para as dobras) — otimização na etapa F |

@@ -121,6 +121,44 @@ def afastar_pernas(obj, fonte_pesos, dist, arm):
                 v.co += inv @ Vector((sx[k] * dist * w, 0, 0))
 
 
+def dobras(arm, corpo):
+    """Dobras de tecido por cima da forma: franzido no cotovelo e na dobra do braço, barra da calça amontoada no
+    sapato, vinco na frente da calça. Deslocamento pequeno ao longo da normal, ponderado pelo peso do osso."""
+    me = corpo.data; mw = corpo.matrix_world; inv = mw.inverted()
+    me.update(); bm = bmesh.new(); bm.from_mesh(me); bm.verts.ensure_lookup_table(); bm.normal_update()
+    nomes = {g.index: g.name for g in corpo.vertex_groups}
+    for v in bm.verts:
+        ws = {nomes[g.group]: g.weight for g in me.vertices[v.index].groups}
+        p = mw @ v.co; n = (mw.to_3x3() @ v.normal).normalized(); dz = 0.0
+        for lado in "lr":
+            for osso, faixa, amp, freq in (("lowerarm_", (0.0, 0.3), 0.0045, 38.0), ("upperarm_", (0.75, 1.0), 0.004, 34.0), ("calf_", (0.78, 1.0), 0.005, 30.0)):
+                w = ws.get(osso + lado, 0.0)
+                if w < 0.3:
+                    continue
+                bo = arm.data.bones[osso + lado]; a = arm.matrix_world @ bo.head_local; t = arm.matrix_world @ bo.tail_local
+                u = (p - a).dot((t - a).normalized()) / (t - a).length
+                if faixa[0] <= u <= faixa[1]:
+                    jan = math.sin(math.pi * (u - faixa[0]) / (faixa[1] - faixa[0]))
+                    # ondas inclinadas (dobras não são anéis perfeitos)
+                    fase = (p - a).length * freq + 3.0 * (p.x + p.y)
+                    dz += amp * w * jan * max(0.0, math.sin(fase)) ** 2
+            for osso in ("thigh_", "calf_"):
+                w = ws.get(osso + lado, 0.0)
+                if w > 0.4:
+                    bo = arm.data.bones[osso + lado]; a = arm.matrix_world @ bo.head_local; t = arm.matrix_world @ bo.tail_local
+                    d = (t - a).normalized(); q = a + d * (p - a).dot(d); rad = (p - q)
+                    if rad.length > 1e-6 and rad.normalized().y < -0.97:       # bem na frente da perna: vinco
+                        dz += 0.004 * w
+        if dz:
+            v.co = inv @ (p + n * dz)
+    bm.to_mesh(me); bm.free(); me.update()
+
+
+TUBOS = True
+VOXEL = 0.012            # (0,009 faz o remesh perder pernas e tronco: testado)
+OMBREIRA = True
+
+
 def esculpir_corpo(arm, base, M):
     """Silhueta de terno: corpo do manequim inflado (roupa), barriga/peito caricatos, refeito por voxel remesh
     (some a segmentação do manequim) e suavizado; pesos voltam do manequim original."""
@@ -149,11 +187,19 @@ def esculpir_corpo(arm, base, M):
                 p.y += tronco * 0.25 * h * (p.y - pel.y)
             hp = smooth(sp2.z, nk.z - 0.05, p.z) * (1 - smooth(nk.z - 0.05, nk.z + 0.02, p.z))
             p.x = pel.x + (p.x - pel.x) * (1 + 0.12 * tronco * hp)
-        if dom in ("upperarm_l", "upperarm_r", "lowerarm_l", "lowerarm_r", "thigh_l", "thigh_r", "calf_l", "calf_r"):
+        if TUBOS and dom in ("upperarm_l", "upperarm_r", "lowerarm_l", "lowerarm_r", "thigh_l", "thigh_r", "calf_l", "calf_r"):
+            # tecido, não músculo: seção quase circular de raio-alvo (manga e calça "caem" retas)
             bo = arm.data.bones[dom]; a = arm.matrix_world @ bo.head_local; t = arm.matrix_world @ bo.tail_local
-            d = (t - a).normalized(); q = a + d * (p - a).dot(d)
-            k = 1.14 if dom.startswith("thigh") else 1.32 if dom.startswith("calf") else 1.05     # calça mais larga; braço menos "bombado"
-            p = q + (p - q) * k
+            d = (t - a).normalized(); u = max(0.0, min(1.0, (p - a).dot(d) / (t - a).length)); q = a + d * (p - a).dot(d)
+            alvo = {"upperarm": 0.074, "lowerarm": 0.064 + 0.008 * u, "thigh": 0.1 - 0.008 * u, "calf": 0.088}[dom[:-2]]
+            r = (p - q).length
+            if r > 1e-6:
+                p = q + (p - q) * ((0.3 * r + 0.7 * alvo) / r)
+        if OMBREIRA and dom in ("clavicle_l", "clavicle_r", "upperarm_l", "upperarm_r"):
+            # ombreira: ombro quadrado e um pouco mais alto
+            ua = B("upperarm_" + dom[-1]); g = math.exp(-((p - ua).length ** 2) / (0.09 ** 2))
+            if p.z > ua.z - 0.03:
+                p.z += 0.022 * g; p.x += (0.016 if p.x > pel.x else -0.016) * g
         if dom == "neck_01":
             c = B("neck_01"); p.x = c.x + (p.x - c.x) * 1.5; p.y = c.y + (p.y - c.y) * 1.5
         v.co = inv @ p
@@ -168,11 +214,11 @@ def esculpir_corpo(arm, base, M):
     for md in list(base_af.modifiers):
         base_af.modifiers.remove(md)
     afastar_pernas(base_af, base_af, 0.06, arm)
-    rm = corpo.modifiers.new("remesh", "REMESH"); rm.mode = "VOXEL"; rm.voxel_size = 0.012; rm.use_smooth_shade = True; rm.adaptivity = 0.0
+    rm = corpo.modifiers.new("remesh", "REMESH"); rm.mode = "VOXEL"; rm.voxel_size = VOXEL; rm.use_smooth_shade = True; rm.adaptivity = 0.0
     _aplicar(corpo, rm)
     sm = corpo.modifiers.new("suave", "CORRECTIVE_SMOOTH"); sm.factor = 0.5; sm.iterations = 12; sm.use_only_smooth = True
     _aplicar(corpo, sm)
-    dc = corpo.modifiers.new("reduz", "DECIMATE"); dc.ratio = 0.45
+    dc = corpo.modifiers.new("reduz", "DECIMATE"); dc.ratio = 0.7
     _aplicar(corpo, dc)
     print("corpo após remesh:", len(corpo.data.vertices), "vértices")
     corpo.vertex_groups.clear()
@@ -193,7 +239,12 @@ def esculpir_corpo(arm, base, M):
         elif dom == "neck_01" and (mw @ me.vertices[v.index].co).z > nk.z - 0.01:
             fora.append(v)
     bmesh.ops.delete(bm, geom=fora, context="VERTS")
+    # borda do pescoço: arredonda o contorno serrilhado deixado pelo corte
+    borda = [v for v in bm.verts if v.is_boundary and (mw @ v.co).z > sp2.z]
+    for _ in range(12):
+        bmesh.ops.smooth_vert(bm, verts=borda, factor=0.8, use_axis_x=True, use_axis_y=True, use_axis_z=True)
     bm.to_mesh(me); bm.free(); me.update()
+    dobras(arm, corpo)
     maos = _dup(base, "Maos_Gestor")
     bm = bmesh.new(); bm.from_mesh(maos.data); bm.verts.ensure_lookup_table()
     dl = maos.data.vertices
@@ -219,7 +270,7 @@ def vestir(arm, corpo, M):
     pel, sp3, nk = B("pelvis"), B("spine_03"), B("neck_01")
     pecas = []
 
-    def faixa_sobre(nome, pts, larg, mat, desloc=0.004, divs=40):
+    def faixa_sobre(nome, pts, larg, mat, desloc=0.004, divs=40, esp=0.004, nrm_fixa=None):
         """Fita (malha) de largura `larg` passando pelos pontos (Catmull-Rom), deitada na superfície do terno."""
         P = [Vector(p) for p in pts]
         def cr(t):
@@ -229,8 +280,9 @@ def vestir(arm, corpo, M):
         bm = bmesh.new(); ant = None
         for k in range(divs + 1):
             t = k / divs; c = cr(t); tg = (cr(min(1, t + 0.01)) - cr(max(0, t - 0.01))).normalized()
-            nrm = Vector((0, -1, 0)); lado = tg.cross(nrm).normalized()
-            par = (bm.verts.new(c - lado * larg / 2), bm.verts.new(c + lado * larg / 2))
+            nrm = nrm_fixa or Vector((0, -1, 0)); lado = tg.cross(nrm).normalized()
+            L = larg(t) if callable(larg) else larg
+            par = (bm.verts.new(c - lado * L / 2), bm.verts.new(c + lado * L / 2))
             if ant:
                 bm.faces.new((ant[0], ant[1], par[1], par[0]))
             ant = par
@@ -239,7 +291,7 @@ def vestir(arm, corpo, M):
         sd = o.modifiers.new("sub", "SUBSURF"); sd.levels = 1; _aplicar(o, sd)
         sw = o.modifiers.new("cola", "SHRINKWRAP"); sw.target = corpo; sw.wrap_method = "NEAREST_SURFACEPOINT"; sw.wrap_mode = "OUTSIDE_SURFACE"; sw.offset = desloc
         _aplicar(o, sw)
-        so = o.modifiers.new("esp", "SOLIDIFY"); so.thickness = 0.004; so.offset = 1.0; _aplicar(o, so)
+        so = o.modifiers.new("esp", "SOLIDIFY"); so.thickness = esp; so.offset = 1.0; _aplicar(o, so)
         o.data.materials.append(mat)
         for f in o.data.polygons:
             f.use_smooth = True
@@ -260,13 +312,23 @@ def vestir(arm, corpo, M):
         z = zt - (zt - zb) * k / 6
         w = 0.075 * (1 - k / 6) + 0.004
         camisa.append((z, w))
-    # camisa como fita larga que afina para baixo: aproximação com 3 fitas lado a lado
-    for dx in (-0.035, 0.0, 0.035):
-        faixa_sobre("Camisa", [Vector((cx + dx * (1 - (zt - z) / (zt - zb)), frente(cx, z), z)) for z, _ in camisa], 0.05, M["camisa"], 0.003)
-    faixa_sobre("Gravata", [Vector((cx, frente(cx, z), z)) for z in (zt - 0.02, zt - 0.08, zb + 0.02, zb - 0.03)], 0.05, M["gravata"], 0.007)
-    # lapelas do paletó
-    for s in (-1, 1):
-        faixa_sobre("Lapela", [Vector((cx + s * (0.085 - 0.07 * t), frente(cx + s * (0.085 - 0.07 * t), zt - (zt - zb) * t), zt - (zt - zb) * t)) for t in (0.0, 0.33, 0.66, 1.0)], 0.035, M["terno_lapela"], 0.006)
+    # camisa: um V contínuo que afina até o botão
+    faixa_sobre("Camisa", [Vector((cx, frente(cx, z), z)) for z, _ in camisa], lambda t: 0.16 * (1 - t) + 0.012, M["camisa"], 0.003)
+    faixa_sobre("Gravata", [Vector((cx, frente(cx, z), z)) for z in (zt - 0.02, zt - 0.08, zb + 0.02, zb - 0.03)], lambda t: 0.034 + 0.03 * t, M["gravata"], 0.008, esp=0.006)
+    # nó da gravata
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.022, location=(cx, frente(cx, zt - 0.015) - 0.014, zt - 0.015), segments=20, ring_count=12)
+    no = bpy.context.active_object; no.scale = (1.2, 0.7, 1.0); bpy.ops.object.transform_apply(scale=True); bpy.ops.object.shade_smooth()
+    no.data.materials.append(M["gravata"]); pecas.append(no)
+    # lapelas: largas no peito, finas no botão, com espessura (gola do paletó)
+    for s_ in (-1, 1):
+        pts = [Vector((cx + s_ * (0.1 - 0.085 * t), frente(cx + s_ * (0.1 - 0.085 * t), zt + 0.02 - (zt + 0.02 - zb) * t), zt + 0.02 - (zt + 0.02 - zb) * t)) for t in (0.0, 0.3, 0.65, 1.0)]
+        faixa_sobre("Lapela", pts, lambda t: 0.075 * (1 - t) ** 0.8 + 0.012, M["terno_lapela"], 0.007, esp=0.008)
+    # gola do paletó em volta da nuca (cobre o recorte do pescoço)
+    gola = []
+    for k in range(13):
+        a_ = math.radians(-150 + 300 * k / 12)
+        gola.append(Vector((nk.x + math.sin(a_) * 0.105, nk.y + 0.005 - math.cos(a_) * 0.095 * -1, nk.z + 0.0)))
+    faixa_sobre("GolaPaleto", gola, 0.045, M["terno_lapela"], 0.004, esp=0.01, nrm_fixa=Vector((0, 0, 1)))
     # faixa verde-amarela do ombro direito ao quadril esquerdo
     ua = B("upperarm_r"); ombro = Vector((ua.x * 0.8 + pel.x * 0.2, pel.y, ua.z - 0.02))
     quadril = Vector((pel.x - (ua.x - pel.x) * 0.85, pel.y, pel.z - 0.03))
@@ -282,17 +344,39 @@ def vestir(arm, corpo, M):
     for z in (zb - 0.06, zb - 0.14):
         bpy.ops.mesh.primitive_cylinder_add(radius=0.012, depth=0.008, location=(cx, frente(cx, z) - 0.006, z), rotation=(math.radians(90), 0, 0), vertices=20)
         b = bpy.context.active_object; b.data.materials.append(M["ouro"]); bpy.ops.object.shade_smooth(); pecas.append(b)
+    # abas dos bolsos (quadril) e bolso do peito com lenço e a caneta de ouro do jogo
+    for s_ in (-1, 1):
+        x0 = cx + s_ * 0.16; z0 = pel.z + 0.01
+        faixa_sobre("BolsoAba", [Vector((x0 - 0.065, frente(x0 - 0.065, z0), z0)), Vector((x0, frente(x0, z0), z0)), Vector((x0 + 0.065, frente(x0 + 0.065, z0), z0))], 0.04, M["terno_lapela"], 0.006, esp=0.006)
+    xp = cx - (B("upperarm_r").x - cx) * 0.55; zp = sp3.z - 0.02
+    faixa_sobre("BolsoPeito", [Vector((xp - 0.045, frente(xp - 0.045, zp), zp)), Vector((xp + 0.045, frente(xp + 0.045, zp), zp))], 0.012, M["terno_lapela"], 0.006, esp=0.004)
+    for k, dx in enumerate((-0.025, 0.0, 0.022)):                  # pontas do lenço
+        bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=0.018, depth=0.04, location=(xp + dx, frente(xp + dx, zp) + 0.006, zp + 0.022 + 0.006 * (k == 1)))
+        c_ = bpy.context.active_object; c_.scale = (1, 0.3, 1); bpy.ops.object.transform_apply(scale=True)
+        c_.data.materials.append(M["camisa"]); pecas.append(c_)
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.0065, depth=0.1, location=(xp + 0.032, frente(xp + 0.032, zp) + 0.008, zp + 0.025), vertices=16)
+    caneta = bpy.context.active_object; caneta.rotation_euler = (0, math.radians(-8), 0); bpy.ops.object.transform_apply(rotation=True)
+    bpy.ops.object.shade_smooth(); caneta.data.materials.append(M["ouro"]); pecas.append(caneta)
+    # punhos da camisa aparecendo na manga
+    for lado in "lr":
+        hd = B("hand_" + lado); la = B("lowerarm_" + lado); d = (hd - la).normalized()
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.05, depth=0.03, location=hd - d * 0.035, vertices=28, end_fill_type="NOTHING")
+        pu = bpy.context.active_object; pu.rotation_mode = "QUATERNION"; pu.rotation_quaternion = Vector((0, 0, 1)).rotation_difference(d)
+        bpy.ops.object.transform_apply(rotation=True)
+        so = pu.modifiers.new("esp", "SOLIDIFY"); so.thickness = 0.006; _aplicar(pu, so)
+        bpy.ops.object.shade_smooth(); pu.data.materials.append(M["camisa"]); pecas.append(pu)
     # aba do paletó (barra sobre os quadris), aberta na frente
     bm = bmesh.new(); aneis = []
-    zs = [pel.z + 0.06 - 0.03 * i for i in range(9)]
+    zs = [pel.z + 0.06 - 0.028 * i for i in range(7)]
     for i, z in enumerate(zs):
         anel = []
         for k in range(49):
-            a = math.radians(18 + (360 - 36) * k / 48)              # frente (−Y) fica aberta: ±18°
+            ab = 10 + 3.5 * i                                         # abertura cresce para baixo (corte arredondado)
+            a = math.radians(ab + (360 - 2 * ab) * k / 48)
             d = Vector((math.sin(a), -math.cos(a), 0))
             rs = [((corpo.matrix_world @ v.co) - Vector((pel.x, pel.y, z))) for v in me.vertices if abs((corpo.matrix_world @ v.co).z - z) < 0.02]
             r = max((q.x * d.x + q.y * d.y for q in rs if (Vector((q.x, q.y, 0)).normalized().dot(d)) > 0.93), default=0.2)
-            r += 0.012 + 0.006 * i
+            r = min(r, 0.26) + 0.008 + 0.002 * i                    # rente ao corpo, abrindo só um pouco
             anel.append(bm.verts.new(Vector((pel.x, pel.y, z)) + d * r))
         aneis.append(anel)
     for i in range(len(aneis) - 1):
