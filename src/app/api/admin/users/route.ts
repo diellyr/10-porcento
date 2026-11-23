@@ -10,7 +10,7 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   return adminHandle(req, async (actor) => {
     assertSameOrigin(req);
-    const { id, role } = z.object({ id: z.string().uuid(), role: z.enum(["user", "admin"]) }).parse(await req.json());
+    const { id, role } = z.object({ id: z.guid(), role: z.enum(["user", "admin"]) }).parse(await req.json());
     const { analytics, registry } = container();
     const current = await analytics.getRole(id);
     if (!current) throw new AppError("NOT_FOUND", "usuário não existe");

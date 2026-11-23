@@ -38,7 +38,7 @@ export const ImportRowSchema = z.object({
   categoria_tipo: z.string().max(40).optional().nullable(),
   categoria_codigo: z.string().max(80).optional().nullable(),
   categoria_rotulo: z.string().max(300).optional().nullable(),
-  valor: z.number().finite(),
+  valor: z.number(), // zod 4: z.number() já rejeita Infinity
 });
 export type ImportRow = z.infer<typeof ImportRowSchema>;
 

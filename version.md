@@ -1,6 +1,6 @@
 # Versão do Brasil Fiscal e do MEUS 10%
 
-**Versão atual: 0.11.0**
+**Versão atual: 0.11.1**
 
 A versão segue [SemVer](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`) e aparece ao lado do nome da ferramenta
 (cabeçalho do site, painel admin, tela de login e, no jogo, ao lado do título MEUS 10% no menu e na página inicial). A fonte única do número é o campo `version` do `package.json`; este
@@ -23,6 +23,10 @@ número da versão** (passo 1 abaixo): sem mudar o número, ninguém é avisado.
 - **MAIOR** (1.0.0): mudança incompatível ou marco de produção.
 
 ## Histórico
+
+### 0.11.1 — 2026-11-23
+- **Segurança**: atualização da biblioteca de validação **zod 3 → 4** (4.6.7), que corrige a vulnerabilidade de severidade alta [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5) (consumo excessivo de memória ao validar coleções enormes). Sem mudança no que o usuário vê: as regras de validação e as mensagens em português continuam as mesmas.
+  - Ajustes do guia de migração: `z.record` com tipo de chave explícito, `.strict()` → `z.strictObject`, `z.string().uuid()` → `z.guid()` (mesma aceitação de antes) e `z.number().finite()` → `z.number()` (que já rejeita infinito).
 
 ### 0.11.0 — 2026-11-21
 - **MEUS 10%, remasterização 3D — fases 7 a 9**:

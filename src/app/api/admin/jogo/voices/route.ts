@@ -5,12 +5,12 @@ import { container } from "@/server/container";
 import { adminHandle, assertSameOrigin } from "@/server/http-api";
 import { gameIntegration, resetIntegrationCache, VOICE_ID_RE } from "@/server/game/integrations";
 
-const Body = z.object({
-  voices: z.record(z.string().max(64)),
+const Body = z.strictObject({
+  voices: z.record(z.string(), z.string().max(64)),
   model: z.string().regex(/^[a-z0-9_]{3,40}$/).optional(),
   limiteDiarioChamadas: z.number().int().min(0).max(100_000).optional(),
   limiteDiarioCaracteres: z.number().int().min(0).max(5_000_000).optional(),
-}).strict();
+});
 
 /** Salva os IDs de voz por personagem (vazio = voltar ao padrão), o modelo e os limites diários. Segredos não passam por aqui. */
 export async function PUT(req: Request) {

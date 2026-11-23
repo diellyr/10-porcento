@@ -51,15 +51,15 @@ export function assertSafeBaseUrl(raw: string): URL {
   return u;
 }
 
-export const SettingsSchema = z.object({
+export const SettingsSchema = z.strictObject({
   priority: z.number().int().min(1).max(1000).optional(),
   cacheTtlMinutes: z.number().int().min(0).max(525_600).optional(),
   rateLimitPerMinute: z.number().int().min(1).max(600).optional(),
   baseUrl: z.string().max(300).optional(),
-  config: z.record(z.unknown()).optional(),
-}).strict();
+  config: z.record(z.string(), z.unknown()).optional(),
+});
 
-export const NewSourceSchema = z.object({
+export const NewSourceSchema = z.strictObject({
   name: z.string().trim().min(3).max(60),
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "use letras minúsculas, números e hífens").min(3).max(40),
   provider: z.string().trim().min(2).max(80),
@@ -74,8 +74,8 @@ export const NewSourceSchema = z.object({
   rateLimitPerMinute: z.number().int().min(1).max(600).default(30),
   cacheTtlMinutes: z.number().int().min(0).max(525_600).default(1440),
   healthPath: z.string().regex(/^\/[\w\-./?=&%]*$/, "caminho inválido (comece com /)").optional(),
-  config: z.record(z.unknown()).optional(),
-}).strict();
+  config: z.record(z.string(), z.unknown()).optional(),
+});
 
 export function deriveStatus(r: ConnectionTestResult, hasCredential: boolean, requiresAuth: boolean): SourceStatus {
   if (requiresAuth && !hasCredential) return "NOT_CONFIGURED";
