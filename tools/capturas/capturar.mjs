@@ -19,6 +19,8 @@ const VISTAS = {
   "moedas": "/cena3d/moedas?q=alta&i=3&t=1.1",
   "vitrine-1": "/cena3d/vitrine?p=120000&l=1&e=0&r=1",
   "vitrine-3": "/cena3d/vitrine?p=900000&l=3&e=6&r=1",
+  "gabinete-piloto": "/mundo3d?modo=sala&l=administracao&q=alta&caso=1&piloto=1",
+  "gabinete-sem-piloto": "/mundo3d?modo=sala&l=administracao&q=alta&caso=1",
   "busto-joana": "/cena3d?c=joana&e=feliz&f=1&q=alta",
   "busto-cornelio": "/cena3d?c=cornelio&e=feliz&q=alta",
 };

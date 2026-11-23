@@ -122,3 +122,42 @@ export function pilhaDeDinheiro(n: number, semente = 1, escala = 1.6): THREE.Gro
   }).catch(() => undefined);
   return grupo;
 }
+
+/**
+ * PILOTO (em avaliação): protagonista "O Gestor" com esqueleto e animações (Universal Animation Library, CC0)
+ * e expressões por morph targets. `animar(nome)` troca a animação com transição; `expressao({...})` define pesos.
+ */
+export interface PersonagemPiloto {
+  grupo: THREE.Group;
+  animacoes: () => string[];
+  animar: (nome: string, transicao?: number) => void;
+  expressao: (pesos: Record<string, number>) => void;
+  atualizar: (dt: number) => void;
+}
+export function personagemPiloto(escala = 1): PersonagemPiloto {
+  const grupo = new THREE.Group(); grupo.name = "piloto-gestor";
+  let mixer: THREE.AnimationMixer | null = null; let clipes: THREE.AnimationClip[] = []; let atual: THREE.AnimationAction | null = null;
+  let pendente: string | null = "Parado"; const morfos: THREE.Mesh[] = []; let pesosPend: Record<string, number> = { sorriso: 0.6 };
+  const aplicarPesos = () => { for (const m of morfos) { const d = m.morphTargetDictionary!; m.morphTargetInfluences!.fill(0); for (const [k, v] of Object.entries(pesosPend)) if (d[k] !== undefined) m.morphTargetInfluences![d[k]!] = v; } };
+  const tocar = (nome: string, tr = 0.35) => {
+    if (!mixer) { pendente = nome; return; }
+    const c = clipes.find((x) => x.name === nome); if (!c) return;
+    const a = mixer.clipAction(c); a.reset(); a.enabled = true;
+    const unica = /Derrota|Coletar|Susto|Interagir/.test(nome);
+    a.setLoop(unica ? THREE.LoopOnce : THREE.LoopRepeat, Infinity); a.clampWhenFinished = unica;
+    if (atual && atual !== a) a.crossFadeFrom(atual, tr, false); a.play(); atual = a;
+  };
+  void Promise.all([carregarAsset("gestor"), import("three/examples/jsm/utils/SkeletonUtils.js")]).then(([{ cena, clipes: cl }, SU]) => {
+    const c = SU.clone(cena) as THREE.Group; c.scale.setScalar(escala);
+    c.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; if (m.morphTargetDictionary && Object.keys(m.morphTargetDictionary).length) morfos.push(m); } o.userData.keep = true; });
+    grupo.add(c); clipes = cl; mixer = new THREE.AnimationMixer(c);
+    aplicarPesos(); if (pendente) tocar(pendente, 0);
+  }).catch(() => undefined);
+  return {
+    grupo,
+    animacoes: () => clipes.map((c) => c.name),
+    animar: tocar,
+    expressao: (p) => { pesosPend = { ...p }; aplicarPesos(); },
+    atualizar: (dt) => { mixer?.update(dt); },
+  };
+}

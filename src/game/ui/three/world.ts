@@ -6,7 +6,7 @@ import { setRealismoLowpoly, bakeGroup, ambulance, ball, blob, board, box, boxPi
 import { ANCHORS, ROOM_D, ROOM_W, ROOMS, WALL_H, WALL_T, roomsDoNivel, type RoomDef } from "./world-data";
 import type { Quality } from "./support";
 import { LOC_INFO, NIVEIS } from "../../content/niveis";
-import { assetEstatico, cofreBlender, pilhaDeDinheiro, type AssetAnimado } from "./blender";
+import { assetEstatico, cofreBlender, personagemPiloto, pilhaDeDinheiro, type AssetAnimado, type PersonagemPiloto } from "./blender";
 import { figuranteRealista, gabineteRealista, personagemRealista, pisoMadeira, raiosDeSol } from "./realismo";
 import type { Tema } from "../../content/niveis/tipos";
 
@@ -44,8 +44,8 @@ export function gabineteDoNivel(nivel: number): LocationId | null {
 }
 
 /** `realismo`: direção R2 (validação: Gabinete da Administração e personagens com modelo de corpo inteiro). */
-export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
-  let cofre: AssetAnimado | null = null; let reduzirMov = false;
+export function buildWorld(q: Quality, nivel = 1, realismo = false, opcoes: { piloto?: boolean } = {}): World {
+  let cofre: AssetAnimado | null = null; let reduzirMov = false; let piloto: PersonagemPiloto | null = null;
   const ROOM_LIST = roomsDoNivel(nivel);
   setRealismoLowpoly(realismo);
   const root = new THREE.Group();
@@ -318,7 +318,11 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false): World {
   };
   const drawCalls = () => walls.length + 1;
   const setSala = (sala: LocationId | null, reduzir: boolean) => { reduzirMov = reduzir; cofre?.tocar(sala === "cofre"); };
-  const tick = (dt: number) => { cofre?.atualizar(dt); };
+  // PILOTO em avaliação: protagonista do Blender no gabinete do nível 1 (só com opcoes.piloto; fora da partida normal)
+  if (opcoes.piloto && realismo && ROOMS.administracao) {
+    piloto = personagemPiloto(1.15); piloto.grupo.position.copy(local("administracao", 1.7, 0, 0.6)); piloto.grupo.rotation.y = -0.5; root.add(piloto.grupo);
+  }
+  const tick = (dt: number) => { cofre?.atualizar(dt); piloto?.atualizar(dt); };
 
   const dispose = () => {
     root.traverse((o) => { const m = o as THREE.Mesh; const mm = m.material as THREE.Material | undefined; if (mm && (mm as THREE.MeshBasicMaterial).map) (mm as THREE.MeshBasicMaterial).map!.dispose(); });

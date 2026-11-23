@@ -33,6 +33,8 @@ interface Props {
   onPick: (a: ActiveHotspot) => void; onGoRoom: (l: LocationId) => void; onModo: (m: Modo) => void; reduzir: boolean; onFail: () => void;
   /** só para capturas/diagnóstico: não desliga os efeitos de luz mesmo com fps baixo */
   fixarEfeitos?: boolean;
+  /** galeria: mostra o personagem piloto (em avaliação) no gabinete do nível 1 */
+  piloto?: boolean;
 }
 
 /** Quem está em cada sala neste caso (todas as salas, para aparecerem na visão geral). */
@@ -81,7 +83,7 @@ export function World3D(p: Props) {
     const key = new THREE.DirectionalLight(realismo ? 0xffd2a0 : 0xfff0d8, realismo ? 2.6 : 2.1); key.position.set(-14, 26, 16); key.castShadow = p.q !== "baixa";
     const sh = key.shadow; sh.mapSize.set(p.q === "alta" ? 2048 : 1024, p.q === "alta" ? 2048 : 1024); sh.camera.near = 5; sh.camera.far = 80; sh.camera.left = -24; sh.camera.right = 24; sh.camera.top = 18; sh.camera.bottom = -18; sh.bias = -0.0006; sh.normalBias = 0.04; sh.radius = 3;
     scene.add(key); scene.add(key.target);
-    const world = buildWorld(p.q, nivel, realismo); scene.add(world.root);
+    const world = buildWorld(p.q, nivel, realismo, { piloto: p.piloto }); scene.add(world.root);
     let comp: EffectComposer | null = null; let bokeh: BokehPass | null = null; let posOff = false, lentas = 0, medidas = 0, quadroCalls = 0, quadroTris = 0, nQuadro = 0;
     renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
     if (pos) {

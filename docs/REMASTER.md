@@ -114,3 +114,35 @@ Custo dos objetos do Blender no gabinete (faixa 3 contra sem luxo): +56 chamadas
 - Compressão Draco/meshopt: o `bpy` do PyPI vem sem Draco; dá para fazer com `gltf-transform` quando a ferramenta for liberada no ambiente.
 - Rankings e loja/inventário não existem no jogo; não foram criados.
 - Blender MCP: quando estiver conectado, os scripts de `tools/blender/` rodam igual dentro do Blender com janela.
+
+---
+
+## Padrão profissional — Etapas A a C (personagem piloto) · 2026-11-23 · **aguardando aprovação**
+
+### Etapa A — diagnóstico
+- **Engine**: three.js r186 no navegador (Next.js 16). Sem motor de física: **não há movimentação livre nem colisões** — o jogador navega por salas e pontos clicáveis, com câmera orbital. Animação: `AnimationMixer` (agora com esqueleto e morph targets).
+- **Personagem principal**: o jogador é o gestor, mas hoje **não tem corpo no mundo** (escolhe um avatar com aparência própria; aparece no retrato 2D, na mão da caneta e na coroação). Os personagens 3D atuais (Cornélio, Toninho etc.) são procedurais (`estudo/personagem.ts`), sem esqueleto.
+- **Origem/licença dos modelos atuais**: todos gerados em código (licença do projeto), exceto o sofá GlamVelvetSofa (Wayfair, CC BY 4.0) e texturas/HDRI Poly Haven (CC0).
+- **Ferramentas testadas**: Blender MCP **não conectado**; nenhum computador do usuário ligado à sessão. Blender 5.3 (`bpy`) funciona aqui, sem Draco/meshopt. Sketchfab e Mixamo exigem login (sem conta). Quaternius: download gratuito funciona (UAL, CC0); "Universal Base Characters" é pago (US$ 19,99).
+- **Backup**: tag local `backup-pre-piloto-2026-11-23` (o envio de tags é bloqueado); ponto de restauração no GitHub: `main` em `fe58576`.
+- **Baseline de desempenho** (gabinete, Alta, 1280×720, Chromium headless com SwiftShader — sem GPU): 1.490 chamadas, 1,57 mi triângulos por quadro; **FPS não representativo** (1 qps em renderização por software).
+
+### Etapa B — personagem piloto "O Gestor"
+- **Técnica**: manequim CC0 profissional como base (topologia e pesos), reesculpido para caricatura e refeito por *voxel remesh* (silhueta contínua de terno); pesos transferidos do manequim (*Data Transfer*); pernas afastadas durante o remesh para não fundirem; cabeça caricata modelada no Blender com 8 shape keys (piscar, sorriso, boca aberta/triste, sobrancelhas de raiva/surpresa/medo, íris dilatada); camisa, gravata, lapelas, faixa verde-amarela, botões, colarinho, medalha 10% e anel como peças sobre o terno.
+- **Animações na engine**: Parado, Falando, Comemorar, Derrota, Andar, Coletar, Sentado, Susto, Interagir (transição suave entre elas).
+- **Arquivos**: `tools/blender/gestor.py`, `tools/blender/piloto_gestor.py`, `tools/blender/base/` (UAL + licença), `public/jogo/3d/blender/gestor.glb`, `src/game/ui/three/blender.ts` (`personagemPiloto`), `world.ts`/`World3D.tsx` (opção `piloto`), galerias `/cena3d/gestor` e `/mundo3d?piloto=1` (só desenvolvimento; **não aparece na partida**).
+- **Custo medido**: +60 chamadas e +185 mil triângulos por quadro no gabinete; GLB 3,35 MB (92 mil triângulos, 65 ossos, 9 animações).
+
+### Etapa C — avaliação do piloto (evidências: renders Cycles e capturas no three.js)
+| Item | Resultado | Evidência / motivo |
+|---|---|---|
+| Rigging e animação na engine | **Aprovado** | 9 animações tocando no three.js com transição; expressões por morph funcionando |
+| Deformações | **Parcialmente aprovado** | pesos profissionais, pernas separadas; aba do paletó é rígida (presa à pelve) e pode atravessar as coxas em passos largos; recorte do pescoço serrilhado no close |
+| Proporções | **Parcialmente aprovado** | cabeça grande e barriga caricatas coerentes; braços ainda "musculosos" do manequim; mãos sempre em punho |
+| Silhueta | **Parcialmente aprovado** | reconhecível (barriga, faixa, topete), mas o terno não tem ombros estruturados nem caimento |
+| Materiais | **Parcialmente aprovado** | pele, tecido, couro, ouro e cabelo distintos; terno liso, sem trama, costuras nem dobras |
+| Expressividade | **Parcialmente aprovado** | 7 expressões + piscar; boca e sobrancelhas simples, sem rugas de expressão |
+| Consistência com os conceitos enviados | **Reprovado** | os conceitos têm acabamento de longa-metragem (rosto esculpido, roupas com dobras, mãos expressivas); o piloto é bem mais simples |
+| Desempenho | **Parcialmente aprovado** | carga extra moderada por quadro; arquivo de 3,35 MB precisa ser reduzido (morphs da cabeça inteira, animações) |
+
+**Conclusão honesta**: o piloto é funcional e integrado, mas **não atinge o padrão dos conceitos**. Modelagem por script tem teto visível no rosto e no tecido. Etapas D–H paradas até a decisão.
