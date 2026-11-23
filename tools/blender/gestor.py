@@ -46,7 +46,7 @@ def mats():
         boca=material("boca_interna", "#5a1a1d", rug=0.7),
         dente=material("dente", "#f4efe2", rug=0.3, clearcoat=0.5),
         labio=material("labio", "#c46d62", rug=0.45),
-        sobrancelha=material("sobrancelha", "#1d1612", rug=0.8),
+        sobrancelha=material("sobrancelha", "#050302", rug=1.0),
     )
 
 
@@ -308,7 +308,7 @@ def vestir(arm, corpo, M):
         f.use_smooth = True
     pecas.append(aba)
     # colarinho branco
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.095, depth=0.07, location=(nk.x, nk.y + 0.008, nk.z + 0.005), vertices=48, end_fill_type="NOTHING")
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.1, depth=0.1, location=(nk.x, nk.y + 0.008, nk.z + 0.02), vertices=48, end_fill_type="NOTHING")
     col = bpy.context.active_object; col.scale = (1.05, 0.95, 1.0); bpy.ops.object.transform_apply(scale=True)
     so = col.modifiers.new("esp", "SOLIDIFY"); so.thickness = 0.01; _aplicar(col, so)
     gc = col.vertex_groups.new(name="neck_01"); gc.add(list(range(len(col.data.vertices))), 1.0, "REPLACE")
@@ -594,15 +594,29 @@ def construir():
     arm, base = importar()
     corpo, maos = esculpir_corpo(arm, base, M)
     extras = vestir(arm, corpo, M)
-    head, pesc, C, R = cabeca(arm, M)
-    grupo(head, "Head")
-    g = pesc.vertex_groups.new(name="neck_01"); g.add(list(range(len(pesc.data.vertices))), 1.0, "REPLACE")
+    import rosto
+    M["pele_vc"] = rosto.material_vc("pele", rug=0.5)
+    M["cabelo_vc"] = rosto.material_vc("cabelo", rug=0.42, coat=0.25)
+    M["lingua"] = material("lingua", "#a8434a", rug=0.5)
+    R = 0.15
+    hb = arm.matrix_world @ arm.data.bones["Head"].head_local
+    head, C, olhos, cab = rosto.construir_rosto(hb, R, M)
+    gc_ = cab.vertex_groups.new(name="Head"); gc_.add(list(range(len(cab.data.vertices))), 1.0, "REPLACE")
+    rosto.expressoes_v2(head, C, R, olhos)
+    # pesos: pescoço (neck_01) embaixo, cabeça (Head) em cima, transição suave
+    gh = head.vertex_groups.new(name="Head"); gn = head.vertex_groups.new(name="neck_01")
+    for v in head.data.vertices:
+        z = (head.matrix_world @ v.co).z
+        t = smooth(hb.z - 0.06, hb.z + 0.015, z)
+        gh.add([v.index], t, "REPLACE"); gn.add([v.index], 1 - t, "REPLACE")
+    pesc = None
     ac = acessorios(arm, corpo, M)
     for o in extras + ac:
         if not o.vertex_groups:
             transferir_pesos(base, o)
     bpy.data.objects.remove(base, do_unlink=True)
-    prender(arm, [corpo, maos, head, pesc, *extras, *ac])
+    prender(arm, [corpo, maos, head, cab, *extras, *ac])
+    print("vértices: rosto", len(head.data.vertices), "cabelo", len(cab.data.vertices), "corpo", len(corpo.data.vertices))
     for a in list(bpy.data.actions):
         if a.name in ANIMS:
             a.name = ANIMS[a.name]; a.use_fake_user = True

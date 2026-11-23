@@ -146,3 +146,18 @@ Custo dos objetos do Blender no gabinete (faixa 3 contra sem luxo): +56 chamadas
 | Desempenho | **Parcialmente aprovado** | carga extra moderada por quadro; arquivo de 3,35 MB precisa ser reduzido (morphs da cabeça inteira, animações) |
 
 **Conclusão honesta**: o piloto é funcional e integrado, mas **não atinge o padrão dos conceitos**. Modelagem por script tem teto visível no rosto e no tecido. Etapas D–H paradas até a decisão.
+
+### Rodada 2 do piloto — rosto (opção 1, foco no rosto) · 2026-11-23 · **aguardando aprovação**
+- **Técnica nova** (`tools/blender/rosto.py`): a pele é uma superfície única — crânio, mandíbula, papada, bochechas, queixo, arco das sobrancelhas, nariz caído, lábios, orelhas de abano e pescoço fundidos por *voxel remesh* —, com órbitas e sorriso escavados por *boolean* e malha refeita e suavizada. Cores por vértice: bochechas e nariz rosados, lábios, olheiras. Pálpebra superior pesada (ar de "esperto"), pálpebra inferior, dentes de cima à mostra, língua e boca escura ao fundo. Sobrancelhas em feixes; cabelo esculpido com topete e mechas, recorte limpo da linha do cabelo e têmporas grisalhas.
+- **Expressões** (9 morph targets): piscar, olhos_abertos, sorriso (levanta bochechas), boca_aberta (mandíbula), boca_triste, sobrancelha_raiva/surpresa/medo, iris_grande. No jogo, combinadas em Satisfação, Ganância, Alegria, Raiva, Surpresa, Medo e Piscar — conferidas no three.js.
+- **Defeitos encontrados e corrigidos nesta rodada**: material vazio criado pelo boolean (pele saía branca); dentes à frente dos lábios; pálpebras apagadas por comparar coordenadas locais com globais (olhar arregalado); piscar abria em vez de fechar; arco da sobrancelha furando a silhueta; linha do cabelo serrilhada.
+
+| Item do rosto | Antes (rodada 1) | Agora |
+|---|---|---|
+| Forma e caricatura | Reprovado (primitivas coladas) | **Parcialmente aprovado**: superfície contínua, papada, queixo e nariz caricatos; faltam vincos (bigode chinês, covinha do queixo) |
+| Olhos | Parcialmente | **Aprovado**: pálpebras pesadas dão personalidade; piscar e arregalar funcionam |
+| Boca | Parcialmente | **Parcialmente aprovado**: sorriso com dentes convence; dentes sem divisão, "tristeza" limitada porque a boca base é um sorriso |
+| Pele e cor | Parcialmente | **Aprovado**: tons de bochecha, nariz, lábios e olheira |
+| Cabelo | Parcialmente | **Parcialmente aprovado**: topete com volume e linha limpa; mechas pouco definidas, brilho plástico no navegador |
+| Expressividade no motor | Parcialmente | **Aprovado**: 7 emoções distintas no three.js |
+| Pendências fora do rosto | — | recorte serrilhado do terno no pescoço (aparece no close); arquivo cresceu para 5,7 MB (malha do rosto 2,9 MB) — otimização na etapa F |

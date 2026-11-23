@@ -85,6 +85,7 @@ if __name__ == "__main__":
             "lado": ((4.6, 0, 1.05), (0, 0, 0.98), 50, 1, "Parado", {"sorriso": 0.5}),
             "costas": ((0, 4.6, 1.05), (0, 0, 0.98), 50, 1, "Parado", {}),
             "rosto": ((0.35, -1.25, hz + 0.05), (0, 0, hz - 0.01), 85, 1, "Parado", {"sorriso": 0.8}),
+            "rosto_frente": ((0.0, -1.3, hz + 0.02), (0, 0, hz - 0.01), 85, 1, "Parado", {"sorriso": 0.6}),
             "pose": ((1.6, -3.6, 1.3), (0, 0, 0.95), 45, 18, "Comemorar", {"sorriso": 1.0, "iris_grande": 0.8, "sobrancelha_surpresa": 0.4}),
         }
         for nome, (pos, alvo, lente, q, acao, ch) in V.items():

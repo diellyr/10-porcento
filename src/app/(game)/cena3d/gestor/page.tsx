@@ -7,8 +7,8 @@ import { ambienteHDRI } from "@/game/ui/three/realismo";
 
 const ANIMS = ["Parado", "Falando", "Comemorar", "Derrota", "Andar", "Coletar", "Sentado", "Susto", "Interagir"];
 const EXPR: Record<string, Record<string, number>> = {
-  Satisfação: { sorriso: 0.6 }, Ganância: { sorriso: 1, iris_grande: 1, sobrancelha_surpresa: 0.3 }, Alegria: { sorriso: 1, boca_aberta: 0.6 },
-  Raiva: { sobrancelha_raiva: 1, boca_triste: 0.6 }, Surpresa: { sobrancelha_surpresa: 1, boca_aberta: 1 }, Medo: { sobrancelha_medo: 1, boca_triste: 0.8, boca_aberta: 0.4 },
+  Satisfação: { sorriso: 0.6 }, Ganância: { sorriso: 1, iris_grande: 1, olhos_abertos: 0.8, sobrancelha_surpresa: 0.4 }, Alegria: { sorriso: 1, boca_aberta: 0.6, olhos_abertos: 0.3 },
+  Raiva: { sobrancelha_raiva: 1, boca_triste: 0.6 }, Surpresa: { sobrancelha_surpresa: 1, boca_aberta: 1, olhos_abertos: 1 }, Medo: { sobrancelha_medo: 1, boca_triste: 0.9, boca_aberta: 0.5, olhos_abertos: 0.9 },
   Piscar: { piscar: 1, sorriso: 0.6 },
 };
 
