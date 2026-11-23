@@ -175,3 +175,13 @@ Custo dos objetos do Blender no gabinete (faixa 3 contra sem luxo): +56 chamadas
 | Acabamento do pescoço | Reprovado | **Parcialmente aprovado**: frente resolvida; na nuca ainda há recorte |
 | Barriga caricata | Parcialmente | **Parcialmente aprovado**: menos marcada que na rodada 1 |
 | Arquivo | 3,35 MB | 6,0 MB (corpo mais denso para as dobras) — otimização na etapa F |
+
+### Rodada 4 do piloto — mãos · 2026-11-23 · **aguardando aprovação**
+- **Causa do "punho sempre fechado"**: as animações da biblioteca (UAL) mantêm os dedos em punho. Não era o modelo.
+- **Feito** (`tools/blender/gestor.py`, `maos_relaxadas`): em cada animação os dedos recebem uma pose entre a mão reta da pose de base e o punho original — relaxada em Parado/Sentado/Andar, aberta em Falando/Derrota/Susto, punho mantido em Comemorar/Coletar/Interagir. Mãos um pouco mais cheias e com pontas dos dedos rosadas (cor por vértice, igual ao rosto). Conferido no Blender e no three.js.
+
+| Item das mãos | Antes | Agora |
+|---|---|---|
+| Pose por situação | Reprovado (sempre punho) | **Aprovado**: relaxada, gesticulando ao falar, aberta no susto |
+| Forma | Parcialmente (mão de manequim) | **Parcialmente aprovado**: proporção boa, mas sem unhas nem rugas dos nós |
+| Cor | Parcialmente | **Aprovado**: tom e rosado das pontas combinam com o rosto |

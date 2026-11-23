@@ -250,7 +250,19 @@ def esculpir_corpo(arm, base, M):
     dl = maos.data.vertices
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not (osso_dominante(maos, dl[v.index]).startswith(("hand", "index", "middle", "pinky", "ring", "thumb")))], context="VERTS")
     bm.to_mesh(maos.data); bm.free()
-    maos.data.materials.clear(); maos.data.materials.append(M["pele"])
+    for v in maos.data.vertices:                       # dedos e palma um pouco mais cheios (caricatura gordinha)
+        v.co += v.normal * 0.0025
+    maos.data.materials.clear(); maos.data.materials.append(M["pele_vc"])
+    import rosto as _r
+    base_c, rosa = _r._lin("#e9a985"), _r._lin("#d97a66")
+    pontas = {f"{d}_03_{s_}" for d in DEDOS for s_ in "lr"} | {f"{d}_02_{s_}" for d in DEDOS for s_ in "lr"}
+    nomes = {g.index: g.name for g in maos.vertex_groups}
+    if "Cor" not in maos.data.color_attributes:
+        maos.data.color_attributes.new("Cor", "BYTE_COLOR", "POINT")
+    at = maos.data.color_attributes["Cor"]
+    for v in maos.data.vertices:
+        w = sum(g.weight for g in v.groups if nomes.get(g.group) in pontas)
+        at.data[v.index].color = (*_r.mistura(base_c, rosa, 0.45 * min(1.0, w)), 1.0)
     for f in maos.data.polygons:
         f.use_smooth = True
     return corpo, maos
@@ -670,16 +682,63 @@ def prender(arm, objs):
             md = o.modifiers.new("Armature", "ARMATURE"); md.object = arm
 
 
+# quanto do "punho" da animação original fica em cada animação (0 = mão reta, 1 = punho original)
+FECHAMENTO = {"Parado": 0.42, "Sentado": 0.42, "Andar": 0.45, "Falando": 0.28, "Derrota": 0.25, "Susto": 0.12,
+              "Comemorar": 1.0, "Coletar": 1.0, "Interagir": 1.0}
+DEDOS = ("index", "middle", "pinky", "ring", "thumb")
+
+
+def _fcurves(action):
+    """Curvas de uma ação (Blender 5: ações em camadas/slots; versões antigas: action.fcurves)."""
+    if hasattr(action, "fcurves") and len(getattr(action, "fcurves", [])):
+        return list(action.fcurves)
+    out = []
+    for layer in getattr(action, "layers", []):
+        for strip in layer.strips:
+            for slot in action.slots:
+                cb = strip.channelbag(slot)
+                if cb:
+                    out += list(cb.fcurves)
+    return out
+
+
+def maos_relaxadas():
+    """As animações da biblioteca fecham os dedos em punho o tempo todo. Aqui cada animação recebe uma mão
+    entre a reta (pose de base) e o punho original, conforme a situação: relaxada parado, aberta falando/no susto,
+    punho mantido em comemorar/coletar/interagir."""
+    from mathutils import Quaternion
+    for act in bpy.data.actions:
+        k = FECHAMENTO.get(act.name, 1.0)
+        if k >= 0.999:
+            continue
+        grupos = {}
+        for fc in _fcurves(act):
+            if fc.data_path.endswith("rotation_quaternion") and any(f'"{d}_' in fc.data_path for d in DEDOS):
+                grupos.setdefault(fc.data_path, {})[fc.array_index] = fc
+        for path, comp in grupos.items():
+            if len(comp) != 4 or len({len(c.keyframe_points) for c in comp.values()}) != 1:
+                continue
+            kk = k * (1.15 if '"thumb_' in path else 1.0)
+            for i in range(len(comp[0].keyframe_points)):
+                q = Quaternion([comp[j].keyframe_points[i].co[1] for j in range(4)])
+                r = Quaternion((1, 0, 0, 0)).slerp(q, min(1.0, kk))
+                for j in range(4):
+                    kp = comp[j].keyframe_points[i]
+                    kp.co[1] = r[j]; kp.handle_left[1] = r[j]; kp.handle_right[1] = r[j]
+            for c in comp.values():
+                c.update()
+
+
 def construir():
     from comum import limpar
     limpar()
     M = mats()
     M["terno_lapela"] = material("terno_lapela", "#2c3039", rug=0.35, clearcoat=0.4)
+    import rosto
+    M["pele_vc"] = rosto.material_vc("pele", rug=0.5)
     arm, base = importar()
     corpo, maos = esculpir_corpo(arm, base, M)
     extras = vestir(arm, corpo, M)
-    import rosto
-    M["pele_vc"] = rosto.material_vc("pele", rug=0.5)
     M["cabelo_vc"] = rosto.material_vc("cabelo", rug=0.42, coat=0.25)
     M["lingua"] = material("lingua", "#a8434a", rug=0.5)
     R = 0.15
@@ -706,6 +765,7 @@ def construir():
             a.name = ANIMS[a.name]; a.use_fake_user = True
         else:
             bpy.data.actions.remove(a)
+    maos_relaxadas()
     arm.name = "Gestor"
     arm.animation_data.action = bpy.data.actions["Parado"]
     return arm
