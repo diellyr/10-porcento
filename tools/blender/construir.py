@@ -18,6 +18,7 @@ ASSETS = {
     "trofeu": ([None], dict(alvo=(0, 0, 0.22), dist=1.4, alt=0.3)),
     "coroa": ([None], dict(alvo=(0, 0, 0.1), dist=1.0, alt=0.4)),
     "trono": ([None], dict(alvo=(0, 0, 0.85), dist=4.0, alt=0.6)),
+    "upa_recepcao": ([None], dict(alvo=(0, 0, 0.7), dist=9.5, alt=5.5)),
 }
 # assets definidos em módulos com várias funções (módulo -> nomes)
 MULTI = {"tesouros": ["maleta", "maco", "moeda", "trofeu", "coroa", "trono"]}

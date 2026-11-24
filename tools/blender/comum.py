@@ -32,7 +32,7 @@ def limpar() -> None:
             col.remove(b)
 
 
-def material(nome: str, cor: str, metal: float = 0.0, rug: float = 0.5, emissao: float = 0.0, clearcoat: float = 0.0) -> bpy.types.Material:
+def material(nome: str, cor: str, metal: float = 0.0, rug: float = 0.5, emissao: float = 0.0, clearcoat: float = 0.0, alfa: float = 1.0) -> bpy.types.Material:
     """Material PBR (Principled BSDF) que o exportador glTF converte 1:1 para o three.js."""
     if nome in _mats:
         return _mats[nome]
@@ -49,6 +49,9 @@ def material(nome: str, cor: str, metal: float = 0.0, rug: float = 0.5, emissao:
     if emissao:
         p.inputs["Emission Color"].default_value = (*lin, 1.0)
         p.inputs["Emission Strength"].default_value = emissao
+    if alfa < 1.0:                                   # vidro/acrílico: exportado como alphaMode BLEND
+        p.inputs["Alpha"].default_value = alfa
+        m.surface_render_method = "BLENDED"
     _mats[nome] = m
     return m
 

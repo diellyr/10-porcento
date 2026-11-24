@@ -121,6 +121,13 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false, opcoes: { pi
     const info = LOC_INFO[id]; if (info) { propsTema(info.spec.tema, info.spec.curto, g); return; }
     switch (id) {
       case "recepcao": {
+        if (realismo) {
+          // cenário piloto (Blender): balcão, longarinas, fila, totem de senha, bebedouro, ventilador, letreiro e mural
+          g.add(assetEstatico("upa_recepcao"));
+          plant(g, -4.3, -2.9, 1); plant(g, 4.3, 3.0, 0.9);
+          box(g, 0.1, 2.2, 1.4, "#a9dcf5", -4.78, 0, 1.2, { emissive: "#a9dcf5" });
+          break;
+        }
         box(g, 4.6, 1.05, 0.9, "#f0a14c", 1.2, 0, -1.7); box(g, 4.7, 0.1, 1.0, "#ffd08a", 1.2, 1.05, -1.7); box(g, 0.9, 1.05, 2.0, "#f0a14c", 3.35, 0, -0.6); box(g, 1.0, 0.1, 2.1, "#ffd08a", 3.35, 1.05, -0.6);
         monitor(g, 1.6, 1.15, -1.7, 0, "#d9f1ff"); papers(g, 0.2, 1.15, -1.6); box(g, 0.5, 1.7, 0.5, "#2a5be0", 4.2, 0, -3.0); box(g, 0.3, 0.3, 0.02, "#fffdf8", 4.2, 1.2, -2.74); cyl(g, 0.1, 0.02, "#ffcf44", 4.2, 0.8, -2.73, {}, true).rotation.x = Math.PI / 2;
         for (let i = 0; i < 6; i++) chair(g, -4.0 + i * 1.25, 2.3, "#2a5be0", Math.PI);
@@ -199,7 +206,7 @@ export function buildWorld(q: Quality, nivel = 1, realismo = false, opcoes: { pi
     const rug = (x: number, z: number, w: number, d: number, c: string) => { box(g, w, 0.03, d, c, x, 0, z); box(g, w - 0.3, 0.035, d - 0.3, lighten(c, 0.18), x, 0, z); };
     const ext = (x: number, z: number, rot = 0) => { const e = new THREE.Group(); e.position.set(x, 0, z); e.rotation.y = rot; g.add(e); cyl(e, 0.09, 0.5, "#d12c2c", 0, 0.4, 0, {}, true); box(e, 0.1, 0.1, 0.1, "#222", 0, 0.9, 0); };
     switch (id) {
-      case "recepcao": rug(-1.2, 0.3, 3.4, 2.4, "#4a72d9"); bin(-4.4, 2.0); clock(0.4, 2.4, -3.3); ext(4.3, -2.1); board(g, 3.2, 2.5, -3.33, 1.1, 0.8, 0, "#fff3dc"); break;
+      case "recepcao": rug(-1.2, 0.3, 3.4, 2.4, "#4a72d9"); bin(-4.4, 2.0); clock(0.4, 2.4, -3.3); ext(4.3, -2.1); if (!realismo) board(g, 3.2, 2.5, -3.33, 1.1, 0.8, 0, "#fff3dc"); break;
       case "farmacia": clock(-0.8, 2.4, -3.3); bin(-2.4, 2.6); ext(4.4, 2.6, -Math.PI / 2); rug(0.4, 2.0, 2.6, 1.6, "#7fc4a6"); break;
       case "enfermagem": clock(0.6, 2.4, -3.3); bin(3.8, -2.2, "#9aa5b5"); rug(1.0, 1.4, 2.8, 1.8, "#8fb4e6"); ext(-4.4, 2.4, Math.PI / 2); box(g, 0.3, 0.4, 0.12, "#f4f6fb", 0.2, 1.1, -3.25); break;
       case "administracao": if (realismo) break; rug(0.4, 0.4, 4.4, 3.0, "#8a2f2f"); clock(-1.6, 2.5, -3.3); board(g, 4.0, 2.5, -3.33, 1.2, 0.8, 0, "#e8dcc4"); cyl(g, 0.06, 1.6, "#6b4a2a", 4.3, 0, 2.6); box(g, 0.5, 0.05, 0.05, "#6b4a2a", 4.3, 1.5, 2.6); bin(-1.8, -2.6, "#8a5528"); break;
