@@ -139,6 +139,8 @@ def exportar(nome: str) -> Path:
                               export_animations=True, export_animation_mode="ACTIVE_ACTIONS", export_cameras=False,
                               export_texcoords=False,  # sem texturas: UV é peso morto
                               export_lights=False)
+    import otimizar_glb
+    otimizar_glb.otimizar(str(arq), str(arq))      # normais em 8 bits, índices em 16 bits (formatos nativos do three.js)
     return arq
 
 

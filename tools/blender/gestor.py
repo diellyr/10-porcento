@@ -218,7 +218,7 @@ def esculpir_corpo(arm, base, M):
     _aplicar(corpo, rm)
     sm = corpo.modifiers.new("suave", "CORRECTIVE_SMOOTH"); sm.factor = 0.5; sm.iterations = 12; sm.use_only_smooth = True
     _aplicar(corpo, sm)
-    dc = corpo.modifiers.new("reduz", "DECIMATE"); dc.ratio = 0.7
+    dc = corpo.modifiers.new("reduz", "DECIMATE"); dc.ratio = 0.52
     _aplicar(corpo, dc)
     print("corpo após remesh:", len(corpo.data.vertices), "vértices")
     corpo.vertex_groups.clear()
@@ -252,6 +252,7 @@ def esculpir_corpo(arm, base, M):
     bm.to_mesh(maos.data); bm.free()
     for v in maos.data.vertices:                       # dedos e palma um pouco mais cheios (caricatura gordinha)
         v.co += v.normal * 0.0025
+    dm = maos.modifiers.new("reduz", "DECIMATE"); dm.ratio = 0.6; _aplicar(maos, dm)
     maos.data.materials.clear(); maos.data.materials.append(M["pele_vc"])
     import rosto as _r
     base_c, rosa = _r._lin("#e9a985"), _r._lin("#d97a66")
@@ -758,8 +759,16 @@ def construir():
         if not o.vertex_groups:
             transferir_pesos(base, o)
     bpy.data.objects.remove(base, do_unlink=True)
-    prender(arm, [corpo, maos, head, cab, *extras, *ac])
-    print("vértices: rosto", len(head.data.vertices), "cabelo", len(cab.data.vertices), "corpo", len(corpo.data.vertices))
+    # une tudo que não tem expressão numa malha só (menos chamadas de desenho: uma por material, não por peça)
+    estaticos = [corpo, maos, cab, *extras, *ac]
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in estaticos:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = corpo
+    bpy.ops.object.join()
+    corpo = bpy.context.active_object; corpo.name = "Corpo_Gestor"
+    prender(arm, [corpo, head])
+    print("vértices: rosto", len(head.data.vertices), "corpo+roupa+cabelo", len(corpo.data.vertices), "materiais", len(corpo.data.materials) + len(head.data.materials))
     for a in list(bpy.data.actions):
         if a.name in ANIMS:
             a.name = ANIMS[a.name]; a.use_fake_user = True

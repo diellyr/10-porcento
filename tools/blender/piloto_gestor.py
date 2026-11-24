@@ -28,6 +28,8 @@ def exportar(arm):
                               export_apply=False, export_animations=True, export_animation_mode="ACTIONS",
                               export_skins=True, export_morph=True, export_morph_normal=False, export_texcoords=False,
                               export_cameras=False, export_lights=False)
+    import otimizar_glb
+    otimizar_glb.otimizar(str(arq), str(arq))      # pesos/cores/normais em 8 bits, índices em 16 bits
     return arq
 
 

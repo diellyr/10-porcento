@@ -140,7 +140,7 @@ def construir_rosto(base, R, M):
             v.co.z = C.z - R * 0.47 + (v.co.z - (C.z - R * 0.47)) * 0.25
     _subtrair(pele, corte)
     _remesh(pele, R * 0.022, 6, 0.35)
-    dc = pele.modifiers.new("reduz", "DECIMATE"); dc.ratio = 0.3; _aplicar(pele, dc)
+    dc = pele.modifiers.new("reduz", "DECIMATE"); dc.ratio = 0.22; _aplicar(pele, dc)
     for p_ in pele.data.polygons:
         p_.use_smooth = True
     # ---------- cor da pele ----------
@@ -173,12 +173,12 @@ def construir_rosto(base, R, M):
         grupos.setdefault(g, []).append(o)
 
     for c in olhos:
-        ob = _esf(c, R * 0.17, (1.0, 0.85, 1.0), 32); ob.data.materials.append(M["olho"]); partes.append(ob)
-        ir = _esf(c + Vector((0, -R * 0.135, -R * 0.005)), R * 0.085, (1, 0.35, 1), 24); ir.data.materials.append(M["iris"]); partes.append(ir); marca(ir, "g_iris")
-        pu = _esf(c + Vector((0, -R * 0.16, -R * 0.005)), R * 0.045, (1, 0.25, 1), 16); pu.data.materials.append(M["pupila"]); partes.append(pu); marca(pu, "g_iris")
+        ob = _esf(c, R * 0.17, (1.0, 0.85, 1.0), 22); ob.data.materials.append(M["olho"]); partes.append(ob)
+        ir = _esf(c + Vector((0, -R * 0.135, -R * 0.005)), R * 0.085, (1, 0.35, 1), 18); ir.data.materials.append(M["iris"]); partes.append(ir); marca(ir, "g_iris")
+        pu = _esf(c + Vector((0, -R * 0.16, -R * 0.005)), R * 0.045, (1, 0.25, 1), 12); pu.data.materials.append(M["pupila"]); partes.append(pu); marca(pu, "g_iris")
         # pálpebras superior (pesada: ar de esperteza) e inferior, cor de pele
         for sup in (True, False):
-            lid = _esf(c, R * 0.185, (1.04, 1.0, 1.04), 32)
+            lid = _esf(c, R * 0.185, (1.04, 1.0, 1.04), 24)
             bm = bmesh.new(); bm.from_mesh(lid.data)
             corte_z = (-R * 0.012 if sup else -R * 0.08)                # (coordenadas locais, relativas ao centro do olho)
             bmesh.ops.delete(bm, geom=[v for v in bm.verts if (v.co.z < corte_z) == sup or v.co.y > R * 0.02], context="VERTS")
@@ -190,7 +190,7 @@ def construir_rosto(base, R, M):
             lid.data.materials.append(M["pele_vc"]); partes.append(lid); marca(lid, "g_palpebra" if sup else "g_palpebra_inf")
     # ---------- boca: interior, dentes de cima, língua ----------
     bi = _esf(V(0, -0.72, -0.54), R * 0.4, (1.0, 0.5, 0.32), 32); bi.data.materials.append(M["boca"]); partes.append(bi); marca(bi, "g_boca_int")
-    den = _esf(V(0, -0.9, -0.535), R * 0.36, (1.0, 0.26, 0.1), 40)          # logo atrás do lábio de cima
+    den = _esf(V(0, -0.9, -0.535), R * 0.36, (1.0, 0.26, 0.1), 28)          # logo atrás do lábio de cima
     for v in den.data.vertices:
         dx = (v.co.x - C.x) / (R * 0.34); v.co.z += R * 0.12 * dx * dx; v.co.y += R * 0.12 * dx * dx   # arco da arcada
     den.data.materials.append(M["dente"]); partes.append(den); marca(den, "g_dentes")
@@ -233,7 +233,7 @@ def construir_rosto(base, R, M):
         _subtrair(cab, _esf(V(s_ * 0.9, 0.0, -0.05), R * 0.42, (0.6, 0.9, 0.75), 32))   # em volta das orelhas
     _subtrair(cab, _esf(V(0, 0.5, -0.55), R * 0.9, (1.2, 1.0, 0.6), 40))        # nuca
     cab.data.materials.clear()
-    dc = cab.modifiers.new("reduz", "DECIMATE"); dc.ratio = 0.28; _aplicar(cab, dc)
+    dc = cab.modifiers.new("reduz", "DECIMATE"); dc.ratio = 0.16; _aplicar(cab, dc)
     preto, gris = _lin("#15110e"), _lin("#9a9692")
     pintar(cab, lambda p: mistura(preto, gris, 0.8 * sm(0.74, 0.9, abs((p.x - C.x) / R)) * sm(0.32, 0.05, (p.z - C.z) / R)))
     cab.data.materials.append(M["cabelo_vc"])

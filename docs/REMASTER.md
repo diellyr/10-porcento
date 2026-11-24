@@ -185,3 +185,16 @@ Custo dos objetos do Blender no gabinete (faixa 3 contra sem luxo): +56 chamadas
 | Pose por situação | Reprovado (sempre punho) | **Aprovado**: relaxada, gesticulando ao falar, aberta no susto |
 | Forma | Parcialmente (mão de manequim) | **Parcialmente aprovado**: proporção boa, mas sem unhas nem rugas dos nós |
 | Cor | Parcialmente | **Aprovado**: tom e rosado das pontas combinam com o rosto |
+
+### Etapa F (parcial) — otimização do personagem · 2026-11-24
+- **`tools/blender/otimizar_glb.py`** (sem ferramentas externas; só formatos nativos do three.js): pesos de esqueleto e cores em 8 bits, normais em 8 bits (`KHR_mesh_quantization`), índices em 16 bits; preserva os morph targets esparsos. Aplicado automaticamente a todos os GLB do pipeline.
+- **`tools/blender/teste-glb.mjs`**: carrega cada GLB com o `GLTFLoader` do three.js no Node (pegou um erro real: a primeira versão do otimizador quebrava os morph targets esparsos e o personagem sumia no navegador).
+- Geometria reduzida onde não aparece (esferas dos olhos, dentes, cabelo, pele do rosto, corpo e mãos) e todas as peças sem expressão unidas numa malha (chamadas por material, não por peça).
+
+| Medida | Antes | Depois |
+|---|---|---|
+| gestor.glb | 6.071 KB | 3.348 KB (−45%) · gzip 1,5 MB |
+| Demais GLB do Blender | 942 KB | 630 KB (−33%) |
+| Custo no gabinete (Alta) | +74 chamadas, +188 mil triângulos | +36 chamadas, +188 mil triângulos |
+
+Qualidade conferida depois da redução: renders do rosto e do corpo e capturas no three.js (expressões, animações, mãos).
