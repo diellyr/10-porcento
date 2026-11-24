@@ -198,3 +198,15 @@ Custo dos objetos do Blender no gabinete (faixa 3 contra sem luxo): +56 chamadas
 | Custo no gabinete (Alta) | +74 chamadas, +188 mil triângulos | +36 chamadas, +188 mil triângulos |
 
 Qualidade conferida depois da redução: renders do rosto e do corpo e capturas no three.js (expressões, animações, mãos).
+
+### Etapa D — cenário piloto: Recepção e Triagem (nível 1) · 2026-11-24 · **aguardando aprovação**
+- **`tools/blender/upa_recepcao.py`** → `upa_recepcao.glb` (841 KB): balcão em L (tampo, frisos, "RECEPÇÃO" e cruz da UPA, acrílico com fresta, monitor aceso no ponto "computador", teclado, campainha, fichas, carimbo, caneca e a plaquinha "ATENDIMENTO (SE DER TEMPO)"); longarinas com viga e pés nas posições exatas dos pacientes sentados; totem "RETIRE SUA SENHA"; pedestais com fita vermelha e "FILA ÚNICA"; bebedouro com "EM MANUTENÇÃO"; ventilador de parede; letreiro "UPA 24h"; mural de cortiça; barra de azulejos com rejunte; rachaduras; placa de bronze "INAUGURADA EM 2016 · 2018 · 2022 (E SEGUE EM OBRAS)".
+- **Preservado**: posições dos pontos de jogo (Célia, computador do balcão, painel de espera, portas), painel dinâmico "ESPERA MÉDIA", pacientes e degradação. Só nas qualidades Alta/Média; Baixa e 2D como antes.
+
+| Item | Resultado |
+|---|---|
+| Arquitetura e composição | **Parcialmente aprovado**: azulejos, rachaduras e balcão dão leitura de UPA; piso e paredes superiores ainda são os procedurais |
+| Objetos detalhados e sátira legível | **Aprovado**: fila, senha, bebedouro, placa das inaugurações e "se der tempo" |
+| Legibilidade e jogabilidade | **Aprovado**: pontos clicáveis e circulação livres; pacientes alinhados às longarinas |
+| Textos pequenos | **Parcialmente aprovado**: "RECEPÇÃO", "FILA ÚNICA" e a placa ficam pequenos na câmera do jogo |
+| Consistência com o protagonista | **Parcialmente aprovado**: figurantes e Célia ainda são os modelos procedurais da direção R2, não o padrão do piloto |
